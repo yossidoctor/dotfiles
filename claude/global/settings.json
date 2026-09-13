@@ -1,0 +1,224 @@
+{
+  "skillListingBudgetFraction": 0.03,
+  "env": {
+    "_comment_PATH": "zsh/zshenv PATH (the SoT) duplicated here because the harness's env.PATH overrides the shell PATH for Bash-tool calls, which don't source zshenv. Prefixed with fnm's default-version bin: zsh gets node via `fnm env --use-on-cd` at runtime (zshrc), which Bash-tool calls don't run, so the node toolchain is named explicitly here.",
+    "PATH": "/Users/yossidoctor/.local/share/fnm/aliases/default/bin:/Users/yossidoctor/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "DISABLE_AUTOUPDATER": "1",
+    "_comment_telemetry": "Set-only vars: any non-empty value opts out, including \"0\". Unset to re-enable.",
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "GIT_PAGER": "cat",
+    "PAGER": "cat",
+    "LESS": "FRX",
+    "CI": "1",
+    "NO_COLOR": "1",
+    "BASH_MAX_OUTPUT_LENGTH": "100000",
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
+    "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
+    "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
+    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
+    "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Bash(dd *)",
+      "Bash(diskutil eraseDisk *)",
+      "Bash(diskutil eraseVolume *)",
+      "Bash(diskutil reformat *)",
+      "Bash(mkfs *)",
+      "Bash(mkfs.* *)",
+      "Bash(shred *)",
+      "Bash(sudo *)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --mirror *)",
+      "Bash(git push --delete *)",
+      "Bash(git push origin --delete *)",
+      "Bash(git -C * push --force *)",
+      "Bash(git -C * push -f *)",
+      "Bash(git -C * push --mirror *)",
+      "Bash(git -C * push --delete *)",
+      "Bash(gh repo delete *)",
+      "Bash(gh release delete *)",
+      "Bash(gh cache delete *)",
+      "Bash(gh secret delete *)"
+    ],
+    "ask": [
+      "Bash(git branch -D *)",
+      "Bash(git reset --hard *)",
+      "Bash(git tag -d *)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git -C * push --force-with-lease*)",
+      "Bash(git * reset --hard *)",
+      "Bash(git * branch -D *)",
+      "Bash(git * tag -d *)"
+    ],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/Users/yossidoctor/dotfiles"
+    ]
+  },
+  "model": "opus",
+  "availableModels": [
+    "fable",
+    "opus",
+    "sonnet"
+  ],
+  "skillOverrides": {},
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/ask-matt-banner.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/enforce-foreground-polling.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/enforce-read-over-shell-read.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/force-background-agents.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/redirect-symlink-edits.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/warn-existing-occurrence.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh active"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/snapshot-rule-files.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh linger"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/audit-docs-on-stop.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/notify-agent-idle.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "baseRef": "fresh"
+  },
+  "enableWorkflows": false,
+  "workflowKeywordTriggerEnabled": false,
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$HOME\"/.claude/statusline-command.sh"
+  },
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "bash \"$HOME\"/.claude/subagent-statusline.sh"
+  },
+  "enabledPlugins": {
+    "mattpocock-skills@mattpocock": true
+  },
+  "extraKnownMarketplaces": {
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    }
+  },
+  "outputStyle": "Straight Answers",
+  "feedbackSurveyRate": 0,
+  "feedbackDrafts": "off",
+  "alwaysThinkingEnabled": false,
+  "effortLevel": "high",
+  "promptSuggestionEnabled": false,
+  "awaySummaryEnabled": false,
+  "askUserQuestionTimeout": "never",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "tap"
+  },
+  "autoMemoryEnabled": false,
+  "skipWorkflowUsageWarning": true,
+  "theme": "custom:catppuccin-mocha",
+  "editorMode": "normal",
+  "verbose": false,
+  "preferredNotifChannel": "ghostty",
+  "autoCompactEnabled": false,
+  "switchModelsOnFlag": false,
+  "autoContinueAtUsageLimit": false,
+  "autoScrollEnabled": false,
+  "remoteControlAtStartup": true,
+  "crossSessionInbound": "accept",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true
+}

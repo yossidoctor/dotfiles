@@ -1,0 +1,90 @@
+# Left prompt: dir + git + char. Right: status/duration/jobs/identity/time.
+# Language/cloud modules are default-on and render only in matching dirs, so they're
+# not listed here — only deviations from Starship defaults are.
+
+add_newline = true
+palette = "main"
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$character"""
+
+right_format = """
+$status\
+$cmd_duration\
+$jobs\
+${custom.git_identity}\
+$time"""
+
+[palettes.main]
+ok = "#a6e3a1"
+err = "#f38ba8"
+branch = "#cba6f7"
+dir = "#89dceb"
+identity = "#89b4fa"
+muted = "#6c7086"
+
+[character]
+success_symbol = "[❯](bold ok)"
+error_symbol = "[❯](bold err)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = false
+style = "bold dir"
+
+[git_branch]
+symbol = " "
+style = "bold branch"
+truncation_length = 18
+truncation_symbol = "…"
+
+# Show counts per state (e.g. "3!2?"); symbols chosen to read at a glance.
+[git_status]
+style = "bold err"
+modified = "!"
+untracked = "?"
+staged = "+"
+deleted = "✘"
+renamed = "»"
+stashed = "≡"
+conflicted = "="
+
+[cmd_duration]
+min_time = 3000
+format = "took [$duration]($style) "
+
+[status]
+disabled = false
+format = "[$symbol$status]($style) "
+
+[jobs]
+format = "[$symbol$number]($style) "
+
+# Default-off in Starship; enabled here for a 24h clock in the right prompt.
+[time]
+disabled = false
+time_format = "%H:%M:%S"
+format = "[$time]($style) "
+style = "white"
+
+# Project version (pyproject/package.json) is noise in the prompt.
+[package]
+disabled = true
+
+# Active git identity per-repo: identities route by includeIf path (git/config).
+# Surfaces which one a repo commits as, so a misrouted repo is visible before
+# committing. Compares against the personal email read from its SoT, so no
+# address is mirrored here; anything else is a work identity.
+[custom.git_identity]
+command = """
+case "$(git config user.email)" in
+  "") echo "?" ;;
+  "$(git config -f ~/dotfiles/git/config-personal user.email)") echo personal ;;
+  *) echo work ;;
+esac"""
+when = "git rev-parse --is-inside-work-tree"
+format = "[ $output]($style) "
+style = "italic identity"

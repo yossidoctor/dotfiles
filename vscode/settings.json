@@ -1,0 +1,240 @@
+{
+    // Security — deliberate: single-user machine opening only own/work repos, so
+    // trust prompts are pure friction. Re-enable trust before opening third-party
+    // code (workspace trust gates tasks/debuggers that run on folder open).
+    "security.promptForLocalFileProtocolHandling": false,           // don't prompt before opening file:// links
+    "security.workspace.trust.untrustedFiles": "open",              // open files in untrusted workspaces without nag
+    "security.workspace.trust.enabled": false,                      // skip "do you trust this folder" prompts
+
+    // Markdown: open .md files straight into preview
+    "workbench.editorAssociations": {
+        "*.md": "vscode.markdown.preview.editor"
+    },
+    "workbench.diffEditorAssociations": {
+        "*.md": "default"                                           // but show raw markdown in diffs
+    },
+
+    // Diffs: character-level, not whole-line. Long wrapped prose lines (CLAUDE.md
+    // bullets) otherwise render as a full red block + full green block.
+    "diffEditor.renderSideBySide": false,                           // inline mode; required for useTrueInlineView
+    "diffEditor.experimental.useTrueInlineView": true,              // show word changes inline in one line, no red/green line pair
+    "diffEditor.maxComputationTime": 0,                             // no timeout, so long lines don't fall back to line-diff
+    "diffEditor.diffAlgorithm": "advanced",                         // char-level matching (vs "legacy")
+    "diffEditor.renderMarginRevertIcon": false,                     // no revert-arrow in the gutter between panes
+    "diffEditor.experimental.showMoves": true, // fold unchanged regions, showing only changed lines + context
+    "diffEditor.hideUnchangedRegions.contextLineCount": 5,          // lines of context kept around each change
+    "diffEditor.hideUnchangedRegions.minimumLineCount": 5,          // smallest unchanged block that gets folded
+    "diffEditor.hideUnchangedRegions.revealLineCount": 20,          // lines revealed when clicking "Show more"
+    "[markdown]": {
+        "diffEditor.ignoreTrimWhitespace": false                    // trailing-space changes are real edits in prose
+    },
+
+    // Telemetry & privacy
+    "telemetry.telemetryLevel": "off",                              // no usage/crash data to MS
+    "workbench.enableExperiments": false,                           // opt out of A/B test rollouts
+    "workbench.settings.enableNaturalLanguageSearch": false,        // no remote AI lookup in settings UI
+    "update.showReleaseNotes": false,                               // no release-notes tab after updates
+
+    // Startup & welcome noise
+    "workbench.tips.enabled": false,                                // no rotating "did you know" tips
+    "workbench.welcomePage.walkthroughs.openOnInstall": false,      // no walkthroughs on new extension install
+    "extensions.ignoreRecommendations": true,                       // suppress "recommended extensions" popups
+
+    // Performance: file watcher exclusions
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/.next/**": true,
+        "**/dist/**": true,
+        "**/build/**": true,
+        "**/.venv/**": true,
+        "**/__pycache__/**": true,
+        "**/target/**": true,                                       // Rust build dir
+        "**/.turbo/**": true                                        // Turborepo cache
+    },
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/.next": true,
+        "**/coverage": true,
+        "**/*.lock": true,
+        "**/.venv": true                                            // Python venvs
+    },
+    "search.followSymlinks": false,                                 // don't traverse symlinks when searching
+
+    // TypeScript: stop auto-downloading @types
+    "typescript.disableAutomaticTypeAcquisition": true,             // never auto-install @types/* on open
+    "typescript.tsserver.log": "off",                               // disable tsserver log file
+
+    // Render: kill the minimap
+    "editor.minimap.enabled": false,
+
+    // Line-number gutter: shrink left-side dead space
+    "editor.lineNumbers": "on",                                     // absolute (not "relative"/"interval" which right-align + widen gutter)
+    "editor.lineNumbersMinChars": 3,                                // reserve width for 3 digits, not default 5
+    "editor.lineDecorationsWidth": 10,                              // gap between line numbers and text
+    "editor.folding": false,                                        // drop fold-arrow column (lose code folding)
+
+    // Visual noise reduction
+    "editor.glyphMargin": false,                                    // no left margin column (was: breakpoint dots / GitLens gutter); end-of-line blame still works
+    "editor.renderLineHighlight": "none",                           // no highlight band on current line
+    "editor.overviewRulerBorder": false,                            // no border on right-side overview strip
+    "editor.hideCursorInOverviewRuler": true,                       // no cursor marker in overview strip
+    "editor.scrollbar.verticalScrollbarSize": 8,                    // thinner vertical scrollbar
+    "editor.scrollbar.horizontalScrollbarSize": 8,                  // thinner horizontal scrollbar
+    "editor.lightbulb.enabled": "off",                              // no quick-fix bulb popups
+    "editor.colorDecorators": false,                                // no color swatch next to hex/rgb values
+    "editor.linkedEditing": false,                                  // don't auto-rename matching HTML/JSX tag
+    "editor.matchBrackets": "never",                                // don't box the matching bracket when cursor is adjacent to one
+    "breadcrumbs.enabled": false,                                   // hide file-path breadcrumb bar
+    "workbench.editor.showTabs": "multiple",
+    "workbench.editor.tabSizing": "shrink",                         // compress tabs when many are open
+    "workbench.editor.labelFormat": "medium",                       // tab labels include containing folder (disambiguates same filename across repos)
+    "workbench.activityBar.location": "default",                    // icon strip on left edge, always visible (Explorer/Search/SCM/Extensions)
+    "workbench.layoutControl.enabled": false,                       // hide titlebar layout-toggle buttons
+    "chat.disableAIFeatures": true,                                 // disable & hide built-in AI features (chat panel, inline suggestions, Copilot extensions)
+    "chat.commandCenter.enabled": false,                            // hide chat (sparkles) icon + Sign In button in titlebar
+    "chat.experimental.statusIndicator.enabled": false,             // hide chat status indicator in titlebar
+    "chat.agent.enabled": false,                                    // disable Copilot agent mode (hides agents icon)
+    "workbench.editor.tabActionCloseVisibility": false,             // hide × on tabs (Cmd+W still closes)
+    "workbench.editor.decorations.badges": false,                   // no problem-count badges on tabs
+    "workbench.editor.decorations.colors": false,                   // no color tinting on tab labels
+    "problems.decorations.enabled": false,                          // no red/yellow squiggles in file explorer
+    "outline.icons": false,                                         // text-only outline view
+
+    // Editor behavior: less surprise typing
+    "editor.quickSuggestions": {                                    // disable auto-popup completions
+        "other": "off",
+        "comments": "off",
+        "strings": "off"
+    },
+    "editor.suggestOnTriggerCharacters": false,                     // no popup on '.', '(' etc
+    "editor.parameterHints.enabled": false,                         // no signature-hint popup
+    "editor.hover.delay": 300,                                      // wait 300ms before hover tooltip
+    "editor.snippetSuggestions": "none",                            // exclude snippets from completions
+    "editor.wordBasedSuggestions": "off",                           // no completions from open-file words
+    "editor.formatOnPaste": false,                                  // don't reformat pasted code
+    "editor.formatOnType": false,                                   // don't reformat as you type
+
+    // Startup speed
+    "workbench.startupEditor": "none",                              // blank editor on launch (no welcome tab)
+    "window.restoreWindows": "all",                                 // reopen all windows from last session on launch
+    "workbench.editor.restoreViewState": false,                     // don't restore scroll/cursor per file
+    "files.restoreUndoStack": false,                                // drop undo history between sessions
+    "extensions.autoCheckUpdates": false,                           // don't check for extension updates in background
+    "extensions.autoUpdate": "off",                                 // don't auto-install extension updates
+
+    // Prevent accidental autocomplete on Enter
+    "editor.acceptSuggestionOnEnter": "off",
+
+    // Theme
+    "workbench.colorTheme": "One Dark Pro Flat",
+    "workbench.colorCustomizations": {
+        // Occurrences highlight (cursor on symbol) — very subtle
+        "editor.wordHighlightBackground": "#ffffff0d",              // ~5% white, read access
+        "editor.wordHighlightStrongBackground": "#ffffff14",        // ~8% white, write access
+        "editor.wordHighlightBorder": "#00000000",                  // no border
+        "editor.wordHighlightStrongBorder": "#00000000",
+
+        // Selection highlight (other matches of selected text) — a bit more visible
+        "editor.selectionHighlightBackground": "#ffffff1f",         // ~12% white
+        "editor.selectionHighlightBorder": "#00000000",
+
+        // Diff: kill the whole-line wash so only the changed characters are tinted.
+        // A wrapped prose line is still one logical line, so the line-level colors
+        // paint the entire bullet; the *Text* colors mark the real edit. The theme's
+        // own *Text* colors are a low-contrast blue-grey, so they are overridden.
+        "diffEditor.insertedLineBackground": "#00000000",           // transparent, no line-level green
+        "diffEditor.removedLineBackground": "#00000000",            // transparent, no line-level red
+        "diffEditor.insertedTextBackground": "#2ea04366",           // ~40% green on inserted chars only
+        "diffEditor.removedTextBackground": "#f8514966"             // ~40% red on removed chars only
+    },
+
+    // File handling
+    "files.autoSave": "afterDelay",                                 // flush buffer ~1s after typing stops, so external edits auto-reload instead of conflicting
+    "files.trimTrailingWhitespace": true,                           // strip trailing spaces on save
+    "files.insertFinalNewline": true,                               // ensure file ends with newline
+    "files.trimFinalNewlines": true,                                // collapse multiple trailing newlines to one
+    "files.encoding": "utf8",                                       // default new files to UTF-8
+    "files.hotExit": "onExit",                                      // remember unsaved buffers between sessions
+
+    // Editor: indentation & whitespace
+    "editor.detectIndentation": true,                               // pick tabs/spaces & width from file content
+    "editor.rulers": [],                                            // no vertical column guides
+    "editor.renderWhitespace": "none",                              // don't render dots/arrows for spaces/tabs
+
+    // Editor: font
+    "editor.fontFamily": "'JetBrainsMono Nerd Font', Menlo, monospace",
+    "editor.fontLigatures": true,                                   // enable programming ligatures (=>, !==, etc)
+
+    // Editor: visual guides
+    "editor.guides.bracketPairs": false,                            // no rainbow bracket-pair lines
+    "editor.bracketPairColorization.enabled": true,                 // color nested pairs distinctly
+    "editor.guides.indentation": true,                              // vertical line at each indent level
+    "editor.guides.highlightActiveIndentation": true,               // bold the indent line for current block
+
+    // Editor: highlights fire on explicit selection only, not on cursor placement
+    "editor.selectionHighlight": true,                              // selecting (e.g. double-click) a word highlights other matches
+    "editor.occurrencesHighlight": "off",                           // single-click / cursor-only does NOT highlight other occurrences
+
+    // Editor: Ctrl+scroll to zoom font size
+    "editor.mouseWheelZoom": true,
+
+    // Explorer
+    "explorer.confirmDelete": false,                                // skip "are you sure" on delete
+    "explorer.confirmDragAndDrop": false,                           // skip "are you sure" on drag-move
+    "explorer.fileNesting.enabled": true,                           // group related files (ts/js, lockfiles)
+    "explorer.fileNesting.patterns": {
+        "*.ts": "${capture}.js, ${capture}.d.ts",
+        "tsconfig.json": "tsconfig.*.json",
+        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .npmrc"
+    },
+
+    // Terminal
+    "terminal.integrated.defaultProfile.osx": "zsh",                // use zsh by default
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', Menlo, monospace",
+    "terminal.integrated.cursorBlinking": true,                     // blink the terminal cursor
+    "terminal.integrated.copyOnSelection": true,                    // select text = copy to clipboard
+    "terminal.integrated.gpuAcceleration": "on",                    // GPU-render the terminal (smoother)
+    "terminal.integrated.shellIntegration.enabled": true,           // inject zsh hooks (cmd timing, exit code, cwd)
+    "terminal.integrated.shellIntegration.decorationsEnabled": "gutter", // show cmd status marker in gutter
+    "terminal.integrated.mouseWheelZoom": true,                     // Ctrl+scroll zooms terminal font
+    "terminal.integrated.persistentSessionReviveProcess": "never",  // don't restart shells on window reopen
+    "terminal.integrated.enablePersistentSessions": false,          // don't serialize terminal state
+    "terminal.external.osxExec": "Ghostty.app",                     // ⌘⇧C ("Open in External Terminal") opens Ghostty, not Terminal.app
+
+    // Git
+    "git.pruneOnFetch": true,                                       // drop local refs for deleted remote branches on fetch
+    "git.openRepositoryInParentFolders": "always",                  // detect git repo above the opened folder
+    "git.detectSubmodules": false,                                  // don't register git submodules as separate SCM repos
+    "git.repositoryScanIgnoredFolders": [                           // skip these dir names when scanning for nested orphan git repos
+        "node_modules"
+    ],
+    "scm.repositories.sortOrder": "name",                           // alphabetical repo order in SCM panel
+    "git.branchProtection": ["main", "master", "development"],      // warn before direct commit/push to these branches
+    "git.confirmForcePush": true,                                   // extra prompt before --force (default true; explicit for documentation)
+    "git.autoStash": true,                                          // auto-stash on pull, restore after
+    "git.decorations.enabled": false,                               // no M/U letters in file explorer
+    "scm.diffDecorations": "all",                                   // green/red gutter bars + overview ruler marks for changed lines
+    "scm.diffDecorationsGutterVisibility": "always",                // always show gutter (not just on hover)
+    "scm.diffDecorationsGutterWidth": 3,                            // gutter bar thickness in px
+    "git.confirmSync": false,                                       // skip "are you sure" on pull+push
+    "git.autofetch": false,                                         // don't auto-fetch in background
+
+    // GitLens
+    "gitlens.currentLine.enabled": true,                            // end-of-line author/date annotation
+    "gitlens.codeLens.enabled": true,                               // "N authors, M commits" above functions
+    "gitlens.hovers.currentLine.over": "line",                      // hover anywhere on line to see commit details
+    "gitlens.blame.toggleMode": "window",
+    "python.analysis.typeCheckingMode": "basic",
+    "workbench.activityBar.compact": true,
+    "workbench.editor.pinnedTabSizing": "compact",
+    "diffEditor.hideUnchangedRegions.enabled": true
+}

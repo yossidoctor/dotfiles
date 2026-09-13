@@ -1,0 +1,71 @@
+- defaults:
+    link:
+      relink: true
+      force: true
+
+- create:
+    - ~/.claude/hooks
+    - ~/.claude/themes
+    - ~/.config/git/identities.d
+    - ~/Library/Application Support/Code/User
+
+- link:
+    ~/.zshenv: zsh/zshenv
+    ~/.zshrc: zsh/zshrc
+    ~/.gitconfig: git/config
+    ~/.gitignore_global: git/ignore
+    ~/.config/git/identities.d/personal.sh: identities.sh
+    ~/.hushlogin: shell/hushlogin
+    ~/brew-maintenance.sh: brew/brew-maintenance.sh
+    ~/.claude/CLAUDE.md: claude/global/CLAUDE.md
+    ~/.claude/settings.json: claude/global/settings.json
+    ~/.claude/keybindings.json: claude/global/keybindings.json
+    ~/.claude/statusline-command.sh: claude/global/statusline-command.sh
+    ~/.claude/statusline-lib.sh: claude/global/statusline-lib.sh
+    ~/.claude/cswap-auto.plist: claude/global/cswap-auto.plist
+    ~/.claude/subagent-statusline.sh: claude/global/subagent-statusline.sh
+    ~/.claude/hooks/hook-lib.sh: claude/global/hooks/hook-lib.sh
+    ~/.claude/hooks/hook_lib.py: claude/global/hooks/hook_lib.py
+    ~/.claude/hooks/warn-existing-occurrence.sh: claude/global/hooks/warn-existing-occurrence.sh
+    ~/.claude/hooks/snapshot-rule-files.sh: claude/global/hooks/snapshot-rule-files.sh
+    ~/.claude/hooks/redirect-symlink-edits.sh: claude/global/hooks/redirect-symlink-edits.sh
+    ~/.claude/hooks/enforce-foreground-polling.sh: claude/global/hooks/enforce-foreground-polling.sh
+    ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/global/hooks/enforce-read-over-shell-read.sh
+    ~/.claude/hooks/force-background-agents.sh: claude/global/hooks/force-background-agents.sh
+    ~/.claude/hooks/audit-docs-on-stop.sh: claude/global/hooks/audit-docs-on-stop.sh
+    ~/.claude/hooks/ask-matt-banner.sh: claude/global/hooks/ask-matt-banner.sh
+    ~/.claude/hooks/caffeinate-claude.sh: claude/global/hooks/caffeinate-claude.sh
+    ~/.claude/hooks/notify-agent-idle.sh: claude/global/hooks/notify-agent-idle.sh
+    # the test harness ships too: a project layer's hook tests exec it here
+    ~/.claude/hooks/tests:
+      path: claude/global/hooks/tests
+      relink: true
+      force: true
+    ~/.claude/themes/catppuccin-mocha.json: claude/global/themes/catppuccin-mocha.json
+    ~/.claude/skills:
+      path: claude/global/skills
+      relink: true
+      force: true
+    ~/.claude/output-styles:
+      path: claude/global/output-styles
+      relink: true
+      force: true
+    "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
+
+- link:
+    ~/.config/aerospace: aerospace
+    ~/.config/gh: gh
+    ~/.config/ghostty: ghostty
+    ~/.config/karabiner: karabiner
+    ~/.config/starship.toml: starship/starship.toml
+
+- shell:
+    - [bash mac/defaults.sh, Apply macOS system defaults]
+    - [bash mac/disable-spotlight.sh || true, Disable Spotlight indexing (needs sudo; skipped if it fails)]
+    - [bash mac/duti.sh, Apply duti file-type bindings]
+    - [bash mac/login-items.sh || true, Register Open-at-Login items (needs System Events automation permission; retried next run if denied)]
+    - [bash aerospace/retile-on-quit-watcher.sh, Install/refresh the retile-on-quit LaunchAgent]
+    - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
+    - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
+    - [command -v uv >/dev/null && uv tool install --upgrade --quiet claude-swap || true, Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv)]
+    - [bash claude/global/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]

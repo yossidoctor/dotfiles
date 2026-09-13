@@ -1,0 +1,78 @@
+# ── taps ──────────────────────────────────────────────────────────
+tap "felixkratz/formulae"           # tap for borders
+tap "nikitabobko/tap"               # tap for aerospace
+
+# ── shell & prompt ─────────────────────────────────────────────────
+brew "fzf"                          # backs fzf-tab and Ctrl-R/Ctrl-T bindings
+brew "fzf-tab"                      # replaces the zsh completion menu with an fzf fuzzy selector
+brew "starship"                     # cross-shell prompt
+brew "zoxide"                       # frecency-ranked dir jumping — `z X` instead of `cd ~/long/path/X`
+brew "zsh-syntax-highlighting"
+
+# ── file & dir tools ───────────────────────────────────────────────
+brew "bat"                          # syntax-highlighted file printing with line numbers, git gutter, paging
+brew "duf"                          # colorized disk/mount table, grouped sensibly
+brew "dust"                         # visual tree of what's eating disk, sorted, with bars
+brew "eza"                          # colorized listing, icons, tree view, git status per file
+brew "fd"                           # fast find replacement — gitignore-aware, regex by default
+brew "glow"                         # markdown renderer for the terminal
+brew "ripgrep"                      # fast recursive content search — `rg`, gitignore-aware
+
+# ── dev core ───────────────────────────────────────────────────────
+brew "ast-grep"                     # structural code search/rewrite by syntax-tree pattern
+brew "difftastic"                   # AST-aware structural diff — on-demand alongside delta for refactor/reformat noise
+brew "dotbot"                       # dotfiles symlink bootstrapper
+brew "gh"                           # GitHub CLI
+brew "git"                          # version control
+brew "git-delta"                    # syntax-highlighted, side-by-side git diff pager
+brew "git-filter-repo"              # history rewriting — path/blob removal across all commits
+brew "hyperfine"                    # benchmarking with warmup + deviation; SoT for any timing claim
+brew "jq"                           # JSON query/build — the hook-path JSON tool
+brew "shellcheck"                   # static analysis for the repo's bash scripts
+brew "tlrc"                         # crowd-sourced example-first command help
+
+# ── languages & runtime ────────────────────────────────────────────
+brew "fnm"                          # Fast Node Manager — per-dir Node via .nvmrc (zshrc auto-switch)
+brew "uv"                           # Python package installer / tool runner (claude-swap)
+
+# ── system monitors ────────────────────────────────────────────────
+brew "btop"                         # animated TUI resource monitor
+brew "procs"                        # colorized process listing, tree view, searchable
+
+# ── mac utilities ──────────────────────────────────────────────────
+cask "adguard"                      # system-wide ad / tracker blocker
+cask "appcleaner"                   # uninstaller that also removes app support files
+brew "duti"                         # set macOS default apps per file type / URL scheme
+cask "karabiner-elements"           # low-level keyboard remapping
+cask "notunes"                      # blocks Apple Music from auto-launching
+cask "vorssaint"                    # menu bar toolkit
+
+# ── window management ──────────────────────────────────────────────
+cask "aerospace"                    # i3-style tiling window manager
+cask "bettercmdtab"
+cask "betterdisplay"
+brew "borders"                      # JankyBorders — colored outline on the AeroSpace-focused window
+
+# ── gui apps ───────────────────────────────────────────────────────
+cask "claude-code@latest"
+cask "expressvpn"
+cask "font-jetbrains-mono-nerd-font" # JetBrains Mono + Nerd Font glyphs
+cask "ghostty"                      # GPU-accelerated terminal emulator
+cask "linear"
+cask "slack"
+cask "spotify"
+cask "transmission"                 # BitTorrent client
+cask "visual-studio-code"
+cask "vlc"
+cask "whatsapp"
+cask "zoom"
+
+# ── vscode extensions (vscode/settings.json configures these) ──────
+vscode "davidanson.vscode-markdownlint"
+vscode "eamodio.gitlens"
+vscode "ms-python.debugpy"
+vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "ms-python.vscode-python-envs"
+vscode "tamasfe.even-better-toml"
+vscode "zhuangtongfa.material-theme"  # One Dark Pro

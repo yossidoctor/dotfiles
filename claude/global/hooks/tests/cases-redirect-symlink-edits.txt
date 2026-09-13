@@ -1,0 +1,18 @@
+# direct symlink file_path -> deny
+write_deny	/Users/yossidoctor/.claude/settings.json	x
+# path traverses a symlinked dir into ~/dotfiles -> deny
+write_deny	/Users/yossidoctor/.claude/skills/scratch.md	x
+# already the real dotfiles path -> allow
+write_allow	/Users/yossidoctor/dotfiles/README.md	x
+# plain non-symlink path outside dotfiles -> allow
+write_allow	/Users/yossidoctor/Desktop/claude-hook-test-scratch.md	x
+# Read through a dotfiles symlink -> deny, so the first Read keys the real path
+read_deny	/Users/yossidoctor/.claude/settings.json
+read_deny	/Users/yossidoctor/.claude/skills/tldr/SKILL.md
+read_allow	/Users/yossidoctor/dotfiles/claude/global/skills/tldr/SKILL.md
+read_allow	/Users/yossidoctor/Desktop/CLAUDE.md.nonexistent-plain-path
+# A config path reaches the repo through a symlinked ANCESTOR, so neither "dotfiles"
+# nor ".claude" appears in the string — the resolved parent is the only evidence.
+# Guarding this hook on a substring of the raw payload silently disables it here.
+read_deny	/Users/yossidoctor/.config/aerospace/aerospace.toml
+write_deny	/Users/yossidoctor/.config/aerospace/aerospace.toml	x

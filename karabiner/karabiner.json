@@ -1,0 +1,189 @@
+{
+    "global": {
+        "check_for_updates_on_startup": false,
+        "show_in_menu_bar": false
+    },
+    "profiles": [
+        {
+            "complex_modifications": {
+                "rules": [
+                    {
+                        "description": "Caps Lock → Hyper",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "right_shift",
+                                        "modifiers": ["right_command", "left_control", "right_option"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Hyper+LeftShift+arrow → F17-F20 (AeroSpace move-window bindings)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "left_arrow",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "f17" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "down_arrow",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "f18" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "up_arrow",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "f19" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "right_arrow",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option", "left_shift"] }
+                                },
+                                "to": [{ "key_code": "f20" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Cmd+W → close window, then poke AeroSpace twice over 200ms (retry-poke.sh) to re-tile",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "w",
+                                    "modifiers": { "mandatory": ["left_command"] }
+                                },
+                                "to": [
+                                    { "key_code": "w", "modifiers": ["left_command"] },
+                                    { "shell_command": "\"$HOME\"/.config/aerospace/retry-poke.sh >/dev/null 2>&1 &" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Cmd+Q → quit app, then poke AeroSpace twice over 200ms (retry-poke.sh, backup for retile-on-quit-watcher LaunchAgent, see docs/aerospace/RETILE-DELAY.md)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "q",
+                                    "modifiers": { "mandatory": ["left_command"] }
+                                },
+                                "to": [
+                                    { "key_code": "q", "modifiers": ["left_command"] },
+                                    { "shell_command": "\"$HOME\"/.config/aerospace/retry-poke.sh >/dev/null 2>&1 &" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Hyper+letter → launch app",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "t",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Ghostty'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Slack'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "w",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'WhatsApp'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "m",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Spotify'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "l",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Linear'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "r",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Reminders'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Mail'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Calendar'" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "v",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Visual Studio Code' \"$HOME/Library/Application Support/Code/User/global.code-workspace\"" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "b",
+                                    "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
+                                },
+                                "to": [{ "shell_command": "open -a 'Safari'" }],
+                                "type": "basic"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "name": "Default profile",
+            "selected": true,
+            "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+        }
+    ]
+}
