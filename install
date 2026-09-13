@@ -2,9 +2,14 @@
 set -e
 BASEDIR=$(cd "$(dirname "$0")" && pwd)
 
-if ! command -v dotbot >/dev/null 2>&1; then
-  echo "install: dotbot not found on PATH — run 'brew bundle --file=$BASEDIR/brew/Brewfile' (or 'brew install dotbot') first." >&2
+[ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+if ! command -v brew >/dev/null 2>&1; then
+  echo 'install: Homebrew missing — run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' >&2
   exit 1
 fi
+
+grep -oE '^tap "[^"]+"' "$BASEDIR/brew/Brewfile" | cut -d'"' -f2 | xargs brew trust --tap >/dev/null
+brew bundle check --file "$BASEDIR/brew/Brewfile" >/dev/null 2>&1 \
+  || brew bundle --file "$BASEDIR/brew/Brewfile" --quiet
 
 dotbot -d "$BASEDIR" -c "$BASEDIR/install.conf.yaml" "$@"
