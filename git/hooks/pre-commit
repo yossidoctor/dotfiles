@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Commit gate for ~/dotfiles: a public repo, so the staged tree may name no
+# private layer and nothing from the employer's world. The denylist below is the
+# gate; a hit blocks the commit and prints the line. Only acts in ~/dotfiles; a
+# no-op everywhere else, so it is safe as a shared core.hooksPath hook.
+
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+
+case "$root" in "$HOME/dotfiles") ;; *) exit 0 ;; esac
+
+if hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@dono\.ai|/work/' -- . ':!git/hooks/pre-commit' 2>/dev/null) && [ -n "$hits" ]; then
+  printf '%s\n' "$hits" >&2
+  echo "pre-commit: the staged tree names a private layer or an employer term (above) — this repo is public." >&2
+  exit 1
+fi

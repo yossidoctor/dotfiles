@@ -1,0 +1,74 @@
+# cases for enforce-read-over-shell-read.sh — expect<TAB>command<TAB>cwd
+# Block reading a file through the shell (`sed -n '<a>,<b>p' <f>`, `cat <f>`) when
+# the Read tool is the right instrument. Read takes offset/limit natively and
+# registers the file so a follow-up Edit can target it.
+
+# --- denied: sed line-range reads of source ---
+deny	sed -n '1,60p' /Users/yossidoctor/proj/gateway-service/src/main.ts	/Users/yossidoctor
+deny	sed -n '406,600p' /Users/yossidoctor/proj/analyzer-service/app/x.py	/Users/yossidoctor
+deny	sed -n '10,$p' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+
+# --- denied: plain cat of a real file (the measured shapes — docs, ADRs, refs) ---
+deny	cat /Users/yossidoctor/proj/docs/knowledgebase/money-matters.md	/Users/yossidoctor
+deny	cat ~/proj/docs/adr/0021-verifier-agents.md	/Users/yossidoctor
+deny	cat /Users/yossidoctor/proj/.claude/skills/360/references/testsuite-matrix.md	/Users/yossidoctor
+deny	cat README.md	/Users/yossidoctor/proj/gateway-service
+
+# --- allowed: throwaway + harness-internal trees. Read registration buys nothing
+#     there, and a transcript or task-output file can be enormous. ---
+allow	sed -n '1,45p' /tmp/yas209.txt	/Users/yossidoctor
+allow	sed -n '1,60p' /Users/yossidoctor/.claude/projects/x/t.jsonl	/Users/yossidoctor
+allow	cat /private/tmp/claude-501/-Users-yossidoctor/4cc7b3b3/tasks/b7w09.output	/Users/yossidoctor
+allow	cat /tmp/scratch.json	/Users/yossidoctor
+allow	sed -n '1,20p' /private/tmp/claude-501/x/scratchpad/out.txt	/Users/yossidoctor
+
+# --- allowed: cat that is NOT a single-file read ---
+allow	cat <<'EOF' > /Users/yossidoctor/proj/x/y.py\nprint(1)\nEOF	/Users/yossidoctor
+allow	cat a.txt b.txt	/Users/yossidoctor/proj
+allow	cat -n /Users/yossidoctor/dotfiles/mac/duti.sh	/Users/yossidoctor
+allow	cat file.txt | grep foo	/Users/yossidoctor/proj
+allow	grep -n 'x' README.md | cat -A | head -10	/Users/yossidoctor/dotfiles
+allow	cat /Users/yossidoctor/proj/x/y.py > /tmp/copy	/Users/yossidoctor
+
+# --- allowed: sed reading a PIPE is a stream filter, not a file read ---
+allow	adb shell dumpsys meminfo | sed -n '1,45p'	/Users/yossidoctor
+allow	cat f | sed -n '1,10p'	/Users/yossidoctor
+
+# --- allowed: -i is a mutation; pattern print and substitution are filters ---
+allow	sed -i '' 's/a/b/' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+allow	sed -n '/pattern/p' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+allow	sed 's/foo/bar/' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+
+# --- denied: sequencing work AFTER a whole-file read does not launder it —
+#     the bytes still land in the transcript. Judged on the first stage. ---
+deny	cat ~/proj/docs/knowledgebase/workflows.md; echo ====; ls ~/proj/docs/knowledgebase/ | grep -i workflow	/Users/yossidoctor
+deny	cat /Users/yossidoctor/proj/x/y.py && echo done	/Users/yossidoctor
+deny	sed -n '1,10p' /Users/yossidoctor/proj/x/y.py && echo done	/Users/yossidoctor
+
+# --- allowed: a read feeding a pipe or a redirect sends the bytes to a filter
+#     or a file, not into the transcript ---
+allow	cat /Users/yossidoctor/proj/x/y.py | grep foo	/Users/yossidoctor
+allow	echo hi; cat /Users/yossidoctor/proj/x/y.py | head -5	/Users/yossidoctor
+
+# --- allowed: unresolvable operand — there is no Read call to name ---
+allow	cat $CONFIG_FILE	/Users/yossidoctor/proj
+allow	cat *.md	/Users/yossidoctor/proj
+
+# --- denied: `rg -r` typed from grep muscle memory (it is --replace) ---
+deny	rg -r pattern /Users/yossidoctor/proj/gateway-service/src
+deny	rg -rn pattern /Users/yossidoctor/proj/gateway-service/src
+deny	rg -rl pattern /Users/yossidoctor/proj/gateway-service/src
+# -R is not a ripgrep flag at all: it fails loudly with `unrecognized flag`, which
+# needs no interception — only the silent -r corruption does.
+allow	rg -R pattern /Users/yossidoctor/proj/gateway-service/src
+# a git-style path invocation is the same command
+deny	cd /Users/yossidoctor/proj && rg -rn dispatch src
+# --- allowed: correct ripgrep, and a deliberate rewrite ---
+allow	rg pattern /Users/yossidoctor/proj/gateway-service/src
+allow	rg -n dispatch src
+allow	rg -e -dashed-pattern src
+allow	rg --replace=NEW pattern src
+allow	rg -l --replace=NEW pattern src
+# -r inside another word or another command must not trip it
+allow	git rebase -r main
+allow	ls -r /Users/yossidoctor/proj

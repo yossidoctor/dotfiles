@@ -1,0 +1,7 @@
+[user]
+	email = yossidoctor98@gmail.com
+
+# Scoped to ~/dotfiles via the includeIf in gitconfig (the only ~/dotfiles gitdir).
+# The pre-commit hook gates commits on check-doc-refs.sh — see README § Commit gate.
+[core]
+	hooksPath = ~/dotfiles/git/hooks

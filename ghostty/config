@@ -1,0 +1,47 @@
+confirm-close-surface = false
+
+# ── Appearance ────────────────────────────────────────────────────────────────
+theme = "Catppuccin Mocha"
+window-decoration = true
+mouse-hide-while-typing = true
+# left = Alt/Meta for Claude Code shortcuts (option+p model picker etc.); right Option still types π/é
+macos-option-as-alt = left
+
+# ── Font ──────────────────────────────────────────────────────────────────────
+font-family = "JetBrainsMono Nerd Font"
+font-size = 14
+
+# Ligatures: +liga = standard (fi, fl), +calt = coding (-> => != === >=)
+font-feature = +liga
+font-feature = +calt
+
+# ── Shell integration ─────────────────────────────────────────────────────────
+shell-integration = zsh
+# cursor: jump-to-prompt navigation (cmd+up/down)
+# sudo:   preserve integration when using sudo
+# title:  auto-updates window title with cwd / running command
+shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo,path
+
+# ── Keybindings ───────────────────────────────────────────────────────────────
+keybind = cmd+t=new_tab
+keybind = shift+cmd+d=new_split:down
+keybind = shift+left=goto_split:left
+keybind = shift+right=goto_split:right
+keybind = shift+up=goto_split:up
+keybind = shift+down=goto_split:down
+# Claude Code multiline: Shift+Enter inserts newline instead of submitting
+keybind = shift+enter=text:\n
+
+# ── Mouse ─────────────────────────────────────────────────────────────────────
+mouse-scroll-multiplier = 0.35
+
+# ── Clipboard & behavior ──────────────────────────────────────────────────────
+# clipboard = system clipboard (plain `true` only fills the selection buffer)
+copy-on-select = clipboard
+clipboard-paste-protection = false
+notify-on-command-finish = unfocused
+# OSC 9 / OSC 777 desktop notifications — Claude Code pings when a task finishes
+desktop-notifications = true
+
+# ── Performance ───────────────────────────────────────────────────────────────
+scrollback-limit = 40000
