@@ -1,0 +1,10 @@
+# Sourced by every zsh (login, interactive, script, and non-interactive —
+# e.g. cron, CI). PATH belongs here, not in zshrc, so non-interactive callers
+# resolve the same toolchain. Claude Code's Bash tool runs bash, which never
+# reads this file — its PATH mirror lives in claude/global/settings.json `env`.
+
+export BREW_PREFIX=/opt/homebrew   # constant on Apple Silicon; avoids a ~50-100ms `brew --prefix` ruby fork per shell
+export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+
+# uv tools (cswap, claude-swap)
+export PATH="$HOME/.local/bin:$PATH"

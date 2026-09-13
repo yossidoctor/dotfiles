@@ -1,0 +1,37 @@
+# /etc/zprofile runs path_helper on login shells, which hoists /usr/bin ahead of
+# the brew prefix that .zshenv set. Re-prepend here (zshrc runs after zprofile).
+export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+
+# Completion. -C trusts the existing dump instead of compaudit-ing every fpath
+# entry per shell (single-user machine; brew owns the dirs). Existence guards
+# throughout: on a fresh machine every new shell works before `brew bundle` has
+# installed the plugins/tools.
+autoload -Uz compinit && compinit -C
+
+# Prompt.
+command -v starship >/dev/null && eval "$(starship init zsh)"
+
+# Modern CLI replacements (installed via brew/Brewfile personal section).
+# Skipped under Claude Code: these change core-command output format, which
+# breaks the agent's tool parsing (e.g. `ls` -> eza swallowed plain output).
+if [[ -z "$CLAUDECODE" ]]; then
+  alias cat='bat --paging=never'
+  alias ls='eza --icons --git --group-directories-first'
+  alias ll='eza -la --icons --git --group-directories-first'
+  alias du='dust'
+  alias df='duf'
+  alias ps='procs'
+fi
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"   # adds `z` / `zi`; leaves `cd` untouched
+
+source "$HOME/dotfiles/brew/env.sh"
+
+# fnm — per-service Node version via .nvmrc; auto-switch on cd
+command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
+
+# fzf-tab replaces the completion menu with an fzf fuzzy selector; load after
+# compinit and before syntax highlighting (which must be last of the widget-binders).
+[[ -r "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh" ]] \
+  && source "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh"
+[[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
+  && source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

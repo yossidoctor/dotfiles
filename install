@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+BASEDIR=$(cd "$(dirname "$0")" && pwd)
+
+if ! command -v dotbot >/dev/null 2>&1; then
+  echo "install: dotbot not found on PATH — run 'brew bundle --file=$BASEDIR/brew/Brewfile' (or 'brew install dotbot') first." >&2
+  exit 1
+fi
+
+dotbot -d "$BASEDIR" -c "$BASEDIR/install.conf.yaml" "$@"

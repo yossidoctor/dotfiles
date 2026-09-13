@@ -1,0 +1,268 @@
+# ============================================================================
+# My monitor setups
+# ----------------------------------------------------------------------------
+# Monitor names come from `aerospace list-monitors` and survive replug /
+# ID reorder. Physical layout drawn as seen from where I sit.
+#
+# WORK — 3 monitors, side by side:
+#
+#     +--------------------+  +--------------------+
+#     |                    |  |                    |  +------------------+
+#     |  DELL S2722QC(1)   |  |  DELL S2722QC(2)   |  |                  |
+#     |                    |  |                    |  |  Built-in Retina |
+#     |                    |  |                    |  |    (secondary)   |
+#     +--------------------+  +--------------------+  +------------------+
+#
+# HOME — 2 monitors, stacked:
+#
+#     +----------------------------------------+
+#     |                                        |
+#     |              DELL U3421WE              |
+#     |               (ultrawide)              |
+#     |                                        |
+#     +----------------------------------------+
+#                  +-----------------+
+#                  | Built-in Retina |
+#                  |   (secondary)   |
+#                  +-----------------+
+# ============================================================================
+
+config-version = 2
+
+# Run after AeroSpace startup. Launches JankyBorders to outline windows:
+# focused = saturated orange (reads against a green/sky wallpaper and on light
+# mode), unfocused = Catppuccin Mocha surface1 (ghostty/config's theme).
+# JankyBorders is managed ONLY here, not via `brew services` — the brew-generated
+# launchd plist (homebrew.mxcl.borders) runs a bare `borders` with no color args and
+# has KeepAlive=true, so if it's ever started it respawns and fights this process for
+# ownership of the border (symptom: color changes here don't take effect after reload).
+# Keep it stopped: `brew services stop borders` (should show "none"/not listed).
+# See: https://nikitabobko.github.io/AeroSpace/goodies#show-window-borders
+# ax_focus=off: JankyBorders' own design goal is resolving focus without the
+# Accessibility API (faster); it auto-switches to the slower AX path whenever
+# the process holds AX permission, which this setup's `borders` binary does.
+# That AX-based path exists for compatibility with tools that mutate window
+# state at the system level (e.g. yabai) — not applicable here, so force it
+# off to keep the faster non-AX path.
+after-startup-command = [
+    'exec-and-forget borders active_color=0xffff5f00 inactive_color=0xff45475a width=6.0 style=round hidpi=on ax_focus=off',
+]
+
+start-at-login = true
+
+# AeroSpace watches this file (write/rename/delete, 200ms debounce) and
+# reloads itself on every save — no external reload step needed. After
+# turning this on from off, one manual `aerospace reload-config` starts the
+# watcher. See: https://nikitabobko.github.io/AeroSpace/guide#auto-reload-config
+auto-reload-config = true
+
+# Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
+enable-normalization-flatten-containers = true
+# Off: nested containers would otherwise flip to vertical, producing up/down
+# splits. Disabled to keep every split side-by-side.
+enable-normalization-opposite-orientation-for-nested-containers = false
+
+# See: https://nikitabobko.github.io/AeroSpace/guide#layouts
+# Possible values: tiles|accordion
+default-root-container-layout = 'tiles'
+
+# Possible values: horizontal|vertical|auto
+# 'auto' means: wide monitor (anything wider than high) gets horizontal orientation,
+#               tall monitor (anything higher than wide) gets vertical orientation
+default-root-container-orientation = 'horizontal'
+
+# You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
+# Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
+# Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
+automatically-unhide-macos-hidden-apps = false
+
+# Workaround for https://github.com/nikitabobko/AeroSpace/issues/1615: any
+# 'aerospace' CLI call forces the daemon's pending relayout, so the first entry
+# pokes it on every focus change. reap-ghosts.sh observes ghost nodes and floats
+# phantom tiles (its header is the SoT; it never closes a window);
+# raise-fullscreen.sh keeps a focused fake-fullscreen window on top (alt-f
+# binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
+# LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
+on-focus-changed = [
+    'exec-and-forget aerospace list-windows --all',
+    'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
+    'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &'
+]
+
+exec-on-workspace-change = ['/bin/bash', '-c',
+    '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &'
+]
+
+# Per-app layout rules applied when a window first appears. Ordered list:
+# each entry's `if` is a command, the first whose `if` succeeds runs and ends
+# the list. Bundle ids: `aerospace list-apps`. Top-level key: it must stay
+# above the first [table] header in this file.
+# See: https://nikitabobko.github.io/AeroSpace/guide#on-window-detected-callback
+on-window-detected = [
+    # AeroSpace floats any window it reads as a dialog — including windows
+    # without a fullscreen button. Safari was observed floating instead of
+    # tiling, so force tiling on detect to keep it in the layout.
+    { if = 'test %{app-bundle-id} = com.apple.Safari', run = 'layout tiling' },
+
+    # Transient/dialog-style apps float instead of tiling.
+    { if = 'test %{app-bundle-id} = com.apple.systempreferences', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.finder', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.calculator', run = 'layout floating' },
+
+    # Small fixed-size utility windows that fight the tiling tree.
+    { if = 'test %{app-bundle-id} = com.apple.ActivityMonitor', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.archiveutility', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.AppStore', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.DiskUtility', run = 'layout floating' },
+
+    # System Information ("About This Mac" / detailed report) opens a
+    # non-resizable panel.
+    { if = 'test %{app-bundle-id} = com.apple.SystemProfiler', run = 'layout floating' },
+
+    { if = 'test %{app-bundle-id} = org.m0k.transmission', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = org.videolan.vlc', run = 'layout floating' },
+
+    # Mail collapses its message preview pane, and persists it collapsed,
+    # whenever its window is narrower than sidebar + message list + preview
+    # minimum widths.
+    { if = 'test %{app-bundle-id} = com.apple.mail', run = 'layout floating' },
+]
+
+# Possible values: (qwerty|dvorak|colemak)
+# See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
+[key-mapping]
+    preset = 'qwerty'
+
+# Gaps between windows (inner-*) and between monitor edges (outer-*).
+# Possible values:
+# - Constant:     gaps.outer.top = 8
+# - Per monitor:  gaps.outer.top = [{ monitor.main = 16 }, { monitor."some-pattern" = 32 }, 24]
+#                 In this example, 24 is a default value when there is no match.
+#                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
+#                 See:
+#                 https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
+#
+# Sized to the JankyBorders `width` in after-startup-command: borders draw
+# entirely OUTSIDE the window frame, `width` points thick on every side, so
+# two neighbours need inner = 2 × width for their borders to meet without
+# overlapping, and outer = width puts the border flush with the screen edge.
+[gaps]
+    inner.horizontal = 12
+    inner.vertical =   12
+    outer.left =       6
+    outer.bottom =     6
+    outer.top =        6
+    outer.right =      6
+
+[mode.main.binding]
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#fullscreen
+    # raise-fullscreen.sh after the toggle: AeroSpace's fake fullscreen never
+    # manages z-order (frames only), so without an explicit raise the
+    # now-fullscreen window can sit BEHIND tiled siblings that were raised
+    # more recently. Same script also runs on-focus-changed (see above) to
+    # restore the raise if Tahoe's WindowServer buries it later.
+    alt-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
+
+    # Swallow the macOS "Hide application" shortcuts so an accidental cmd-h never
+    # hides a window out of the tiling tree. Empty binding = key does nothing.
+    # Complements 'automatically-unhide-macos-hidden-apps = false' above, which
+    # only reverses programmatic/menu hides after the fact; this blocks the
+    # keystroke at the source. See: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
+    cmd-h = []
+    cmd-alt-h = []
+
+    # Focus the window in a direction, Hyper (Caps Lock) + arrow. Hyper arrives
+    # here as cmd+alt+ctrl+shift regardless of which physical side each modifier
+    # key is on (karabiner/karabiner.json remaps Caps Lock to Hyper;
+    # AeroSpace bindings don't distinguish left/right modifiers).
+    # 'all-monitors-outer-frame' treats all monitors as one continuous surface,
+    # so focus crosses monitor edges into the adjacent monitor instead of
+    # stopping at each edge.
+    # See: https://nikitabobko.github.io/AeroSpace/commands#focus
+    cmd-alt-ctrl-shift-left =  'focus left  --boundaries all-monitors-outer-frame'
+    cmd-alt-ctrl-shift-down =  'focus down  --boundaries all-monitors-outer-frame'
+    cmd-alt-ctrl-shift-up =    'focus up    --boundaries all-monitors-outer-frame'
+    cmd-alt-ctrl-shift-right = 'focus right --boundaries all-monitors-outer-frame'
+
+    # Move the window in a direction, Hyper + Left Shift + arrow. Hyper already
+    # occupies all 4 AeroSpace modifier tokens (cmd/alt/ctrl/shift), so an extra
+    # physical Left Shift press can't add a 5th modifier here — instead
+    # karabiner.json remaps Hyper+LeftShift+arrow to F17-F20, bound below.
+    # Same 'all-monitors-outer-frame' surface, so the window slides into the
+    # adjacent monitor's nearest slot. The trailing 'layout tiles horizontal'
+    # keeps the landing container side-by-side: a window crossing into another
+    # monitor's workspace joins that workspace's root, and if the root is
+    # vertical the window gets squeezed into a top/bottom split. 'layout'
+    # applies the first argument that differs from the current layout, so on a
+    # vertical tree it flips orientation to horizontal, and on an
+    # already-horizontal tree it changes nothing.
+    # See: https://nikitabobko.github.io/AeroSpace/commands#move
+    f17 = ['move left  --boundaries all-monitors-outer-frame', 'layout tiles horizontal']
+    f18 = ['move down  --boundaries all-monitors-outer-frame', 'layout tiles horizontal']
+    f19 = ['move up    --boundaries all-monitors-outer-frame', 'layout tiles horizontal']
+    f20 = ['move right --boundaries all-monitors-outer-frame', 'layout tiles horizontal']
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#resize
+    alt-minus = 'resize smart -50'
+    alt-equal = 'resize smart +50'
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
+    alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
+    alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
+    alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
+    alt-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
+    alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
+    alt-shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
+    alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
+    alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
+    alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
+
+    # Evidence capture for a visibly broken layout (empty half, mis-sized
+    # window): one keystroke THE MOMENT it's on screen — verdict arrives as
+    # a macOS notification, full snapshots in ~/.cache/aerospace/. See
+    # diagnose-gap.sh's header for what it distinguishes.
+    alt-shift-d = 'exec-and-forget ~/.config/aerospace/diagnose-gap.sh --notify >/dev/null 2>&1 &'
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#mode
+    alt-shift-semicolon = 'mode service'
+
+# Service mode: recovery commands for a stuck tiling tree.
+# See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
+[mode.service.binding]
+    esc = 'mode main'
+    # See: https://nikitabobko.github.io/AeroSpace/commands#flatten-workspace-tree
+    r = ['flatten-workspace-tree', 'mode main']
+
+# Pin each workspace to a monitor, addressed by left-to-right 1-based index
+# (`aerospace list-monitors`). Index keeps the work setup's two identical
+# 'DELL S2722QC' monitors distinct where their shared product name can't.
+# Workspaces are grouped two per monitor; 7-9 are left unpinned and land on
+# whichever monitor is focused when first summoned. A workspace whose index
+# exceeds the connected monitor count (3 on the 2-monitor HOME setup) matches
+# nothing and is placed the same way.
+#
+#   workspaces   WORK (3 mon)        HOME (2 mon)
+#   1-2 index 1  left DELL           ultrawide
+#   3-4 index 2  center DELL         Built-in
+#   5-6 index 3  Built-in            unpinned (no 3rd monitor)
+#
+# See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
+[workspace-to-monitor-force-assignment]
+    1 = 1
+    2 = 1
+    3 = 2
+    4 = 2
+    5 = 3
+    6 = 3

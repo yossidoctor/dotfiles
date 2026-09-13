@@ -1,0 +1,93 @@
+# foreground polling
+deny	sleep 30
+deny	sleep 100
+deny	sleep 5m
+deny	sleep 60 && echo hi
+deny	sleep 60s
+deny	sleep 1d
+deny	sleep 0.5m
+deny	sleep 10
+deny	sleep 29
+deny	sleep 29s
+# a fixed wait then a check is a poll however short the label — ScheduleWakeup
+# resumes the session instead, with no process held open
+deny	sleep 25; gh pr checks 143
+deny	sleep 20; tail -5 /tmp/run.log
+# under ten seconds the wait is part of one operation: reaping a killed process,
+# settling a connect. The check belongs in the same command.
+allow	sleep 5
+allow	sleep 9
+allow	sleep 5s
+allow	sleep 0.5
+allow	pkill -f matrix.sh ; sleep 2; pgrep -f matrix.sh | wc -l
+allow	adb connect 192.168.50.213:5555; sleep 2; adb devices -l
+deny	while true; do sleep 2; done
+deny	for i in 1 2 3; do sleep 1; done
+deny	until curl -s localhost:8080; do sleep 1; done
+bg_forced	tail -f /var/log/system.log
+bg_forced	tail -n 100 -f /var/log/system.log
+bg_forced	tail --follow /var/log/system.log
+bg_forced	tail -F /var/log/system.log
+bg_forced	echo done && tail -f /var/log/system.log
+bg_forced	watch ls
+allow	tail -n 100 log.txt
+allow	echo watch this
+allow	tail -n 5 log.txt | grep -f patterns.txt
+allow	echo "it's fine" && grep 'tail -f pattern' notes.txt
+allow	git commit -m "watch this space: tail -f docs"
+allow	echo "sleep 60 seconds before retry"
+# loop closed (done) before an unrelated trailing sleep — sleep is foreground but
+# not a poll loop; a trailing sub-10s sleep must pass
+allow	for x in a b; do echo $x; done; sleep 5
+# same shape but a trailing sleep at or above the bar -> caught by the fixed-sleep
+# check, not the loop check
+deny	for x in a b; do echo $x; done; sleep 60
+# nested loop whose inner `done` closes first — sleep is inside the outer loop,
+# so stripping from the LAST done keeps it -> real poll loop, must deny
+deny	while true; do for i in 1 2; do echo $i; done; sleep 5; done
+# follow streams: kubectl logs -f / journalctl -f block the main thread
+bg_forced	kubectl logs -f my-pod
+bg_forced	kubectl logs my-pod --follow
+bg_forced	kubectl logs -f deploy/gateway -n ns
+bg_forced	journalctl -f
+bg_forced	journalctl -u nginx -f
+# gh's own blocking waits, either argument order. A finished run's logs are a
+# one-shot read and must pass untouched.
+bg_forced	gh run watch 123
+bg_forced	gh pr checks 5 --watch
+bg_forced	gh pr checks --watch 5
+bg_forced	gh run watch 123 --exit-status
+allow	gh run view 123 --log
+allow	gh pr checks 5
+allow	gh pr checks 5 --required
+allow	gh run list --limit 5
+# A commit message naming a follow stream is a quoted literal, not a command --
+# the shape normalizer drops it before the match, so the commit stays on the
+# main thread where its exit status is read.
+allow	git commit -m "rewrites tail -f and gh run watch off-thread"
+
+allow	git add x && git commit -m "watch this"
+allow	git log --oneline -1
+# A real follow stream backgrounds on its own merits, whatever command precedes
+# it: the follow flag is what the rewrite keys on, not the leading binary.
+bg_forced	git log -p | tail -f
+bg_forced	git status && tail -f /var/log/x
+allow	kubectl logs my-pod
+allow	kubectl logs my-pod --tail 100
+allow	journalctl -u nginx -n 50
+allow	git commit -m "stream logs with kubectl logs -f"
+allow_bg	sleep 600
+allow_bg	tail -f /var/log/system.log
+allow_bg	while true; do sleep 2; done
+allow_bg	kubectl logs -f my-pod
+allow_bg	journalctl -f
+# Heredoc bodies are stripped before matching, so a command quoted inside one
+# is data and never a verdict. That gives up denying a real foreground `sleep`
+# written into a heredoc -- the trade that buys a silent rewrite a false-
+# positive rate low enough to be trusted, and it retires the unbalanced-quote
+# desync an apostrophe in a body used to cause.
+allow	bash <<'EOF'\necho "it's fine"\nsleep 60\nEOF
+allow	bash <<'EOF'\necho don't\nsleep 60\nEOF
+# A heredoc body quoting a follow stream: data, not a command.
+allow	git commit -F - <<'EOF'\nrewrites tail -f and gh run watch\nEOF
+allow	cat <<'EOF' > cases.txt\nbg_forced\tgh run watch 123\nEOF

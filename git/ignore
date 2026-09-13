@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+Icon?
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Vim / editor scratch
+*.swp
+*.swo
+*.swn
+*~
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+
+# Universal tag files
+tags
+TAGS
+
+# Windows cruft (harmless on Mac, helps if collaborating)
+Thumbs.db
+ehthumbs.db
+
+# Local-only env overlays (NOT bare .env — projects manage their own)
+.env.local
+.env.*.local
+
+# Git worktrees
+.worktrees/
