@@ -2,28 +2,20 @@
 
 Dotfiles managed via [dotbot](https://github.com/anishathalye/dotbot). Public: the shell, terminal, Homebrew, macOS defaults, window management, and the global Claude Code config of one Mac. Private layers install on top of it (§ Layers).
 
-## Setup
+## Install
 
-### New machine
-
-```bash
-git clone git@github.com:yossidoctor/dotfiles.git ~/dotfiles
-brew install dotbot          # ./install runs dotbot from PATH
-~/dotfiles/install
-```
-
-`./install` errors with a hint if `dotbot` isn't on PATH. The full toolchain
-(incl. `dotbot`) installs via `brew bundle` — `HOMEBREW_BUNDLE_FILE` (exported in
-`brew/env.sh`, the SoT for the path) points it at `brew/Brewfile`, so no `--file=`
-flag is needed.
-
-### Current machine (activate symlinks)
+New Mac, from a bare Terminal:
 
 ```bash
-~/dotfiles/install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+git clone https://github.com/yossidoctor/dotfiles.git ~/dotfiles && ~/dotfiles/install
 ```
 
-`./install` idempotent. Re-run anytime.
+`./install` puts Homebrew on PATH, trusts the taps `brew/Brewfile` names, runs
+`brew bundle` when the Brewfile isn't satisfied (casks may prompt for your
+password), then runs dotbot over `install.conf.yaml`. Idempotent; re-run anytime
+to activate symlinks or pick up a Brewfile change. A private layer (§ Layers)
+installs after this, with its own `install`.
 
 ## Adding new dotfiles
 

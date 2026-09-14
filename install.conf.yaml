@@ -60,7 +60,6 @@
     ~/.config/starship.toml: starship/starship.toml
 
 - shell:
-    - [command -v brew >/dev/null && grep -oE '^tap "[^"]+"' brew/Brewfile | cut -d'"' -f2 | xargs brew trust --tap || true, Trust every third-party tap the Brewfile installs from (Homebrew refuses untrusted taps)]
     - [bash mac/defaults.sh, Apply macOS system defaults]
     - [bash mac/disable-spotlight.sh || true, Disable Spotlight indexing (needs sudo; skipped if it fails)]
     - [bash mac/duti.sh, Apply duti file-type bindings]
