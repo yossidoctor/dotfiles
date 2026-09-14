@@ -31,7 +31,7 @@ installs after this, with its own `install`.
 
 ### Git identity & credentials
 
-No default identity. `git/config` sets `user.useConfigOnly = true` and routes by `includeIf gitdir:`: `~/dotfiles/` → `git/config-personal`, which holds the personal `user.email` (shared `user.name` lives once in base `git/config`); `git config -f ~/dotfiles/git/config-personal user.email` reads it. A commit outside every included scope fails loud until a per-repo identity is set. Another layer adds its own tree's scope through `~/.config/git/local.gitconfig`, which `git/config` includes when present and which this repo never ships.
+No default identity. `git/config` sets `user.useConfigOnly = true` and routes by `includeIf gitdir:`: `~/dotfiles/` → `git/identity`, which holds the personal `user.email` (shared `user.name` lives once in base `git/config`); `git config -f ~/dotfiles/git/identity user.email` reads it. A commit outside every included scope fails loud until a per-repo identity is set. Another layer adds its own tree's scope through `~/.config/git/local.gitconfig`, which `git/config` includes when present and which this repo never ships.
 
 Auth via `git/credential-helper.sh`: it sources every identity file in `~/.config/git/identities.d/` (`URL_PREFIX`, `GH_LOGIN`, `TREE`; this repo deploys `identities.sh` there as `personal.sh`) and picks the gh account whose `URL_PREFIX` matches the repo URL, else whose `TREE` contains the repo; no match fails loud rather than borrowing an account. A second layer drops a second file and the helper needs no change.
 
@@ -106,4 +106,4 @@ Two layers, each its own SoT:
 
 ### Commit gate (`git/hooks/pre-commit`)
 
-Wired via `core.hooksPath` in `git/config-personal`, and a no-op outside `~/dotfiles`. This repo is public, so the gate is a denylist over the staged tree: a commit that names a private layer or an employer term fails and prints the line. The pattern lives in the hook; the hook file itself is the one path excluded from its own scan.
+Wired via `core.hooksPath` in `git/identity`, and a no-op outside `~/dotfiles`. This repo is public, so the gate is a denylist over the staged tree: a commit that names a private layer or an employer term fails and prints the line. The pattern lives in the hook; the hook file itself is the one path excluded from its own scan.

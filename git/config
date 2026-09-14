@@ -1,5 +1,5 @@
 # Router + shared identity. Name is shared (here); the personal email is
-# config-personal, included for ~/dotfiles below. Another layer adds its own
+# git/identity, included for ~/dotfiles below. Another layer adds its own
 # tree's identity through ~/.config/git/local.gitconfig, which it deploys and
 # this file includes when present. credential-helper.sh routes github.com auth
 # by the identity files in ~/.config/git/identities.d/. useConfigOnly = true
@@ -84,7 +84,7 @@
 	date = iso
 
 [includeIf "gitdir:~/dotfiles/"]
-	path = ~/dotfiles/git/config-personal
+	path = ~/dotfiles/git/identity
 
 [include]
 	path = ~/.config/git/local.gitconfig
