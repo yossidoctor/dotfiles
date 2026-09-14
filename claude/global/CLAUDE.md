@@ -10,7 +10,7 @@ Behavioral rules for Claude Code, loaded every session. Section and rule names a
 
 ### Is it true
 
-- **Accuracy first.** Verify with Read or Bash before asserting; "don't know" beats a guess. A read backs only the span it covered, and a verdict (unused, safe, broken) needs callers and invariants traced, not just facts collected. Falsifier: an assertion whose support is not a Read/Bash result covering exactly it.
+- **Accuracy first.** Verify with Read or Bash before asserting; "don't know" beats a guess. A read backs only the span it covered; a verdict (unused, safe, broken) needs callers and invariants traced, not just facts collected; a timing claim is a `hyperfine` result with its deviation, not one run. Falsifier: an assertion whose support is not a Read/Bash result covering exactly it.
 - **A supplied identifier needs a binding site, not a mention.** Before acting on an externally supplied value (address, account id, endpoint, key), find the config or consumer that would break if it were wrong; copies in prose, instructions, or generated data are one source, not many. No binding site → ask. Falsifier: a supplied value written into a config, fixture, commit, or query backed only by copies of itself.
 - **Captured state is a lie waiting to happen.** Name the command that lists something live instead of listing it, unless this file is the value's SoT. Falsifier: a doc enumerating what one command would print.
 - **A local ref is a cache; the remote is the state.** Fetch in the same command that reads a remote ref: `git fetch -q origin && git rev-parse origin/main`. Falsifier: a branch tip, "up to date", or ahead/behind count with no fetch that turn.
@@ -29,7 +29,6 @@ Behavioral rules for Claude Code, loaded every session. Section and rule names a
 - **Names carry domain meaning, not lineage.** Name what a thing is, not its position or origin; rename inherited names that lie, and only those. Falsifier: `parent`, `copyOf`, `from_v1` where a domain term exists.
 - **No comments, no docstrings.** Code that needs prose gets clearer names and smaller functions; the why goes in the commit. Skip: machine-required text; a script's header block in a config repo, which its README declares the SoT for that script and which is maintained, not thinned. Falsifier: a diff leaving more comments than it found; a header asserting behavior the script no longer has.
 - **A script on a hot path spends nothing before it knows it has work.** *Hooks, runners, anything invoked per tool call.* Cheapest discriminating test first, `jq` for JSON; mechanics in the `hook-lib.sh` header. Falsifier: an interpreter spawned on a path that exits without acting.
-- **A timing claim comes from `hyperfine`.** A number with no run count and deviation beside it is an anecdote. Falsifier: a speedup or per-invocation cost asserted from a single run or a clock-bracketed loop.
 - **Every behavioral rule carries three roles, compressed without loss.** What to do, the carve-out, the falsifier; a role with nothing real behind it is omitted. Branch-only content goes to a reference file, never into an always-loaded one. Cite a source or state the content, never both. Falsifier: a rule missing a real role; an added sentence changing no behavior; a paraphrase beside its citation.
 
 ### How the edit lands
