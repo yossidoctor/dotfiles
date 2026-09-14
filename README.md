@@ -19,10 +19,10 @@ installs after this, with its own `install`.
 
 ## Adding new dotfiles
 
-1. Copy the file into its topic directory (`zsh/`, `git/`, `claude/global/`, etc.).
+1. Copy the file into its topic directory (`zsh/`, `git/`, `claude/`, etc.).
 2. Declare it in `install.conf.yaml`:
    - Single file: `~/.target: topic/source` under `link:`.
-   - Whole directory: a `path:` block with `relink: true, force: true` (see the `claude/global/skills`, `claude/global/output-styles` entries).
+   - Whole directory: a `path:` block with `relink: true, force: true` (see the `claude/skills`, `claude/output-styles` entries).
    - Shell action (compile, import, run script): under the `shell:` section.
 3. Run `./install` — creates the symlink and reruns any shell actions.
 4. Commit the topic file + the `install.conf.yaml` change together.
@@ -45,13 +45,13 @@ Hooks and `install.conf.yaml` `shell:` steps run under macOS `/bin/bash` 3.2, so
 
 ### Claude Code hooks
 
-Global hooks register in `claude/global/settings.json` and fire in every session; scripts sit beside them in `claude/global/hooks/` and deploy per file to `~/.claude/hooks/`. A project layer registers its own hooks in its project settings file, which Claude loads when that directory is the session root; those hooks source the deployed prologue at `~/.claude/hooks/hook-lib.sh` and run their case files through the deployed harness at `~/.claude/hooks/tests/run-tests.sh`.
+Global hooks register in `claude/settings.json` and fire in every session; scripts sit beside them in `claude/hooks/` and deploy per file to `~/.claude/hooks/`. A project layer registers its own hooks in its project settings file, which Claude loads when that directory is the session root; those hooks source the deployed prologue at `~/.claude/hooks/hook-lib.sh` and run their case files through the deployed harness at `~/.claude/hooks/tests/run-tests.sh`.
 
-The prologue is `claude/global/hooks/hook-lib.sh` — payload parsing (`hook_read_raw`, `hook_parse_input`), the command-shape normalizer (`hook_command_shape`: heredoc bodies dropped, newlines mapped to `;`, quoted regions removed, so a hook carries its regex and nothing else), the rule-repo resolver (`hook_rule_roots`: the repositories behind `~/.claude/CLAUDE.md` and the project's `CLAUDE.md`), and the decision emitters (`deny`/`ask`). Each function's contract is documented in the lib's own header.
+The prologue is `claude/hooks/hook-lib.sh` — payload parsing (`hook_read_raw`, `hook_parse_input`), the command-shape normalizer (`hook_command_shape`: heredoc bodies dropped, newlines mapped to `;`, quoted regions removed, so a hook carries its regex and nothing else), the rule-repo resolver (`hook_rule_roots`: the repositories behind `~/.claude/CLAUDE.md` and the project's `CLAUDE.md`), and the decision emitters (`deny`/`ask`). Each function's contract is documented in the lib's own header.
 
-Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. The regex-gating ones are covered by the table-driven tests under `claude/global/hooks/tests/`.
+Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. The regex-gating ones are covered by the table-driven tests under `claude/hooks/tests/`.
 
-**Global** (registrations: `claude/global/settings.json`):
+**Global** (registrations: `claude/settings.json`):
 
 | Event | Hook |
 |---|---|
@@ -66,9 +66,9 @@ Each script's header comment is the SoT for its exact behavior and rationale —
 
 ### Permissions
 
-`.permissions` arrays are edited directly in `claude/global/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually.
+`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually.
 
-### Statusline (`claude/global/statusline-command.sh`)
+### Statusline (`claude/statusline-command.sh`)
 
 ```
 model  ctx%  (effort: High)  [bypass]
@@ -77,15 +77,15 @@ model  ctx%  (effort: High)  [bypass]
   <job-id> working    45k <job name> (2 in flight)
 ```
 
-Header line, then one row per claude-swap account, then one row per live background job. Colors are the Catppuccin roles in `starship/starship.toml`, cached in `claude/global/statusline-lib.sh` together with the shared color ramp. No cwd, scope, or git state — the line is workspace-agnostic.
+Header line, then one row per claude-swap account, then one row per live background job. Colors are the Catppuccin roles in `starship/starship.toml`, cached in `claude/statusline-lib.sh` together with the shared color ramp. No cwd, scope, or git state — the line is workspace-agnostic.
 
 Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active number from `sequence.json`): account number, `●` on the active account, the email's local-part padded to 8, then a 5h meter, a 7d meter, and the scoped per-model meter when present — each a 5-cell bar, percentage, and reset countdown. Inactive rows are faded. `stale` marks a cache older than 15 minutes, and a stale cache kicks `cswap auto --once --dry-run` in the background at most once per 2 minutes. The rows are absent when claude-swap isn't installed or has no cache; run `cswap list` for the registered accounts and their quotas. Job rows list every `~/.claude/jobs/*/state.json` in state `working`/`blocked` updated within 12h, while the daemon named in `~/.claude/daemon.lock` is alive.
 
-What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent (generated from `$HOME` and installed idempotently by `claude/global/cswap-auto.sh`, a `./install` shell step): it runs `cswap auto --model all` (the script is the SoT for the arguments; per-model weekly windows count alongside the account-wide 5h/7d ones), kept alive across logout and reboot, rotating to the account with the most quota left once the active one hits `cswap`'s default 90% threshold. Actual switches land in `cswap`'s own 1MB-rotated `~/.claude-swap-backup/claude-swap.log`; the per-minute "no switch, below threshold" ticks go to `/dev/null` rather than an unrotated file that grows a line a minute forever. The agent's stderr is kept in `auto-stderr.log` beside the rotated log, so a crash-loop leaves evidence. `launchctl list | grep cswap` shows whether it's running. Registering an account is manual and interactive (`cswap add`) — it never runs from `./install`.
+What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent (generated from `$HOME` and installed idempotently by `claude/cswap-auto.sh`, a `./install` shell step): it runs `cswap auto --model all` (the script is the SoT for the arguments; per-model weekly windows count alongside the account-wide 5h/7d ones), kept alive across logout and reboot, rotating to the account with the most quota left once the active one hits `cswap`'s default 90% threshold. Actual switches land in `cswap`'s own 1MB-rotated `~/.claude-swap-backup/claude-swap.log`; the per-minute "no switch, below threshold" ticks go to `/dev/null` rather than an unrotated file that grows a line a minute forever. The agent's stderr is kept in `auto-stderr.log` beside the rotated log, so a crash-loop leaves evidence. `launchctl list | grep cswap` shows whether it's running. Registering an account is manual and interactive (`cswap add`) — it never runs from `./install`.
 
 Context pct rides `ramp_color`: muted grey below the warm threshold, red deepening to bold, and from the alarm threshold a filled white-on-red pill (a deeper foreground red stops reading as more urgent once the channels bottom out). Thresholds warm/bold/alarm: 25/40/50 by default, 45/65/80 for Sonnet. Account meters use the muted ramp at 40/70 (softer red, no bold, no pill). `(effort: Low|Mid|High|XHi|Max)` (muted) shows the current reasoning-effort level; unmapped values pass through raw; absent when the model doesn't support the effort parameter. `bypass` badge (red) shows only in bypass-permissions mode. Render cost, `hyperfine` 20 runs: 59.9 ± 4.5 ms.
 
-### Subagent statusline (`claude/global/subagent-statusline.sh`)
+### Subagent statusline (`claude/subagent-statusline.sh`)
 
 Overrides the agent-panel rows via `subagentStatusLine`. Per row: description left, then `model  ctx%  elapsed · ↓tokens` right-aligned to the payload's `columns` width (padding computed on visible length, ANSI-stripped). ctx% is `tokenCount / contextWindowSize` on the main line's default ramp (25/40, no pill); `startTime` is epoch ms; fractional counts are floored. Rows without a resolved `contextWindowSize` keep their default rendering.
 
