@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# Commit gate for ~/dotfiles: a public repo, so the staged tree may name no
-# private layer and nothing from the employer's world. The denylist below is the
-# gate; a hit blocks the commit and prints the line. Only acts in ~/dotfiles; a
-# no-op everywhere else, so it is safe as a shared core.hooksPath hook.
+# Commit gate for ~/dotfiles, two checks. This is a public repo, so the staged
+# tree may name no private layer and nothing from the employer's world: the
+# denylist below is the gate, a hit blocks the commit and prints the line, and
+# this file is the one path excluded from its own scan. Then scripts/check-doc-refs.sh
+# (deployed as check-doc-refs) fails the commit when a skill cites a file or a
+# `skills/…` path that does not exist, or an install.conf.yaml `link:` names an
+# absent source — the classes that break a fresh clone; § citations only warn.
+# Only acts in ~/dotfiles; a no-op everywhere else, so it is safe as a shared
+# core.hooksPath hook.
 
 set -euo pipefail
 
@@ -15,3 +20,9 @@ if hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@do
   echo "pre-commit: the staged tree names a private layer or an employer term (above) — this repo is public." >&2
   exit 1
 fi
+
+report=$(bash "$root/scripts/check-doc-refs.sh" "$root" 2>&1) || {
+  printf '%s\n' "$report" >&2
+  echo "check-doc-refs: broken doc/config references (above) — fix, or run check-doc-refs --strict for the § warnings." >&2
+  exit 1
+}
