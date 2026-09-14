@@ -49,7 +49,7 @@ Global hooks register in `claude/global/settings.json` and fire in every session
 
 The prologue is `claude/global/hooks/hook-lib.sh` — payload parsing (`hook_read_raw`, `hook_parse_input`), the command-shape normalizer (`hook_command_shape`: heredoc bodies dropped, newlines mapped to `;`, quoted regions removed, so a hook carries its regex and nothing else), the rule-repo resolver (`hook_rule_roots`: the repositories behind `~/.claude/CLAUDE.md` and the project's `CLAUDE.md`), and the decision emitters (`deny`/`ask`). Each function's contract is documented in the lib's own header.
 
-Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. All are covered by the table-driven tests under `claude/global/hooks/tests/`.
+Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. The regex-gating ones are covered by the table-driven tests under `claude/global/hooks/tests/`.
 
 **Global** (registrations: `claude/global/settings.json`):
 
