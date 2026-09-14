@@ -106,4 +106,4 @@ Two layers, each its own SoT:
 
 ### Commit gate (`git/hooks/pre-commit`)
 
-Wired via `core.hooksPath` in `git/identity`, and a no-op outside `~/dotfiles`. This repo is public, so the gate is a denylist over the staged tree: a commit that names a private layer or an employer term fails and prints the line. The pattern lives in the hook; the hook file itself is the one path excluded from its own scan.
+Wired via `core.hooksPath` in `git/identity`, and a no-op outside `~/dotfiles`. Two checks. This repo is public, so the first is a denylist over the staged tree: a commit that names a private layer or an employer term fails and prints the line; the pattern lives in the hook, and the hook file itself is the one path excluded from its own scan. The second is `scripts/check-doc-refs.sh`, deployed on PATH as `check-doc-refs [--strict] [<root>]`: a skill citing a `.sh`/`.md` or a `skills/…` path that does not exist, or an `install.conf.yaml` `link:` naming an absent source, fails the commit; `§ Section` citations warn unless `--strict`. It knows no project, so a layer repo wraps it with its own passes and runs it against its own root.

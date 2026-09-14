@@ -18,6 +18,7 @@
     ~/.config/git/identities.d/personal.sh: identities.sh
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
+    ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
     ~/.claude/CLAUDE.md: claude/global/CLAUDE.md
     ~/.claude/settings.json: claude/global/settings.json
     ~/.claude/keybindings.json: claude/global/keybindings.json
