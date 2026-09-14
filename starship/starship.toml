@@ -82,7 +82,7 @@ disabled = true
 command = """
 case "$(git config user.email)" in
   "") echo "?" ;;
-  "$(git config -f ~/dotfiles/git/config-personal user.email)") echo personal ;;
+  "$(git config -f ~/dotfiles/git/identity user.email)") echo personal ;;
   *) echo work ;;
 esac"""
 when = "git rev-parse --is-inside-work-tree"

@@ -9,7 +9,7 @@ indent_style = space
 indent_size = 2
 
 # Git config files use tabs (git's own convention).
-[git/{config,config-personal}]
+[git/{config,identity}]
 indent_style = tab
 
 # Markdown: trailing whitespace can be a hard line break — don't strip.

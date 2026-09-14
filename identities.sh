@@ -6,7 +6,7 @@
 #   GH_LOGIN    the gh CLI account whose token those URLs get (`gh auth status`)
 #   TREE        filesystem root whose repos default to this account when the
 #               URL prefix matches no identity
-# The email is not here: git/config-personal owns it, included by git/config for
+# The email is not here: git/identity owns it, included by git/config for
 # every repo under TREE.
 URL_PREFIX="yossidoctor"
 GH_LOGIN="yossidoctor"
