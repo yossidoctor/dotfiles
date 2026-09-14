@@ -30,18 +30,17 @@
 #
 # A file qualifies on two counts, and needs both: it differs from what the turn
 # started with, and this turn names it. The baseline is the copy
-# snapshot-rule-files.sh took at the prompt when one exists, and HEAD otherwise: a
-# HEAD diff carries every hunk any session left uncommitted, so a file touched here
-# would show other sessions' work as this turn's. The turn's paths alone miss a file
-# rewritten by a sed or a script, since a file_path arrives only on a tool call — so a
-# Bash command's own text is scanned for paths too. A file_path counts only from a
+# snapshot-rule-files.sh took at the prompt, which every rule file has; a diff
+# against it survives the turn committing (HEAD moves, the copy does not) and
+# ignores hunks other sessions left uncommitted. HEAD is the baseline only for a
+# file the snapshot never saw — one created this turn, or a session whose prompt
+# predates the snapshot hook — and a tracked file with an empty HEAD diff there is
+# clean, not baseline-less, and is dropped. The turn's paths alone miss a file
+# rewritten by a sed or a script, since a file_path arrives only on a tool call — so
+# a Bash command's own text is scanned for paths too. A file_path counts only from a
 # writing tool: Read names a file the same way and rewrites nothing. The transcript
 # supplies the turn boundary, its cwds, and those paths.
 #
-# An untracked or non-repo file has no HEAD to differ from, so a named one is
-# reported whole rather than skipped. A tracked file whose diff is empty is clean,
-# not baseline-less, and is dropped — the two are indistinguishable by diff output
-# alone, and conflating them reports an untouched file as a whole-file addition.
 # Diffs resolve the symlink first: a rule file reaches ~/.claude and the project's
 # .claude as a link out of a rule repo, and the link's own directory may track
 # nothing. The rule repos are hook_rule_roots (hook-lib.sh).
@@ -183,8 +182,6 @@ while IFS= read -r f; do
   # finds no baseline and reports an untouched file as a whole-file addition.
   r=$(realpath "$f" 2>/dev/null) || r="$f"
   [ -n "$r" ] || r="$f"
-  # The turn-start copy is the baseline when snapshot-rule-files.sh took one; a file
-  # equal to its copy was not changed by this turn, whatever HEAD says.
   root=$(git -C "$(dirname "$r")" rev-parse --show-toplevel 2>/dev/null) || root=""
   rel="${r#$root/}"
   snap="/tmp/claude-rule-snapshot-${HOOK_SESSION_ID:-default}/$(basename "${root:-/}")/$rel"
