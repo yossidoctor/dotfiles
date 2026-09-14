@@ -7,6 +7,17 @@
 # § A script on a hot path spends nothing before it knows it has work), so a hook
 # reads the raw payload first, gates on a literal `case` over it, and parses only
 # past the gate; the python3 blocks that remain do parsing work the shell cannot.
+# The payload is parsed by jq only: hand-extracting a JSON string with parameter
+# expansion truncates at the first escaped quote, so a gate reading a command
+# field that way fails open. jq starts in a fraction of python3's time.
+#
+# Every hook here is deployed as a symlink into this repo, so an edit runs on the
+# very next tool call of the editing session and a broken edit bricks that tool
+# at once; settings.json registrations snapshot at session start, so a new hook
+# needs a new session. A regex-gating hook carries a cases-<hook>.txt under
+# tests/ (the glob there is the coverage list); case files hold the banned
+# patterns as text, so they are written with Write/Edit — a Bash heredoc is
+# denied by the hook under test.
 #
 # Provides:
 #   hook_read_raw     read the hook payload from stdin -> HOOK_INPUT, nothing else.
