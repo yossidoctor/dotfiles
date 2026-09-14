@@ -6,6 +6,7 @@
 - create:
     - ~/.claude/hooks
     - ~/.claude/themes
+    - ~/.local/bin
     - ~/.config/git/identities.d
     - ~/Library/Application Support/Code/User
 
@@ -16,13 +17,12 @@
     ~/.gitignore_global: git/ignore
     ~/.config/git/identities.d/personal.sh: identities.sh
     ~/.hushlogin: shell/hushlogin
-    ~/brew-maintenance.sh: brew/brew-maintenance.sh
+    ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
     ~/.claude/CLAUDE.md: claude/global/CLAUDE.md
     ~/.claude/settings.json: claude/global/settings.json
     ~/.claude/keybindings.json: claude/global/keybindings.json
     ~/.claude/statusline-command.sh: claude/global/statusline-command.sh
     ~/.claude/statusline-lib.sh: claude/global/statusline-lib.sh
-    ~/.claude/cswap-auto.plist: claude/global/cswap-auto.plist
     ~/.claude/subagent-statusline.sh: claude/global/subagent-statusline.sh
     ~/.claude/hooks/hook-lib.sh: claude/global/hooks/hook-lib.sh
     ~/.claude/hooks/hook_lib.py: claude/global/hooks/hook_lib.py

@@ -21,7 +21,8 @@
     "diffEditor.maxComputationTime": 0,                             // no timeout, so long lines don't fall back to line-diff
     "diffEditor.diffAlgorithm": "advanced",                         // char-level matching (vs "legacy")
     "diffEditor.renderMarginRevertIcon": false,                     // no revert-arrow in the gutter between panes
-    "diffEditor.experimental.showMoves": true, // fold unchanged regions, showing only changed lines + context
+    "diffEditor.experimental.showMoves": true,                      // draw moved blocks as moves, not delete+insert
+    "diffEditor.hideUnchangedRegions.enabled": true,                // fold unchanged regions, showing only changed lines + context
     "diffEditor.hideUnchangedRegions.contextLineCount": 5,          // lines of context kept around each change
     "diffEditor.hideUnchangedRegions.minimumLineCount": 5,          // smallest unchanged block that gets folded
     "diffEditor.hideUnchangedRegions.revealLineCount": 20,          // lines revealed when clicking "Show more"
@@ -83,7 +84,7 @@
     "editor.folding": false,                                        // drop fold-arrow column (lose code folding)
 
     // Visual noise reduction
-    "editor.glyphMargin": false,                                    // no left margin column (was: breakpoint dots / GitLens gutter); end-of-line blame still works
+    "editor.glyphMargin": false,                                    // no left margin column for breakpoints / gutter blame; end-of-line blame still works
     "editor.renderLineHighlight": "none",                           // no highlight band on current line
     "editor.overviewRulerBorder": false,                            // no border on right-side overview strip
     "editor.hideCursorInOverviewRuler": true,                       // no cursor marker in overview strip
@@ -96,8 +97,10 @@
     "breadcrumbs.enabled": false,                                   // hide file-path breadcrumb bar
     "workbench.editor.showTabs": "multiple",
     "workbench.editor.tabSizing": "shrink",                         // compress tabs when many are open
+    "workbench.editor.pinnedTabSizing": "compact",                  // pinned tabs show icon only
     "workbench.editor.labelFormat": "medium",                       // tab labels include containing folder (disambiguates same filename across repos)
     "workbench.activityBar.location": "default",                    // icon strip on left edge, always visible (Explorer/Search/SCM/Extensions)
+    "workbench.activityBar.compact": true,                          // smaller icons in that strip
     "workbench.layoutControl.enabled": false,                       // hide titlebar layout-toggle buttons
     "chat.disableAIFeatures": true,                                 // disable & hide built-in AI features (chat panel, inline suggestions, Copilot extensions)
     "chat.commandCenter.enabled": false,                            // hide chat (sparkles) icon + Sign In button in titlebar
@@ -233,8 +236,7 @@
     "gitlens.codeLens.enabled": true,                               // "N authors, M commits" above functions
     "gitlens.hovers.currentLine.over": "line",                      // hover anywhere on line to see commit details
     "gitlens.blame.toggleMode": "window",
-    "python.analysis.typeCheckingMode": "basic",
-    "workbench.activityBar.compact": true,
-    "workbench.editor.pinnedTabSizing": "compact",
-    "diffEditor.hideUnchangedRegions.enabled": true
+
+    // Python
+    "python.analysis.typeCheckingMode": "basic"                     // Pylance: flag type errors without strict-mode noise
 }
