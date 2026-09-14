@@ -2,7 +2,7 @@
 
 Behavioral rules for Claude Code, loaded every session. Section and rule names are stable IDs other docs cite; renaming one means updating its referencers.
 
-**Terms.** A **falsifier** is the observable that proves a rule was broken. A **SoT** (source of truth) is the one file or command that owns a value.
+**Terms.** A **falsifier** is the observable that proves a rule was broken. A rule's **carve-out** (`Skip:`) is what it deliberately doesn't cover. A **SoT** (source of truth) is the one file or command that owns a value.
 
 ## Making things
 

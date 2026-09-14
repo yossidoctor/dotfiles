@@ -14,10 +14,8 @@
 # Every hook here is deployed as a symlink into this repo, so an edit runs on the
 # very next tool call of the editing session and a broken edit bricks that tool
 # at once; settings.json registrations snapshot at session start, so a new hook
-# needs a new session. A regex-gating hook carries a cases-<hook>.txt under
-# tests/ (the glob there is the coverage list); case files hold the banned
-# patterns as text, so they are written with Write/Edit — a Bash heredoc is
-# denied by the hook under test.
+# needs a new session. Case files hold the banned patterns as text, so they are
+# written with Write/Edit — a Bash heredoc is denied by the hook under test.
 #
 # Provides:
 #   hook_read_raw     read the hook payload from stdin -> HOOK_INPUT, nothing else.
