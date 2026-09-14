@@ -39,13 +39,17 @@ Auth via `git/credential-helper.sh`: it sources every identity file in `~/.confi
 
 This repo is the base: shell, terminal, Homebrew, macOS defaults, and the global Claude Code config. A private layer repo installs its own dotbot manifest on top — its `install` after this one — and reaches everything here only through the paths dotbot deploys (`~/.claude/…`, `~/.config/git/…`); nothing in this repo names a layer. A layer's project rules load through its own `CLAUDE.md` when that project directory is the session root.
 
+### Script conventions
+
+Hooks and `install.conf.yaml` `shell:` steps run under macOS `/bin/bash` 3.2, so scripts start `#!/usr/bin/env bash` (Homebrew bash when on PATH, `#!/bin/sh` only where POSIX is meant) and use no bash-4 syntax (`${var,,}`, `declare -A`, `printf '%(…)T'`, `mapfile`) without a `BASH_VERSINFO` gate; a script that never runs under a hook or `./install` may use bash 4+. A `shell:` step re-runs on every `./install` under `set -e`, so it no-ops when its state already holds and carries `|| true` when it needs sudo or a TTY. Every regex-gating hook has a `cases-<hook>.txt` under `tests/`, run by that dir's `run-tests.sh` after any pattern change; a banner or nudge hook with no allow/deny logic needs none. A layer repo's hooks and install steps follow the same conventions.
+
 ### Claude Code hooks
 
 Global hooks register in `claude/global/settings.json` and fire in every session; scripts sit beside them in `claude/global/hooks/` and deploy per file to `~/.claude/hooks/`. A project layer registers its own hooks in its project settings file, which Claude loads when that directory is the session root; those hooks source the deployed prologue at `~/.claude/hooks/hook-lib.sh` and run their case files through the deployed harness at `~/.claude/hooks/tests/run-tests.sh`.
 
 The prologue is `claude/global/hooks/hook-lib.sh` — payload parsing (`hook_read_raw`, `hook_parse_input`), the command-shape normalizer (`hook_command_shape`: heredoc bodies dropped, newlines mapped to `;`, quoted regions removed, so a hook carries its regex and nothing else), the rule-repo resolver (`hook_rule_roots`: the repositories behind `~/.claude/CLAUDE.md` and the project's `CLAUDE.md`), and the decision emitters (`deny`/`ask`). Each function's contract is documented in the lib's own header.
 
-Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. All are covered by the table-driven tests under `claude/global/hooks/tests/`.
+Each script's header comment is the SoT for its exact behavior and rationale — the rows below are one-line orientation only. The regex-gating ones are covered by the table-driven tests under `claude/global/hooks/tests/`.
 
 **Global** (registrations: `claude/global/settings.json`):
 
