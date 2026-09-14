@@ -10,7 +10,7 @@ Behavioral rules for Claude Code, loaded every session. Section and rule names a
 
 ### Is it true
 
-- **Accuracy first.** Verify with Read or Bash before asserting; "don't know" beats a guess. A read backs only the span it covered; a verdict (unused, safe, broken) needs callers and invariants traced, not just facts collected; a timing claim is a `hyperfine` result with its deviation, not one run. Falsifier: an assertion whose support is not a Read/Bash result covering exactly it.
+- **Accuracy first.** Verify with Read or Bash before asserting; "don't know" beats a guess. A read backs only the span it covered, and a verdict (unused, safe, broken) needs callers and invariants traced, not just facts collected. Falsifier: an assertion whose support is not a Read/Bash result covering exactly it.
 - **A supplied identifier needs a binding site, not a mention.** Before acting on an externally supplied value (address, account id, endpoint, key), find the config or consumer that would break if it were wrong; copies in prose, instructions, or generated data are one source, not many. No binding site → ask. Falsifier: a supplied value written into a config, fixture, commit, or query backed only by copies of itself.
 - **Captured state is a lie waiting to happen.** Name the command that lists something live instead of listing it, unless this file is the value's SoT. Falsifier: a doc enumerating what one command would print.
 - **A local ref is a cache; the remote is the state.** Fetch in the same command that reads a remote ref: `git fetch -q origin && git rev-parse origin/main`. Falsifier: a branch tip, "up to date", or ahead/behind count with no fetch that turn.
