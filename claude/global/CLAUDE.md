@@ -6,7 +6,7 @@ Behavioral rules for Claude Code, loaded every session. Section and rule names a
 
 ## Making things
 
-*Everything you author or change. A rule naming a surface (*code*, *instructional text*) is scoped to it; the rest bind everywhere.*
+*Everything you author or change. A rule naming a surface (`*code*`, `*instructional text*`) is scoped to it; the rest bind everywhere.*
 
 ### Is it true
 
