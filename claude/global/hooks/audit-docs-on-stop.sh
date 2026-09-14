@@ -26,7 +26,11 @@
 # prior stop" fails the second, leaving every later round of a long session unaudited.
 # It is also why the check is not `stop_hook_active`: that flag covers only the
 # continuation a block creates and clears on the next user message, leaving a
-# still-uncommitted doc to be re-blocked over an audit already done.
+# still-uncommitted doc to be re-blocked over an audit already done. Turns are
+# counted from the transcript's user rows that carry prose: tool results and hook
+# injections replay as user rows too, and a block's own reason replays under the
+# harness's "Stop hook feedback:" prefix — counting either would number a turn
+# this gate manufactured and re-block forever.
 #
 # A file qualifies on two counts, and needs both: it differs from what the turn
 # started with, and this turn names it. The baseline is the copy
@@ -47,7 +51,10 @@
 #
 # The brief also carries check-doc-refs.sh's findings: a `§` cite or a file path that
 # stopped resolving is a defect of the same turn, and the checker sees it while the
-# author does not.
+# author does not. An edited doc gone from disk leaves nothing to audit and never
+# blocks. The block reason prints to the terminal under the harness's "Stop hook
+# error:" prefix, so it is one line naming the brief file; the prompt and the diff
+# go in that file, which only Claude opens.
 
 set -u
 
@@ -74,10 +81,6 @@ for line in open(sys.argv[1], errors="replace"):
     except Exception:
         pass
 
-# Walk back to the last real user message: only this turn's writes are in scope.
-# Counting those messages also numbers the turn, which is what lets a later round of
-# rule edits re-arm the gate while an audit's own fixes — landing in the turn the
-# block created — do not.
 start = 0
 turn = 0
 for i, d in enumerate(rows):
@@ -90,19 +93,12 @@ for i, d in enumerate(rows):
             text = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
         else:
             text = ""
-        # Tool results and hook injections replay as user rows; a real message has
-        # prose. A Stop block's own reason replays as prose under a "Stop hook
-        # feedback:" prefix, so counting it numbers a turn this gate manufactured —
-        # the marker then trails by one forever and every stop re-blocks. The prefix
-        # is the harness's, not this hook's text, so it holds for any reason wording.
         if (text.strip() and "tool_use_id" not in json.dumps(c)[:200]
                 and not text.lstrip().startswith("Stop hook feedback:")):
             start = i
             turn += 1
 
 DOC = (".md", ".mdc", ".mdx")
-# Read carries a file_path too, so the tool name is what separates a rewrite from
-# a look: a Read of a rule file left dirty by another session is not this turn's.
 WRITERS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
 
 edited, roots = [], set()
@@ -119,10 +115,6 @@ for d in rows[start:]:
         p = (b.get("input") or {}).get("file_path") or ""
         if b.get("name") in WRITERS and p.endswith(DOC) and behavioral(p):
             edited.append(p)
-        # A shell command that rewrites a doc did what an Edit does; the path is the
-        # attribution git cannot supply. Naming one is not rewriting it — a grep,
-        # cat, or stat over a rule file carries the same token as a sed -i, so the
-        # command must also invoke a writer for the path to count.
         if b.get("name") == "Bash":
             cmd = (b.get("input") or {}).get("command") or ""
             if re.search(r"(?:^|[|&;(]|\s)(?:sed|perl|awk|python3?|tee|dd|truncate|install|cp|mv)\b", cmd) \
@@ -140,9 +132,6 @@ def git(root, *args):
     except Exception:
         return ""
 
-# git says which docs differ from HEAD; the turn's own writes say which of those
-# are this turn's business. A doc left dirty by an earlier session is in git's list
-# and not in this one, so an unrelated session is never blocked over it.
 mine = {os.path.realpath(p) for p in edited}
 found = []
 for root in sorted(roots):
@@ -177,9 +166,6 @@ report=""
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   [ -f "$f" ] || continue
-  # Diff the real path: a rule file reaches its skill dir as a symlink out of the
-  # dotfiles repo, and the link's own directory tracks nothing, so diffing there
-  # finds no baseline and reports an untouched file as a whole-file addition.
   r=$(realpath "$f" 2>/dev/null) || r="$f"
   [ -n "$r" ] || r="$f"
   root=$(git -C "$(dirname "$r")" rev-parse --show-toplevel 2>/dev/null) || root=""
@@ -212,8 +198,6 @@ done <<EOF
 $files
 EOF
 
-# Every edited doc gone from disk (written then deleted) leaves nothing to audit;
-# blocking would spend a turn on an empty report.
 [ -n "$report" ] || exit 0
 
 checker="${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}/scripts/check-doc-refs.sh"
@@ -224,13 +208,6 @@ refs=""
 === check-doc-refs.sh — a cite or path that no longer resolves ===
 $refs"
 
-# A block asks for fixes, and applying them changes the diff — so "the text differs"
-# cannot be what re-arms it, or every audit that finds something re-triggers itself.
-# The turn is what separates the two: an audit's fixes land in the turn the block
-# created, while a later round of rule edits arrives under a user message of its own.
-# So the gate records the audited turn and blocks once per turn that edits rule text,
-# and the marker is written on EVERY stop — reaching a stop is what marks the current
-# text audited.
 fp_file="/tmp/claude-docs-audited-${HOOK_SESSION_ID:-default}.fp"
 if [ -n "$turn" ]; then
   seen=$(cat "$fp_file" 2>/dev/null)
@@ -238,11 +215,6 @@ if [ -n "$turn" ]; then
   [ "$seen" = "$turn" ] && exit 0
 fi
 
-# The block reason prints to the user's terminal under a harness-supplied
-# "Stop hook error:" prefix, so it carries one line naming the brief and nothing
-# else; the prompt and the diff go in the file, which only Claude opens. Text
-# arguing with the prefix, or the whole prompt inlined, reads to the user as a
-# wall addressed to someone else.
 brief_file="/tmp/claude-doc-audit-${HOOK_SESSION_ID:-default}.md"
 
 python3 - "$GLOBAL_RULES" "$report" "$brief_file" "$STYLE_RULES" <<'PY'
