@@ -19,40 +19,40 @@
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
     ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
-    ~/.claude/CLAUDE.md: claude/global/CLAUDE.md
-    ~/.claude/settings.json: claude/global/settings.json
-    ~/.claude/keybindings.json: claude/global/keybindings.json
-    ~/.claude/statusline-command.sh: claude/global/statusline-command.sh
-    ~/.claude/statusline-lib.sh: claude/global/statusline-lib.sh
-    ~/.claude/subagent-statusline.sh: claude/global/subagent-statusline.sh
-    ~/.claude/hooks/hook-lib.sh: claude/global/hooks/hook-lib.sh
-    ~/.claude/hooks/hook_lib.py: claude/global/hooks/hook_lib.py
-    ~/.claude/hooks/warn-existing-occurrence.sh: claude/global/hooks/warn-existing-occurrence.sh
-    ~/.claude/hooks/snapshot-rule-files.sh: claude/global/hooks/snapshot-rule-files.sh
-    ~/.claude/hooks/redirect-symlink-edits.sh: claude/global/hooks/redirect-symlink-edits.sh
-    ~/.claude/hooks/enforce-foreground-polling.sh: claude/global/hooks/enforce-foreground-polling.sh
-    ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/global/hooks/enforce-read-over-shell-read.sh
-    ~/.claude/hooks/force-background-agents.sh: claude/global/hooks/force-background-agents.sh
-    ~/.claude/hooks/audit-docs-on-stop.sh: claude/global/hooks/audit-docs-on-stop.sh
-    ~/.claude/hooks/ask-matt-banner.sh: claude/global/hooks/ask-matt-banner.sh
-    ~/.claude/hooks/caffeinate-claude.sh: claude/global/hooks/caffeinate-claude.sh
-    ~/.claude/hooks/notify-agent-idle.sh: claude/global/hooks/notify-agent-idle.sh
+    ~/.claude/CLAUDE.md: claude/CLAUDE.md
+    ~/.claude/settings.json: claude/settings.json
+    ~/.claude/keybindings.json: claude/keybindings.json
+    ~/.claude/statusline-command.sh: claude/statusline-command.sh
+    ~/.claude/statusline-lib.sh: claude/statusline-lib.sh
+    ~/.claude/subagent-statusline.sh: claude/subagent-statusline.sh
+    ~/.claude/hooks/hook-lib.sh: claude/hooks/hook-lib.sh
+    ~/.claude/hooks/hook_lib.py: claude/hooks/hook_lib.py
+    ~/.claude/hooks/warn-existing-occurrence.sh: claude/hooks/warn-existing-occurrence.sh
+    ~/.claude/hooks/snapshot-rule-files.sh: claude/hooks/snapshot-rule-files.sh
+    ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh
+    ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
+    ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/hooks/enforce-read-over-shell-read.sh
+    ~/.claude/hooks/force-background-agents.sh: claude/hooks/force-background-agents.sh
+    ~/.claude/hooks/audit-docs-on-stop.sh: claude/hooks/audit-docs-on-stop.sh
+    ~/.claude/hooks/ask-matt-banner.sh: claude/hooks/ask-matt-banner.sh
+    ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
+    ~/.claude/hooks/notify-agent-idle.sh: claude/hooks/notify-agent-idle.sh
     # the test harness ships too: a project layer's hook tests exec it here
     ~/.claude/hooks/tests:
-      path: claude/global/hooks/tests
+      path: claude/hooks/tests
       relink: true
       force: true
-    ~/.claude/themes/catppuccin-mocha.json: claude/global/themes/catppuccin-mocha.json
+    ~/.claude/themes/catppuccin-mocha.json: claude/themes/catppuccin-mocha.json
     ~/.claude/skills:
-      path: claude/global/skills
+      path: claude/skills
       relink: true
       force: true
     ~/.claude/output-styles:
-      path: claude/global/output-styles
+      path: claude/output-styles
       relink: true
       force: true
     ~/.claude/references:
-      path: claude/global/references
+      path: claude/references
       relink: true
       force: true
     "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
@@ -73,4 +73,4 @@
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
     - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
     - [command -v uv >/dev/null && uv tool install --upgrade --quiet claude-swap || true, Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv)]
-    - [bash claude/global/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]
+    - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]

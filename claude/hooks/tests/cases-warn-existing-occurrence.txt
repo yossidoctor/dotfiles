@@ -1,0 +1,27 @@
+# a token the edit adds that the fixture already carries -> the existing lines come back
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here, and `alpha_token` matters."}}	`alpha_token` is already at L8
+# a token the file has never seen -> nothing
+ctx_none	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here; see `zeta_token`."}}
+# a token already in old_string is not a new occurrence -> nothing
+ctx_none	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "Uses `alpha_token` once here.", "new_string": "Uses `alpha_token` once."}}
+# a bare § cite resolves in the edited file and its line comes back
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here, per § Beta rule."}}	§ Beta rule (~/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md:L8) reads: - **Beta rule.**
+# a § cite no heading starts with is named as unresolved
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here, per § Gamma rule."}}	§ Gamma rule: no heading or bold lead
+# a `skill` § cite resolves in that skill's SKILL.md
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here (`tldr` § Pre-send check)."}}	§ Pre-send check (~/.claude/skills/tldr/SKILL.md:L
+# a global CLAUDE.md § cite resolves there
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here (global CLAUDE.md § Strict single SoT)."}}	§ Strict single SoT (~/.claude/CLAUDE.md:L
+# a Write over an existing file checks cites only
+ctx_has	{"tool_name": "Write", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "content": "# x\n\nper § Alpha rule."}}	§ Alpha rule (
+ctx_none	{"tool_name": "Write", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "content": "# x\n\n`alpha_token` `alpha_token`"}}
+# a Write creating a new file scans its tokens against the sibling rule files
+ctx_has	{"tool_name": "Write", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/references/new.md", "content": "# x\n\nRestates `alpha_token` instead of citing it."}}	`alpha_token` is already at ~/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md:L7
+# a new file whose tokens no sibling carries -> nothing
+ctx_none	{"tool_name": "Write", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/references/new.md", "content": "# x\n\nOnly `zeta_token` here."}}
+# an Edit naming a file that does not exist -> nothing
+ctx_none	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/references/new.md", "old_string": "x", "new_string": "`alpha_token`"}}
+# a file that is not rule text -> nothing
+ctx_none	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/README.md", "old_string": "x", "new_string": "`hook-lib.sh` § Hooks"}}
+# a Read -> nothing
+ctx_none	{"tool_name": "Read", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md"}}
