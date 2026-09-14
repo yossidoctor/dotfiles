@@ -20,7 +20,10 @@
 # file being edited. The cited line is printed so the author sees what is already
 # owned there.
 #
-# A Write replaces the whole file, so only its cites are checked.
+# A Write over an existing file replaces content the tokens would match against, so
+# only its cites are checked. A Write creating a NEW file has no such content: its
+# tokens are scanned against the rule files already in its own skill or agent dir,
+# which is where a value it restates instead of citing already lives.
 
 set -u
 
@@ -54,30 +57,56 @@ from hook_lib import behavioral, skill_file, PROJECT_DIR
 d = json.loads(os.environ["HOOK_INPUT"])
 ti = d.get("tool_input") or {}
 path = ti.get("file_path") or ""
-if not (path.endswith((".md", ".mdc", ".mdx")) and behavioral(path) and os.path.isfile(path)):
+if not (path.endswith((".md", ".mdc", ".mdx")) and behavioral(path)):
     sys.exit(0)
 
 is_edit = d.get("tool_name") == "Edit"
 new = (ti.get("new_string") if is_edit else ti.get("content")) or ""
 old = ti.get("old_string") or ""
-lines = open(path, errors="replace").read().split("\n")
+creating = not os.path.isfile(path)
+if creating and is_edit:
+    sys.exit(0)
+lines = [] if creating else open(path, errors="replace").read().split("\n")
 old_frags = [l.strip() for l in old.split("\n") if l.strip()]
 replaced = lambda line: any(f in line for f in old_frags)
 home = os.path.expanduser("~")
 rel = lambda p: p.replace(home, "~")
 out = []
 
-if is_edit:
+# The rule files a new file will sit among: its own skill or agent dir, walked whole.
+def siblings(p):
+    d = os.path.dirname(os.path.realpath(p))
+    while d != os.path.dirname(d):
+        if os.path.basename(os.path.dirname(d)) in ("skills", "agents"):
+            break
+        d = os.path.dirname(d)
+    else:
+        return []
+    found = []
+    for root, _, files in os.walk(d):
+        for f in sorted(files):
+            if f.endswith((".md", ".mdc", ".mdx")):
+                fp = os.path.join(root, f)
+                if os.path.realpath(fp) != os.path.realpath(p):
+                    found.append(fp)
+    return found
+
+if is_edit or creating:
     seen = []
     for t in re.findall(r"`([^`\n]{3,60})`", new):
         if t in old or t in seen:
             continue
         seen.append(t)
+    sources = [(path, lines)] if is_edit else [
+        (f, open(f, errors="replace").read().split("\n")) for f in siblings(path)]
     for t in seen[:8]:
-        hits = [(i + 1, l.strip()) for i, l in enumerate(lines) if t in l and not replaced(l)]
+        hits = [(f, i + 1, l.strip()) for f, fl in sources
+                for i, l in enumerate(fl) if t in l and not replaced(l)]
         if not hits or len(hits) > 6:
             continue
-        shown = "; ".join(f"L{n}: {l[:140]}" for n, l in hits[:3])
+        shown = "; ".join(
+            (f"L{n}" if is_edit else f"{rel(f)}:L{n}") + f": {l[:140]}"
+            for f, n, l in hits[:3])
         more = f" (+{len(hits) - 3} more)" if len(hits) > 3 else ""
         out.append(f"`{t}` is already at {shown}{more}")
 
@@ -112,7 +141,8 @@ for m in CITE.finditer(new):
         out.append(f"§ {phrase}: no heading or bold lead in {where} starts with it")
 
 if out:
-    print("Before this edit lands — what the file already carries (edit the owning line, "
+    owner = "its siblings already own" if creating else "the file already carries"
+    print(f"Before this edit lands — what {owner} (edit the owning line, "
           "or cite without restating):\n" + "\n".join(out[:20]))
 PY
 )
