@@ -51,6 +51,10 @@
       path: claude/global/output-styles
       relink: true
       force: true
+    ~/.claude/references:
+      path: claude/global/references
+      relink: true
+      force: true
     "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
 
 - link:
