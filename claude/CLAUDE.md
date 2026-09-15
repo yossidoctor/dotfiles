@@ -39,7 +39,29 @@ Behavioral rules for Claude Code, loaded every session. Section and rule names a
 
 ## Explaining things
 
-- **Draw it before you say it.** Any account of how parts relate (a flow, a call chain, a fork, a lifecycle, a dependency map, a comparison) opens with a fenced diagram, unasked; prose carries only the verdict, the anomaly, the ask, the why. Grammar and budget: `~/.claude/references/diagrams.md`. Skip: a single hop; a value lookup; a diff already legible as code. Falsifier: relations or order explained in prose with no diagram in the same reply; a figure outside the reference's grammar.
+- **A table that earns its place is drawn as aligned columns in a code block.** UPPERCASE headers, a dashed rule under them, 3-space gutters, no pipes, no outer frame. Emoji belong in cells; an emoji or variation-selector char measures **2** columns, and the header row and data rows must end at identical widths (CJK counts as 2 too). Skip: a table inside a file whose format is fixed by its own conventions (a markdown doc, a README). Falsifier: a pipe-delimited or framed table in output; a column whose header and cells disagree on width.
+
+```
+SERVICE       TASK       GRADE          OWNER
+-----------   --------   ------------   -------------
+⛩️ Gateway    DON-6578   🔴 13 behind   Ron Likvornik
+🤹 operator   DON-6753   🟣 synced      Ron Likvornik
+```
+
+- **A number series carrying a shape gets drawn, not described.** Counts over time, distributions, rankings — in a code block, multi-column if long; same for anything where ASCII/Unicode conveys structure faster than prose. Color: a `diff` fence renders `+` green and `-` red, for pass/fail verdict lists, never for aligned tables (the marker steals a column); emoji carry hue elsewhere, and color is never the only signal. Skip: unordered or tiny sets; a file whose format its own conventions fix. Falsifier: a series or hierarchy described in prose where one of these forms fits; color as the sole carrier of a distinction.
+
+```
+bars      2026-04 █▏14    2026-05 ███ 35     ranked magnitudes
+spark     2023-08 ▁▃▂▁▂▃▄█▃▂ 2026-07         a whole series in one cell
+waffle    ■■■■■■■□□□□□□□□□□□ 7%              part-to-whole
+range     age ├───█────────────┤ 3..1088     min / median / max
+columns     █                                shape over labels
+          ▃ █ ▅
+          08 09 10
+tree      migrations/                        hierarchy, always aligns
+          ├─ heal_order_io.ts    ran
+          └─ backfill_city.ts    ran
+```
 
 ## Workspace mechanics
 
