@@ -8,6 +8,10 @@
 # is TAB-separated:
 #   deny|ask|allow<TAB><command>[<TAB><cwd>]   Bash payload; optional payload cwd
 #   allow_bg<TAB><command>                     Bash payload, run_in_background=true
+#   poll_deny|poll_allow<TAB><command>         Bash payload with
+#                     description="poll wait" (the agent poll-wait opt-out)
+#   poll_timeout<TAB><command><TAB><ms>        same payload; asserts the hook
+#                     rewrites it with updatedInput timeout == ms
 #   bg_forced<TAB><command>                    Bash payload; asserts the hook
 #                     rewrites it with updatedInput run_in_background == true
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
@@ -65,6 +69,20 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
     allow_bg)
       payload=$(hook_json '{tool_input: {command: $a1, run_in_background: true}}' "$(printf '%b' "$f2")")
       expect=allow ;;
+    poll_deny|poll_allow)
+      payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
+      expect=${expect#poll_} ;;
+    poll_timeout)
+      payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
+      out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
+      got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.timeout // "unset"' 2>/dev/null)
+      [ -n "$got" ] || got=unset
+      [ "$got" = "$f3" ] && verdict=$f3 || verdict="timeout=$got"
+      total=$((total + 1))
+      if [ "$verdict" != "$f3" ]; then
+        fail=$((fail + 1)); echo "FAIL [$hook] expected timeout=$f3 got=$verdict : $f2"
+      fi
+      return ;;
     bg_forced)
       payload=$(hook_json '{tool_name: "Bash", tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")

@@ -12,7 +12,15 @@
 #     them. Under ten seconds the wait is part of one operation (reaping a
 #     killed process, settling a connect), so it passes.
 #
-# Skips when run_in_background=true (off-thread already).
+# Skips when run_in_background=true (off-thread already), and for a sleep whose
+# `description` is exactly `poll wait`. Both replacements the deny names are
+# main-thread tools an agent does not have, so inside one the deny has no
+# satisfiable form: backgrounding is not it either, since an agent's next turn
+# starts the moment the call returns, so a backgrounded sleep delays nothing and
+# the agent polls in a hot loop. The payload carries no caller identity to key on
+# — session_id, transcript_path and cwd are the parent session's on an agent's
+# call too — so the opt-out is the description, which only a prompt that means it
+# sets. It names a bare sleep, never a poll loop.
 
 set -u
 
@@ -29,6 +37,33 @@ cmd="$HOOK_CMD"
 [ "$HOOK_RUN_IN_BACKGROUND" = "true" ] && exit 0
 
 cmd_unq=$(hook_command_shape)
+
+# The agent poll-wait opt-out: `description` exactly `poll wait` on a command
+# that is one bare sleep. Anything else in the command (a `&&`, a second
+# statement, a loop) falls through to the checks below, so the label buys a wait
+# and never a chained workaround. The follow-stream rewrite at the end of the
+# file is outside this gate — its output is the point wherever it runs.
+#
+# The sleep's own duration sets the call timeout, because the Bash default is
+# 2 minutes: a longer wait is SIGTERMed mid-sleep (exit 143) and comes back short,
+# which reads as a delay that silently did not happen.
+if [ "$HOOK_DESCRIPTION" = "poll wait" ] &&
+   printf '%s' "$cmd_unq" | grep -qE '^[[:space:]]*sleep[[:space:]]+[0-9]+([.][0-9]+)?[smhd]?[[:space:]]*;?[[:space:]]*$'; then
+  printf '%s' "$HOOK_INPUT" | jq -c '
+    ((.tool_input.command | capture("sleep[[:space:]]+(?<n>[0-9]+([.][0-9]+)?)(?<u>[smhd]?)"))
+      | (.n | tonumber) * (if .u == "m" then 60 elif .u == "h" then 3600 elif .u == "d" then 86400 else 1 end)
+    ) as $secs
+    | (($secs * 1000 + 10000) | floor) as $ms
+    | if (.tool_input.timeout // 0) >= $ms then empty else
+      {hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        permissionDecisionReason: "Poll wait — a labelled sleep is an agent'"'"'s only delay mechanism.",
+        updatedInput: ((.tool_input // {}) + {timeout: $ms}),
+        additionalContext: ("Poll wait allowed by enforce-foreground-polling.sh, timeout set to \($ms)ms — the Bash default of 2 minutes would SIGTERM this sleep mid-wait and return early.")}}
+      end'
+  exit 0
+fi
 
 # Fixed sleeps: N >= 10 (two-digit 10-99 or 3+ digits, optional `s` suffix), or
 # any N with an m/h/d suffix. Below ten seconds a wait is part of one operation —
