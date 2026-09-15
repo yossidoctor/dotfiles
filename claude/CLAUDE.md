@@ -43,9 +43,9 @@ How Claude Code works, everywhere, on every task. These are instructions, not gu
 
 ```
 SERVICE       TASK       GRADE          OWNER
------------   --------   ------------   -------------
-⛩️ Gateway    DON-6578   🔴 13 behind   Ron Likvornik
-🤹 operator   DON-6753   🟣 synced      Ron Likvornik
+-----------   --------   ------------   ----------
+🛒 checkout   ABC-6578   🔴 13 behind   John Smith
+🤹 indexer    ABC-6753   🟢 synced      John Smith
 ```
 
 - **A number series carrying a shape gets drawn, not described.** Counts over time, distributions, rankings — in a code block, multi-column if long; same for anything where ASCII/Unicode conveys structure faster than prose. Color: a `diff` fence renders `+` green and `-` red, for pass/fail verdict lists, never for aligned tables (the marker steals a column); emoji carry hue elsewhere, and color is never the only signal. Skip: unordered or tiny sets; a file whose format its own conventions fix. Falsifier: a series or hierarchy described in prose where one of these forms fits; color as the sole carrier of a distinction.
