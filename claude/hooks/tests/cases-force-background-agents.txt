@@ -11,3 +11,14 @@ agent_noop	{"run_in_background": true, "subagent_type": "fork"}
 # explicitly named non-fable model kept -> silent
 agent_noop	{"run_in_background": true, "model": "haiku"}
 agent_noop	{"run_in_background": true, "model": "opus"}
+# a named agent type pins its model in its own frontmatter: an omission is the
+# dispatch deferring to it, so filling it here would beat the definition
+agent_noop	{"run_in_background": true, "subagent_type": "fixture-agent"}	fixtures/agents-project
+# the definition is found by walking up from cwd, so a dispatch from a nested
+# repo still reaches the project's .claude/agents
+agent_noop	{"run_in_background": true, "subagent_type": "fixture-agent"}	fixtures/agents-project/nested/deeper
+# fable is never launched, whoever names it
+agent_opus	{"run_in_background": true, "subagent_type": "fixture-agent", "model": "fable"}	fixtures/agents-project
+# a type with no definition anywhere has nothing to defer to -> opus fills it
+agent_opus	{"run_in_background": true, "subagent_type": "general-purpose"}	fixtures/agents-project
+agent_opus	{"run_in_background": true, "subagent_type": "no-such-agent"}	fixtures/agents-project
