@@ -17,7 +17,7 @@
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
 #   read_deny|read_allow<TAB><file_path>      Read payload (no content)
 #   msg_deny|msg_allow<TAB><message>           Slack-message payload
-#   agent_forced|agent_opus|agent_noop<TAB><tool_input JSON overrides>
+#   agent_forced|agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
 #                     Agent payload: overrides merged over {"subagent_type": "x",
 #                     "prompt": "p"}. agent_forced asserts updatedInput
 #                     run_in_background == true, agent_opus asserts updatedInput
@@ -110,8 +110,11 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
       fi
       return ;;
     agent_forced|agent_opus|agent_noop)
-      payload=$(jq -cn --argjson ov "$f2" \
-        '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}')
+      # a relative cwd names a fixture, so it resolves against TESTS_DIR
+      case "$f3" in ""|/*) acwd=$f3 ;; *) acwd="$TESTS_DIR/$f3" ;; esac
+      payload=$(jq -cn --argjson ov "$f2" --arg cwd "$acwd" \
+        '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}
+         + (if $cwd == "" then {} else {cwd: $cwd} end)')
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
       if [ "$expect" = "agent_noop" ]; then
         [ -z "$out" ] && verdict=agent_noop || verdict="emitted:$out"
