@@ -239,7 +239,7 @@ the ones no single Edit contains. Hunt those, against this diff:
   the intent; 'true' is not the bar.
 
 Rule source — open and read it, do not audit from memory: {rules}
-  § Making things — Is it true · Does it live in one place · Is it the minimal shape ·
+  § Hard rules for everything you make — Is it true · Does it live in one place · Is it the minimal shape ·
   How the edit lands.
 Also open {style_rules} — § Communication style lives there, and a subagent does not
 load it from an output style.
