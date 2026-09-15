@@ -8,12 +8,16 @@
 # is TAB-separated:
 #   deny|ask|allow<TAB><command>[<TAB><cwd>]   Bash payload; optional payload cwd
 #   allow_bg<TAB><command>                     Bash payload, run_in_background=true
+#   poll_deny|poll_allow<TAB><command>         Bash payload with
+#                     description="poll wait" (the agent poll-wait opt-out)
+#   poll_timeout<TAB><command><TAB><ms>        same payload; asserts the hook
+#                     rewrites it with updatedInput timeout == ms
 #   bg_forced<TAB><command>                    Bash payload; asserts the hook
 #                     rewrites it with updatedInput run_in_background == true
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
 #   read_deny|read_allow<TAB><file_path>      Read payload (no content)
 #   msg_deny|msg_allow<TAB><message>           Slack-message payload
-#   agent_forced|agent_opus|agent_noop<TAB><tool_input JSON overrides>
+#   agent_forced|agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
 #                     Agent payload: overrides merged over {"subagent_type": "x",
 #                     "prompt": "p"}. agent_forced asserts updatedInput
 #                     run_in_background == true, agent_opus asserts updatedInput
@@ -65,6 +69,20 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
     allow_bg)
       payload=$(hook_json '{tool_input: {command: $a1, run_in_background: true}}' "$(printf '%b' "$f2")")
       expect=allow ;;
+    poll_deny|poll_allow)
+      payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
+      expect=${expect#poll_} ;;
+    poll_timeout)
+      payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
+      out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
+      got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.timeout // "unset"' 2>/dev/null)
+      [ -n "$got" ] || got=unset
+      [ "$got" = "$f3" ] && verdict=$f3 || verdict="timeout=$got"
+      total=$((total + 1))
+      if [ "$verdict" != "$f3" ]; then
+        fail=$((fail + 1)); echo "FAIL [$hook] expected timeout=$f3 got=$verdict : $f2"
+      fi
+      return ;;
     bg_forced)
       payload=$(hook_json '{tool_name: "Bash", tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
@@ -92,8 +110,11 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
       fi
       return ;;
     agent_forced|agent_opus|agent_noop)
-      payload=$(jq -cn --argjson ov "$f2" \
-        '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}')
+      # a relative cwd names a fixture, so it resolves against TESTS_DIR
+      case "$f3" in ""|/*) acwd=$f3 ;; *) acwd="$TESTS_DIR/$f3" ;; esac
+      payload=$(jq -cn --argjson ov "$f2" --arg cwd "$acwd" \
+        '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}
+         + (if $cwd == "" then {} else {cwd: $cwd} end)')
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
       if [ "$expect" = "agent_noop" ]; then
         [ -z "$out" ] && verdict=agent_noop || verdict="emitted:$out"

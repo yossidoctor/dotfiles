@@ -24,7 +24,8 @@
 #                     gate ahead of hook_parse_input.
 #   hook_parse_input  HOOK_INPUT -> the fields below via one jq pass
 #   hook_read_input   hook_read_raw + hook_parse_input, for hooks with no raw gate
-#                     HOOK_CMD (.tool_input.command), HOOK_FILE_PATH
+#                     HOOK_CMD (.tool_input.command),
+#                     HOOK_DESCRIPTION (.tool_input.description), HOOK_FILE_PATH
 #                     (.tool_input.file_path, then .tool_input.notebook_path —
 #                     NotebookEdit's own path field — then .tool_response.filePath),
 #                     HOOK_TOOL_NAME (.tool_name), HOOK_MATCHER (.matcher),
@@ -75,6 +76,7 @@ hook_parse_input() {
 def s(v): (v // "") | if type == "string" then . else "" end;
 def var($n; v): $n + "=" + (s(v) | @sh);
 var("HOOK_CMD"; .tool_input.command),
+var("HOOK_DESCRIPTION"; .tool_input.description),
 var("HOOK_FILE_PATH"; .tool_input.file_path // .tool_input.notebook_path // .tool_response.filePath),
 var("HOOK_TOOL_NAME"; .tool_name),
 var("HOOK_MATCHER"; .matcher),
@@ -84,7 +86,7 @@ var("HOOK_CWD"; .cwd),
 var("HOOK_TRANSCRIPT"; .transcript_path),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_FILE_PATH=}" "${HOOK_TOOL_NAME=}" "${HOOK_MATCHER=}"
+  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_TOOL_NAME=}" "${HOOK_MATCHER=}"
   : "${HOOK_MESSAGE=}" "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
 }
