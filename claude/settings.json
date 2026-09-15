@@ -70,7 +70,8 @@
   "availableModels": [
     "fable",
     "opus",
-    "sonnet"
+    "sonnet",
+    "haiku"
   ],
   "skillOverrides": {},
   "hooks": {
