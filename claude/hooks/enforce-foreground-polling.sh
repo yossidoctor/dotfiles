@@ -70,7 +70,7 @@ fi
 # letting a killed process reap, a device handshake settle — where the check
 # belongs in the same command and there is nothing to come back to.
 if printf '%s' "$cmd_unq" | grep -qE '\bsleep[[:space:]]+([1-9][0-9]|[1-9][0-9]{2,})([.][0-9]+)?s?\b|\bsleep[[:space:]]+[0-9]+([.][0-9]+)?[mhd]\b'; then
-  deny "Foreground \`sleep\` >=10s blocked. Waiting on a condition is \`Monitor\` (off-thread, notifies on exit); a single fixed delay before re-checking is \`ScheduleWakeup\` (no process at all — the session resumes and re-checks); work whose OUTPUT is the point is \`Bash\` with \`run_in_background: true\`. Backgrounding a bare wait is not the fix — it still burns a subprocess and still needs someone to come back for the answer. Sub-10s waits pass, for settling after a kill or a connect."
+  deny "Foreground \`sleep\` >=10s blocked. Main thread: waiting on a condition is \`Monitor\` (off-thread, notifies on exit); a single fixed delay before re-checking is \`ScheduleWakeup\` (no process at all — the session resumes and re-checks); work whose OUTPUT is the point is \`Bash\` with \`run_in_background: true\`. Subagent (none of those tools): a bare \`sleep N\` whose description is exactly \`poll wait\` passes and gets a timeout matching N — that is the only delay an agent has, between liveness checks of a process the harness detached. Backgrounding a bare wait is not the fix — it still burns a subprocess and still needs someone to come back for the answer. Sub-10s waits pass, for settling after a kill or a connect."
 fi
 
 # Sleep-loops: polling pattern. Monitor runs off-thread + notifies on exit.
@@ -84,7 +84,7 @@ case "$cmd_unq" in
     loop_head=${cmd_unq%done*}
     if printf '%s' "$loop_head" | grep -qE '\b(while|until|for)\b' &&
        printf '%s' "$loop_head" | grep -qE '\bsleep\b'; then
-      deny "Foreground \`while|until|for ... sleep ...\` loop blocked. Use \`Monitor\` with \`until <check>; do sleep 2; done\` — runs off-thread, notifies on exit. Fire-and-forget loops: \`Bash\` with \`run_in_background: true\`."
+      deny "Foreground \`while|until|for ... sleep ...\` loop blocked. Main thread: \`Monitor\` with \`until <check>; do sleep 2; done\` — runs off-thread, notifies on exit; fire-and-forget loops: \`Bash\` with \`run_in_background: true\`. Subagent: one bare \`sleep N\` per call with description exactly \`poll wait\`, then the check as its own call — no loop."
     fi
     ;;
 esac
