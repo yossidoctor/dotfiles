@@ -8,9 +8,10 @@ def s(v): (v // "") | if type == "string" then . else tostring end;
 "model=" + (s(.model.display_name) | @sh),
 "effort=" + (s(.effort.level) | @sh),
 "used_pct=" + ((.context_window.used_percentage) | if type == "number" then (round | tostring) else "" end | @sh),
-"permission_mode=" + (s(.permission_mode) | @sh)
+"permission_mode=" + (s(.permission_mode) | @sh),
+"session_id=" + (s(.session_id) | @sh)
 ' 2>/dev/null)"
-: "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}"
+: "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}" "${session_id=}"
 model=${model/ context)/)}
 
 countdown() {
@@ -207,38 +208,49 @@ case "$daemon_pid" in
   ''|*[!0-9]*|0|1) ;;
   *) kill -0 "$daemon_pid" 2>/dev/null && daemon_live=1 ;;
 esac
+# `claude agents --json` is the documented roster and the only supported source for
+# which sessions exist and whether each is busy — the docs call the files under
+# ~/.claude/jobs/<id>/ "not a stable interface", and a spare the daemon pre-warms
+# carries state:"working" there while the roster correctly reports it idle. The
+# roster costs ~120ms, too slow per render, so it is cached for 5s; `tokens` has no
+# roster field and is read from the (unstable, best-effort) state file alongside it.
+# This session is excluded by its own session_id, which the statusline input carries.
 if [ -d "$jobs_dir" ] && [ -n "$daemon_live" ]; then
+  roster_cache="${TMPDIR:-/tmp}/claude-statusline-roster.$UID.json"
+  if [ ! -s "$roster_cache" ] || [ -n "$(find "$roster_cache" -mtime +5s 2>/dev/null)" ]; then
+    claude agents --json >"$roster_cache".tmp 2>/dev/null && mv -f "$roster_cache".tmp "$roster_cache" || rm -f "$roster_cache".tmp
+  fi
   bg_rows=$(python3 -c '
 import json, pathlib, sys
-for state_path in sorted(pathlib.Path(sys.argv[1]).glob("*/state.json")):
-    try:
-        d = json.loads(state_path.read_text())
-    except Exception:
-        continue
-    if d.get("firstTerminalAt"):
-        continue
-    state = d.get("state") or ""
-    if state not in ("working", "blocked"):
-        continue
-    if (d.get("updatedAt") or "")[:19] < sys.argv[2]:
-        continue
-    tokens = d.get("tokens")
-    try:
-        tokens = int(tokens)
-    except (TypeError, ValueError):
-        tokens = -1
-    in_flight = (d.get("inFlight") or {}).get("tasks")
-    try:
-        in_flight = int(in_flight)
-    except (TypeError, ValueError):
-        in_flight = 0
-    print("\t".join([state_path.parent.name, state, str(tokens), str(in_flight),
-        " ".join((d.get("name") or d.get("intent") or "").split())[:34]]))
-' "$jobs_dir" "$(date -u -v-12H '+%Y-%m-%dT%H:%M:%S')" 2>/dev/null)
 
-  while IFS=$'\t' read -r short state tokens in_flight name; do
+roster_path, jobs_dir, me = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    roster = json.loads(pathlib.Path(roster_path).read_text())
+except Exception:
+    roster = []
+
+def tokens_for(short):
+    try:
+        d = json.loads((pathlib.Path(jobs_dir) / short / "state.json").read_text())
+        return int(d.get("tokens")), int((d.get("inFlight") or {}).get("tasks") or 0)
+    except Exception:
+        return -1, 0
+
+for a in sorted(roster, key=lambda a: a.get("startedAt") or 0):
+    if a.get("kind") != "background" or a.get("sessionId") == me:
+        continue
+    short = a.get("id") or ""
+    status = a.get("status") or ""
+    if not short or status not in ("busy", "idle"):
+        continue
+    tokens, in_flight = tokens_for(short)
+    name = " ".join((a.get("name") or "").split())[:34]
+    print("\t".join([short, status, str(tokens), str(in_flight), name]))
+' "$roster_cache" "$jobs_dir" "$session_id" 2>/dev/null)
+
+  while IFS=$'\t' read -r short status tokens in_flight name; do
     [ -z "$short" ] && continue
-    if [ "$state" = working ]; then
+    if [ "$status" = busy ]; then
       state_color="$c_err"
     else
       state_color=$(ramp_color 75 40 70 muted)
@@ -255,7 +267,7 @@ for state_path in sorted(pathlib.Path(sys.argv[1]).glob("*/state.json")):
     fi
     flight_str=""
     [ "$in_flight" -gt 0 ] && flight_str=" ${c_muted}(${in_flight} in flight)${c_off}"
-    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}$(printf '%-7s' "$state")${c_off}${tok_str} ${c_dim}${name}${c_off}${flight_str}")
+    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}$(printf '%-4s' "$status")${c_off}${tok_str} ${c_dim}${name}${c_off}${flight_str}")
   done <<< "$bg_rows"
 fi
 
