@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+# sketchybarrc — the bar's entry point; every item is declared here, every
+# behavior lives in a sibling plugin. Run by sketchybar itself on start and on
+# `sketchybar --reload`.
+#
+# Geometry is tied to JankyBorders, exactly as aerospace.toml's [gaps] are:
+# BAR_HEIGHT drives `gaps.outer.top` in aerospace.toml (top = BAR_HEIGHT + 6),
+# so a change here needs that value changed with it or windows tile under the bar.
+#
+# Workspaces are pinned to monitors by the `display` property, mirroring
+# aerospace.toml's [workspace-to-monitor-force-assignment]; WS_DISPLAY below is
+# the single carrier of that mapping for the bar side. Unpinned workspaces take
+# display=active and follow the focused screen, matching AeroSpace placing them
+# on whichever monitor is focused when first summoned.
+#
+# App icons come from sketchybar-app-font via icon_map.sh, which is sourced once
+# per refresh rather than exec'd per window: measured 5.1ms for four sourced
+# lookups against 6.5ms for a single fork (hyperfine, 40 runs).
+set -euo pipefail
+
+CONFIG_DIR="$HOME/.config/sketchybar"
+PLUGINS="$CONFIG_DIR/plugins"
+
+source "$CONFIG_DIR/theme.sh"
+
+BAR_HEIGHT=38
+ITEM_HEIGHT=24
+CORNER_RADIUS=6
+GROUP_PADDING=5
+
+# workspace -> display index. Workspaces absent here are unpinned and follow the
+# focused monitor. Mirrors aerospace.toml [workspace-to-monitor-force-assignment].
+WS_DISPLAY_1=1
+WS_DISPLAY_2=1
+WS_DISPLAY_3=2
+WS_DISPLAY_4=2
+WS_DISPLAY_5=3
+WS_DISPLAY_6=3
+
+# The workspaces alt-1..alt-9 in aerospace.toml can reach. Declared, not
+# discovered: `aerospace list-workspaces --all` omits an empty workspace, and a
+# chip that appears only once a window lands there defeats always-drawing all
+# nine.
+WORKSPACES="1 2 3 4 5 6 7 8 9"
+
+MONITOR_COUNT=$(aerospace list-monitors --count)
+
+# A workspace pinned to display=3 draws nowhere when only one monitor is
+# attached, which silently deletes chips 3-6 on the laptop. Pin only to a
+# monitor that exists; everything else follows the focused display.
+ws_display() {
+  local var="WS_DISPLAY_$1"
+  local want="${!var:-active}"
+  case "$want" in
+    active) printf 'active' ;;
+    *) if [ "$want" -le "$MONITOR_COUNT" ]; then printf '%s' "$want"; else printf 'active'; fi ;;
+  esac
+}
+
+sketchybar --bar \
+  height="$BAR_HEIGHT" \
+  position=top \
+  sticky=on \
+  padding_left=12 \
+  padding_right=12 \
+  color="$BAR_BG" \
+  font_smoothing=on
+
+# updates=when_shown keeps a hidden item from running its script at all, which is
+# what makes the hover-collapsed right side free at rest.
+sketchybar --default \
+  updates=when_shown \
+  background.height="$ITEM_HEIGHT" \
+  background.corner_radius="$CORNER_RADIUS" \
+  background.border_width=1 \
+  background.color="$ITEM_BG" \
+  background.border_color="$ITEM_BORDER" \
+  icon.font="$FONT_TEXT:Bold:12.0" \
+  icon.color="$TEXT" \
+  icon.padding_left=8 \
+  icon.padding_right=4 \
+  label.font="$FONT_TEXT:Medium:12.0" \
+  label.color="$SUBTEXT" \
+  label.padding_left=0 \
+  label.padding_right=8 \
+  padding_left="$GROUP_PADDING" \
+  padding_right="$GROUP_PADDING"
+
+# AeroSpace has no native sketchybar event; both are minted here and triggered
+# from aerospace.toml's callbacks. workspace_change fires on every switch;
+# window_change fires on window-detected, which is the only window-lifecycle
+# event AeroSpace emits — there is no window-closed and no window-minimized
+# (docs/aerospace/UPSTREAM-2026-09.md § 1), so a close shows up on the next
+# switch or focus change rather than immediately.
+sketchybar --add event aerospace_workspace_change
+sketchybar --add event aerospace_window_change
+sketchybar --add event media_update
+
+for sid in $WORKSPACES; do
+  sketchybar --add item "space.$sid" left \
+    --set "space.$sid" \
+      display="$(ws_display "$sid")" \
+      icon.font="$FONT_APP:Regular:15.0" \
+      icon.color="$SUBTEXT" \
+      icon.highlight_color="$ACCENT" \
+      icon.padding_left=6 \
+      icon.padding_right=6 \
+      label.font="$FONT_TEXT:Semibold:11.5" \
+      label.padding_left=5 \
+      label.padding_right=7 \
+      label.highlight_color="$ACCENT" \
+      label.max_chars=24 \
+      background.drawing=on \
+      script="$PLUGINS/aerospace.sh $sid" \
+      click_script="aerospace workspace $sid" \
+    --subscribe "space.$sid" aerospace_workspace_change aerospace_window_change
+done
+
+sketchybar --add bracket spaces '/space\..*/' \
+  --set spaces background.color="$GROUP_BG" \
+                background.border_color="$ITEM_BORDER" \
+                background.height=$((ITEM_HEIGHT + 4)) \
+                background.corner_radius=$((CORNER_RADIUS + 2))
+
+# Right side is laid out right-to-left: the clock is added first so it sits
+# outermost. It is deliberately NOT in the hover group — a time you have to
+# hover for is not a clock — so it carries no mouse.entered subscription and no
+# collapsed label.
+sketchybar --add item clock right \
+  --set clock \
+    background.height="$ITEM_HEIGHT" \
+    icon="$(date '+%a %d %b')" \
+    icon.font="$FONT_TEXT:Medium:11.5" \
+    icon.color="$SUBTEXT" \
+    icon.padding_left=10 \
+    icon.padding_right=6 \
+    label.padding_left=4 \
+    label.font="$FONT_NUM:Bold:11.5" \
+    label.color="$TEXT" \
+    label.padding_right=10 \
+    update_freq=30 \
+    script="$PLUGINS/clock.sh" \
+    click_script="open -a Calendar" \
+  --subscribe clock system_woke
+
+# The hover group: collapsed to a bare icon, label revealed on mouse.entered.
+# label.width=0 is the collapsed state; the plugin animates it to dynamic.
+for item in battery volume media; do
+  sketchybar --add item "$item" right \
+    --set "$item" label.width=0 \
+    --subscribe "$item" mouse.entered mouse.exited
+done
+
+sketchybar --set battery \
+  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.padding_left=7 \
+  icon.padding_right=6 \
+  label.font="$FONT_NUM:Medium:11.5" \
+  update_freq=180 \
+  script="$PLUGINS/battery.sh" \
+  click_script="sketchybar --set battery popup.drawing=toggle" \
+  popup.background.color="$POPUP_BG" \
+  popup.background.border_color="$ITEM_BORDER" \
+  popup.background.border_width=2 \
+  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.align=right
+
+sketchybar --add item battery.remaining popup.battery \
+  --set battery.remaining \
+    icon="remaining" \
+    icon.color="$SUBTEXT" \
+    label.font="$FONT_NUM:Medium:11.0" \
+    background.drawing=off \
+    width=150
+
+sketchybar --subscribe battery power_source_change system_woke
+
+sketchybar --set volume \
+  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.padding_left=7 \
+  icon.padding_right=6 \
+  label.font="$FONT_NUM:Medium:11.5" \
+  script="$PLUGINS/volume.sh" \
+  click_script="$PLUGINS/volume.sh" \
+  popup.background.color="$POPUP_BG" \
+  popup.background.border_color="$ITEM_BORDER" \
+  popup.background.border_width=2 \
+  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.align=right \
+  --subscribe volume volume_change mouse.scrolled mouse.clicked
+
+# Media reads whatever owns the system now-playing session — macOS exposes only
+# one to third parties, so this follows the active app rather than tracking
+# Spotify specifically, and it cannot be pinned to one app. Fed by the
+# media-stream LaunchAgent triggering media_update; the item never polls.
+# updates=on, not the inherited when_shown: this item starts hidden (nothing is
+# playing yet) and a when_shown item runs no script while hidden, so it could
+# never react to the media_update that should bring it back.
+sketchybar --set media \
+  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.padding_left=7 \
+  icon.padding_right=6 \
+  label.font="$FONT_TEXT:Medium:11.0" \
+  label.max_chars=28 \
+  drawing=off \
+  updates=on \
+  script="$PLUGINS/media.sh" \
+  click_script="sketchybar --set media popup.drawing=toggle" \
+  popup.background.color="$POPUP_BG" \
+  popup.background.border_color="$ITEM_BORDER" \
+  popup.background.border_width=2 \
+  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.align=right \
+  popup.horizontal=on \
+  --subscribe media media_update
+
+for ctl in prev play next; do
+  sketchybar --add item "media.$ctl" popup.media \
+    --set "media.$ctl" \
+      background.drawing=off \
+      icon.padding_left=6 \
+      icon.padding_right=6 \
+      label.drawing=off \
+      click_script="$PLUGINS/media-control.sh $ctl"
+done
+
+sketchybar --set media.prev icon="$ICON_PREV"
+sketchybar --set media.play icon="$ICON_PLAY"
+sketchybar --set media.next icon="$ICON_NEXT"
+
+sketchybar --hotload on
+sketchybar --update

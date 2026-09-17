@@ -52,6 +52,10 @@ cask "aerospace"                    # i3-style tiling window manager
 cask "bettercmdtab"
 cask "betterdisplay"
 brew "borders"                      # JankyBorders — colored outline on the AeroSpace-focused window
+brew "sketchybar"                   # status bar; workspace/app state AeroSpace has no UI for
+cask "font-sketchybar-app-font"     # per-app icon ligatures the workspace chips render
+brew "media-control"                # now-playing over the entitled-perl adapter; the native
+                                    # media_change event is deprecated on macOS 26+
 
 # ── gui apps ───────────────────────────────────────────────────────
 cask "claude-code@latest"
