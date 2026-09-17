@@ -19,6 +19,7 @@
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
     ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
+    ~/.local/bin/rule-audit: scripts/rule-audit.sh
     ~/.claude/CLAUDE.md: claude/CLAUDE.md
     ~/.claude/settings.json: claude/settings.json
     ~/.claude/keybindings.json: claude/keybindings.json
@@ -28,7 +29,7 @@
     ~/.claude/hooks/hook-lib.sh: claude/hooks/hook-lib.sh
     ~/.claude/hooks/hook_lib.py: claude/hooks/hook_lib.py
     ~/.claude/hooks/warn-existing-occurrence.sh: claude/hooks/warn-existing-occurrence.sh
-    ~/.claude/hooks/snapshot-rule-files.sh: claude/hooks/snapshot-rule-files.sh
+    ~/.claude/hooks/enforce-git-add-paths.sh: claude/hooks/enforce-git-add-paths.sh
     ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
     ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/hooks/enforce-read-over-shell-read.sh
