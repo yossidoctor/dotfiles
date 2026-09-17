@@ -3,29 +3,6 @@ input=$(cat)
 
 . "$(dirname "$0")/statusline-lib.sh"
 
-fmt_tokens() {
-  local t="$1"
-  if [ "$t" -ge 1000000 ]; then
-    printf '%d.%01dM' $(( t / 1000000 )) $(( t % 1000000 / 100000 ))
-  elif [ "$t" -ge 1000 ]; then
-    printf '%d.%01dk' $(( t / 1000 )) $(( t % 1000 / 100 ))
-  else
-    printf '%d' "$t"
-  fi
-}
-
-fmt_elapsed() {
-  local secs="$1"
-  [ "$secs" -lt 0 ] && secs=0
-  if [ "$secs" -ge 3600 ]; then
-    printf '%dh%dm' $(( secs / 3600 )) $(( secs % 3600 / 60 ))
-  elif [ "$secs" -ge 60 ]; then
-    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
-  else
-    printf '%ds' "$secs"
-  fi
-}
-
 short_model() {
   case "$1" in
     *opus*)   printf 'Opus' ;;

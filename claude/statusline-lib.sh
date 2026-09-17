@@ -12,6 +12,14 @@
 #   alarm_rgb <pct> <alarm>
 #     the pill ground as "r g b", shared by the badge body and its end-caps.
 
+# Marks the account cswap is currently on. Single-column, so it occupies the same
+# width as the blank the inactive rows carry there.
+g_active='●'
+
+# Prefixes a color rather than replacing it, so the attribute rides whatever
+# role follows it.
+c_italic='\033[3m'
+
 c_err='\033[38;2;243;139;168m'
 c_identity='\033[38;2;137;180;250m'
 c_muted='\033[38;2;108;112;134m'
@@ -22,6 +30,29 @@ c_track='\033[38;2;99;103;124m'
 c_dim='\033[38;2;66;68;88m'
 c_darkest='\033[38;2;54;56;74m'
 c_off='\033[0m'
+
+fmt_tokens() {
+  local t="$1"
+  if [ "$t" -ge 1000000 ]; then
+    printf '%d.%01dM' $(( t / 1000000 )) $(( t % 1000000 / 100000 ))
+  elif [ "$t" -ge 1000 ]; then
+    printf '%d.%01dk' $(( t / 1000 )) $(( t % 1000 / 100 ))
+  else
+    printf '%d' "$t"
+  fi
+}
+
+fmt_elapsed() {
+  local secs="$1"
+  [ "$secs" -lt 0 ] && secs=0
+  if [ "$secs" -ge 3600 ]; then
+    printf '%dh%dm' $(( secs / 3600 )) $(( secs % 3600 / 60 ))
+  elif [ "$secs" -ge 60 ]; then
+    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
+  else
+    printf '%ds' "$secs"
+  fi
+}
 
 alarm_rgb() {
   local pct="$1" alarm="$2" span=$(( 100 - $2 ))
