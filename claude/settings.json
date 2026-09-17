@@ -136,11 +136,6 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh active"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/snapshot-rule-files.sh",
-            "timeout": 10
           }
         ]
       }

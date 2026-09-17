@@ -1,2 +1,0 @@
-# emits nothing on a prompt; the snapshot lands under /tmp/claude-rule-snapshot-<session>
-ctx_none	{"session_id": "hooktest-snapshot", "prompt": "x"}

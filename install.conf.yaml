@@ -28,7 +28,6 @@
     ~/.claude/hooks/hook-lib.sh: claude/hooks/hook-lib.sh
     ~/.claude/hooks/hook_lib.py: claude/hooks/hook_lib.py
     ~/.claude/hooks/warn-existing-occurrence.sh: claude/hooks/warn-existing-occurrence.sh
-    ~/.claude/hooks/snapshot-rule-files.sh: claude/hooks/snapshot-rule-files.sh
     ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
     ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/hooks/enforce-read-over-shell-read.sh
