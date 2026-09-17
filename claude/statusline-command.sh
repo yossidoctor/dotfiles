@@ -7,7 +7,7 @@ eval "$(printf '%s' "$input" | jq -r '
 def s(v): (v // "") | if type == "string" then . else tostring end;
 "model=" + (s(.model.display_name) | @sh),
 "effort=" + (s(.effort.level) | @sh),
-"used_pct=" + (s(.context_window.used_percentage) | @sh),
+"used_pct=" + ((.context_window.used_percentage) | if type == "number" then (round | tostring) else "" end | @sh),
 "permission_mode=" + (s(.permission_mode) | @sh)
 ' 2>/dev/null)"
 : "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}"
@@ -34,16 +34,18 @@ fade() {
     "$(( (b * keep + bg_b * (100 - keep)) / 100 ))"
 }
 
+# Indexed by fill count, not sliced from a string: substring expansion counts
+# bytes under a C/POSIX locale, and these glyphs are three bytes each.
+bar_filled=('' '▰' '▰▰' '▰▰▰' '▰▰▰▰' '▰▰▰▰▰')
+bar_empty=('' '▱' '▱▱' '▱▱▱' '▱▱▱▱' '▱▱▱▱▱')
+
 bar() {
   local pct="$1" fill_color="$2" track_color="$3" width=5
   [ "$pct" -gt 100 ] && pct=100
   [ "$pct" -lt 0 ] && pct=0
-  local filled=$(( (pct * width + 50) / 100 )) i out=""
-  out="$fill_color"
-  for (( i = 0; i < filled; i++ )); do out="${out}▰"; done
-  out="${out}${track_color}"
-  for (( i = filled; i < width; i++ )); do out="${out}▱"; done
-  printf '%s%s' "$out" "$c_off"
+  local filled=$(( (pct * width + 50) / 100 ))
+  printf '%s%s%s%s%s' "$fill_color" "${bar_filled[filled]}" \
+    "$track_color" "${bar_empty[width - filled]}" "$c_off"
 }
 
 # ── claude section ───────────────────────────────────────────
@@ -57,7 +59,6 @@ if [ -n "$model" ]; then
 fi
 
 if [ -n "$used_pct" ]; then
-  used_int=$(printf "%.0f" "$used_pct")
   # Cache-read cost per turn rises with context, so the warning earns its place
   # early: a session that resets at a task boundary pays a fraction of one that
   # runs on. Sonnet's larger window moves its rungs out, not the shape.
@@ -65,15 +66,15 @@ if [ -n "$used_pct" ]; then
     *Sonnet*|*sonnet*) warm_start=45; bold_start=65; alarm=80 ;;
     *)                 warm_start=25; bold_start=40; alarm=50 ;;
   esac
-  ctx_color=$(ramp_color "$used_int" "$warm_start" "$bold_start" "" "$alarm")
-  if [ "$used_int" -ge "$alarm" ]; then
+  ctx_color=$(ramp_color "$used_pct" "$warm_start" "$bold_start" "" "$alarm")
+  if [ "$used_pct" -ge "$alarm" ]; then
     # Half-circle caps carry the badge ground as FOREGROUND, so the badge reads
     # as one rounded pill against whatever the terminal paints behind it.
-    read -r a_r a_g a_b <<<"$(alarm_rgb "$used_int" "$alarm")"
+    read -r a_r a_g a_b <<<"$(alarm_rgb "$used_pct" "$alarm")"
     cap="\\033[38;2;${a_r};${a_g};${a_b}m"
-    ctx_str="${cap}${c_off}${ctx_color}${used_int}%${c_off}${cap}${c_off}"
+    ctx_str="${cap}${c_off}${ctx_color}${used_pct}%${c_off}${cap}${c_off}"
   else
-    ctx_str="${ctx_color}${used_int}%${c_off}"
+    ctx_str="${ctx_color}${used_pct}%${c_off}"
   fi
   [ -n "$claude_section" ] && claude_section="${claude_section} ${ctx_str}" || claude_section="${ctx_str}"
 fi
