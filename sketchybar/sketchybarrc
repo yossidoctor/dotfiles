@@ -40,7 +40,8 @@ WS_DISPLAY_6=3
 # The workspaces alt-1..alt-9 in aerospace.toml can reach. Declared, not
 # discovered: `aerospace list-workspaces --all` omits an empty workspace, and a
 # chip that appears only once a window lands there defeats always-drawing all
-# nine.
+# nine. plugins/aerospace.sh paints exactly this set, and reads it back from the
+# bar's own items rather than carrying a second copy.
 WORKSPACES="1 2 3 4 5 6 7 8 9"
 
 MONITOR_COUNT=$(aerospace list-monitors --count)
@@ -87,11 +88,12 @@ sketchybar --default \
   padding_right="$GROUP_PADDING"
 
 # AeroSpace has no native sketchybar event; both are minted here and triggered
-# from aerospace.toml's callbacks. workspace_change fires on every switch;
-# window_change fires on window-detected, which is the only window-lifecycle
-# event AeroSpace emits — there is no window-closed and no window-minimized
-# (docs/aerospace/UPSTREAM-2026-09.md § 1), so a close shows up on the next
-# switch or focus change rather than immediately.
+# from aerospace.toml's callbacks. workspace_change fires on every switch.
+# window_change has no single upstream source — there is no window-closed and
+# no window-minimized event (docs/aerospace/UPSTREAM-2026-09.md § 1) — so it is
+# fired from every signal a close can reach: on-window-detected and
+# on-focus-changed in aerospace.toml, retry-poke.sh off the Cmd+W/Cmd+Q
+# keystroke, and the retile-on-quit-watcher LaunchAgent.
 sketchybar --add event aerospace_workspace_change
 sketchybar --add event aerospace_window_change
 sketchybar --add event media_update
@@ -111,10 +113,18 @@ for sid in $WORKSPACES; do
       label.highlight_color="$ACCENT" \
       label.max_chars=24 \
       background.drawing=on \
-      script="$PLUGINS/aerospace.sh $sid" \
-      click_script="aerospace workspace $sid" \
-    --subscribe "space.$sid" aerospace_workspace_change aerospace_window_change
+      click_script="aerospace workspace $sid"
 done
+
+# One painter for all nine chips, driven by an item that draws nothing: the
+# chips carry no script of their own, so a single event fires a single
+# `aerospace list-windows --all` instead of one CLI call per chip.
+# updates=on must be explicit: the default is `when_shown`, and a drawing=off
+# item is never shown, so its script would never run on any event.
+sketchybar --add item spaces.painter left \
+  --set spaces.painter drawing=off updates=on \
+    script="$PLUGINS/aerospace.sh" \
+  --subscribe spaces.painter aerospace_workspace_change aerospace_window_change
 
 sketchybar --add bracket spaces '/space\..*/' \
   --set spaces background.color="$GROUP_BG" \

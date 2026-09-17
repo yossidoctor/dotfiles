@@ -93,10 +93,17 @@ automatically-unhide-macos-hidden-apps = false
 # raise-fullscreen.sh keeps a focused fake-fullscreen window on top (alt-f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
+#
+# The sketchybar trigger last: closing a window reassigns focus to the
+# survivor, so this callback is the fastest close signal the bar can get
+# (40-90ms, Cmd+W and Cmd+Q alike) and the only one that covers a window
+# closed without terminating its app. It is a sketchybar call, not an
+# `aerospace` one, so it forces no refresh session of its own.
 on-focus-changed = [
     'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
-    'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &'
+    'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
+    'exec-and-forget sketchybar --trigger aerospace_window_change'
 ]
 
 # The sketchybar trigger rides the same callback as the reaper, after the `&`
@@ -119,10 +126,12 @@ on-window-detected = [
     # the list, and no app would ever be floated again.
     # This is the only window-lifecycle event AeroSpace emits: there is no
     # window-closed and no window-minimized (docs/aerospace/UPSTREAM-2026-09.md
-    # § 1), so a closed window leaves its icon on the chip until the next
-    # workspace switch repaints it. That staleness is the deliberate price of
-    # not running a polling timer, which would keep cancelling the daemon's
-    # heavy refresh session (same doc, § 4) that the retile patches depend on.
+    # § 1), so a window's disappearance reaches the bar through the same
+    # indirect signals that drive the retile — on-focus-changed above, and the
+    # retile-on-quit-watcher LaunchAgent for the last window on the system,
+    # which leaves no survivor to take focus. A polling timer stays rejected:
+    # it would keep cancelling the daemon's heavy refresh session (same doc,
+    # § 4) that the retile patches depend on.
     { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
 
     # AeroSpace floats any window it reads as a dialog — including windows
