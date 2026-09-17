@@ -200,7 +200,6 @@ fi
 
 # ── background jobs ──────────────────────────────────────────
 bg_lines=()
-jobs_dir="$HOME/.claude/jobs"
 daemon_lock="$HOME/.claude/daemon.lock"
 daemon_live=""
 daemon_pid=$(jq -r '.pid // empty | floor' "$daemon_lock" 2>/dev/null)
@@ -209,65 +208,41 @@ case "$daemon_pid" in
   *) kill -0 "$daemon_pid" 2>/dev/null && daemon_live=1 ;;
 esac
 # `claude agents --json` is the documented roster and the only supported source for
-# which sessions exist and whether each is busy — the docs call the files under
-# ~/.claude/jobs/<id>/ "not a stable interface", and a spare the daemon pre-warms
-# carries state:"working" there while the roster correctly reports it idle. The
-# roster costs ~120ms, too slow per render, so it is cached for 5s; `tokens` has no
-# roster field and is read from the (unstable, best-effort) state file alongside it.
+# background-session state; the docs disclaim the files under ~/.claude/jobs/<id>/
+# ("not a stable interface", overwritten on the next update) and name no progress
+# field anywhere, so elapsed-since-startedAt is the finest real signal available.
+# The roster costs ~120ms, too slow per render, so it is cached for 5s.
 # This session is excluded by its own session_id, which the statusline input carries.
-if [ -d "$jobs_dir" ] && [ -n "$daemon_live" ]; then
+if [ -n "$daemon_live" ]; then
   roster_cache="${TMPDIR:-/tmp}/claude-statusline-roster.$UID.json"
-  if [ ! -s "$roster_cache" ] || [ -n "$(find "$roster_cache" -mtime +5s 2>/dev/null)" ]; then
+  cache_age=$(( $(date +%s) - $(stat -f %m "$roster_cache" 2>/dev/null || echo 0) ))
+  if [ ! -s "$roster_cache" ] || [ "$cache_age" -ge 5 ]; then
     claude agents --json >"$roster_cache".tmp 2>/dev/null && mv -f "$roster_cache".tmp "$roster_cache" || rm -f "$roster_cache".tmp
   fi
-  bg_rows=$(python3 -c '
-import json, pathlib, sys
+  bg_rows=$(jq -r --arg me "$session_id" --argjson now "$(date +%s)" '
+    map(select(.kind == "background" and .sessionId != $me and (.id // "") != ""))
+    | sort_by(.startedAt // 0)[]
+    | [ .id,
+        (.state // "-"),
+        (.waitingFor // "-"),
+        ($now - ((.startedAt // 0) / 1000 | floor) | tostring),
+        ((.name // "") | gsub("\\s+"; " ") | .[0:34]) ]
+    | @tsv
+  ' "$roster_cache" 2>/dev/null)
 
-roster_path, jobs_dir, me = sys.argv[1], sys.argv[2], sys.argv[3]
-try:
-    roster = json.loads(pathlib.Path(roster_path).read_text())
-except Exception:
-    roster = []
-
-def tokens_for(short):
-    try:
-        d = json.loads((pathlib.Path(jobs_dir) / short / "state.json").read_text())
-        return int(d.get("tokens")), int((d.get("inFlight") or {}).get("tasks") or 0)
-    except Exception:
-        return -1, 0
-
-for a in sorted(roster, key=lambda a: a.get("startedAt") or 0):
-    if a.get("kind") != "background" or a.get("sessionId") == me:
-        continue
-    short = a.get("id") or ""
-    status = a.get("status") or ""
-    if not short or status not in ("busy", "idle"):
-        continue
-    tokens, in_flight = tokens_for(short)
-    name = " ".join((a.get("name") or "").split())[:34]
-    print("\t".join([short, status, str(tokens), str(in_flight), name]))
-' "$roster_cache" "$jobs_dir" "$session_id" 2>/dev/null)
-
-  while IFS=$'\t' read -r short status tokens in_flight name; do
+  while IFS=$'\t' read -r short state waiting_for elapsed name; do
     [ -z "$short" ] && continue
-    if [ "$status" = busy ]; then
-      state_color="$c_err"
-    else
-      state_color=$(ramp_color 75 40 70 muted)
-    fi
-    tok_str=""
-    if [ "$tokens" -ge 0 ]; then
-      if [ "$tokens" -ge 1000 ]; then
-        tok_str="$(printf '%dk' $(( tokens / 1000 )))"
-      else
-        tok_str="${tokens}"
-      fi
-      tok_color=$(ramp_color $(( tokens / 4000 )) 40 70 muted)
-      tok_str=" ${tok_color}$(printf '%5s' "$tok_str")${c_off}"
-    fi
-    flight_str=""
-    [ "$in_flight" -gt 0 ] && flight_str=" ${c_muted}(${in_flight} in flight)${c_off}"
-    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}$(printf '%-4s' "$status")${c_off}${tok_str} ${c_dim}${name}${c_off}${flight_str}")
+    case "$state" in
+      working) glyph="$g_working"; state_color="$c_ok" ;;
+      blocked) glyph="$g_waiting"; state_color="$c_err" ;;
+      done)    glyph="$g_done";    state_color="$c_muted" ;;
+      failed)  glyph="$g_failed";  state_color="$c_err" ;;
+      stopped) glyph="$g_idle";    state_color="$c_muted" ;;
+      *)       glyph="$g_idle";    state_color="$c_dim" ;;
+    esac
+    wait_str=""
+    [ "$waiting_for" != - ] && wait_str="  ${c_err}(${waiting_for})${c_off}"
+    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}${glyph}${c_off} ${c_muted}$(printf '%6s' "$(fmt_elapsed "$elapsed")")${c_off}  ${c_dim}${name}${c_off}${wait_str}")
   done <<< "$bg_rows"
 fi
 
