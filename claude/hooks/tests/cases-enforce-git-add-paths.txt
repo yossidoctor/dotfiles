@@ -1,0 +1,54 @@
+# cases for enforce-git-add-paths.sh — expect<TAB>command<TAB>cwd
+# Block a `git add` that stages by sweep rather than by path, and `git commit -a`
+# which skips the index entirely. Every tree here has other sessions in it, so a
+# sweep stages work this session did not write.
+
+# --- denied: the sweep flags ---
+deny	git add -A	/Users/yossidoctor/dotfiles
+deny	git add --all	/Users/yossidoctor/dotfiles
+deny	git add -u	/Users/yossidoctor/dotfiles
+deny	git add --update	/Users/yossidoctor/dotfiles
+deny	git add --no-ignore-removal	/Users/yossidoctor/dotfiles
+deny	git add -A .	/Users/yossidoctor/dotfiles
+deny	git add -Av	/Users/yossidoctor/dotfiles
+
+# --- denied: directory-wide operands ---
+deny	git add .	/Users/yossidoctor/dotfiles
+deny	git add :/	/Users/yossidoctor/dotfiles
+deny	git add :(top)	/Users/yossidoctor/dotfiles
+
+# --- denied: with -C, and mid-sequence ---
+deny	git -C ~/otherrepo add -A	/Users/yossidoctor
+deny	git -C /Users/yossidoctor/dotfiles add .	/Users/yossidoctor
+allow	cd ~/dotfiles && git add README.md	/Users/yossidoctor
+deny	cd ~/dotfiles && git add -A	/Users/yossidoctor
+
+# --- denied: commit -a bypasses the index ---
+deny	git commit -a -m "x"	/Users/yossidoctor/dotfiles
+deny	git commit --all -m "x"	/Users/yossidoctor/dotfiles
+deny	git commit -am "x"	/Users/yossidoctor/dotfiles
+deny	git -C ~/otherrepo commit -a	/Users/yossidoctor
+
+# --- allowed: named paths, the intended form ---
+allow	git add README.md	/Users/yossidoctor/dotfiles
+allow	git add claude/CLAUDE.md claude/settings.json	/Users/yossidoctor/dotfiles
+allow	git add docs/claude/instructing-claude.md	/Users/yossidoctor/dotfiles
+allow	git -C ~/otherrepo add some/nested/file.md	/Users/yossidoctor
+allow	git add path/with.a.dot/file.md	/Users/yossidoctor/dotfiles
+
+# --- allowed: hunk-wise and intent-to-add are ownership by construction ---
+allow	git add -p	/Users/yossidoctor/dotfiles
+allow	git add --patch	/Users/yossidoctor/dotfiles
+allow	git add -N newfile.md	/Users/yossidoctor/dotfiles
+allow	git add --intent-to-add newfile.md	/Users/yossidoctor/dotfiles
+
+# --- allowed: a commit without -a, the intended form ---
+allow	git commit -m "x"	/Users/yossidoctor/dotfiles
+allow	git commit -q -F -	/Users/yossidoctor/dotfiles
+allow	git commit --amend --no-edit	/Users/yossidoctor/dotfiles
+
+# --- allowed: other git verbs the gate must not catch ---
+allow	git status --short	/Users/yossidoctor/dotfiles
+allow	git diff --cached --stat	/Users/yossidoctor/dotfiles
+allow	git add-ignore	/Users/yossidoctor/dotfiles
+allow	git log --all --oneline	/Users/yossidoctor/dotfiles

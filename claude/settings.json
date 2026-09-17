@@ -98,6 +98,10 @@
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/enforce-read-over-shell-read.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/enforce-git-add-paths.sh"
           }
         ]
       },
@@ -136,11 +140,6 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh active"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/snapshot-rule-files.sh",
-            "timeout": 10
           }
         ]
       }
