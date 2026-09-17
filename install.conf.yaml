@@ -19,6 +19,7 @@
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
     ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
+    ~/.local/bin/rule-audit: scripts/rule-audit.sh
     ~/.claude/CLAUDE.md: claude/CLAUDE.md
     ~/.claude/settings.json: claude/settings.json
     ~/.claude/keybindings.json: claude/keybindings.json
