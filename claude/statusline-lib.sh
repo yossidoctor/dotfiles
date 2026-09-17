@@ -12,14 +12,13 @@
 #   alarm_rgb <pct> <alarm>
 #     the pill ground as "r g b", shared by the badge body and its end-caps.
 
-# Background-session state glyphs, keyed by `claude agents --json` .state.
-# All single-column and ASCII-or-common-BMP: a two-column glyph misaligns the
-# padded name field that follows.
-g_working='»'
-g_waiting='!'
-g_idle='–'
-g_done='✓'
-g_failed='×'
+# Marks the account cswap is currently on. Single-column, so it occupies the same
+# width as the blank the inactive rows carry there.
+g_active='●'
+
+# Prefixes a color rather than replacing it, so the attribute rides whatever
+# role follows it.
+c_italic='\033[3m'
 
 c_err='\033[38;2;243;139;168m'
 c_identity='\033[38;2;137;180;250m'

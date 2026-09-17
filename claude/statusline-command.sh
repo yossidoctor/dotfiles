@@ -25,7 +25,7 @@ countdown() {
 }
 
 fade() {
-  local esc="$1" keep=33 bg_r=30 bg_g=30 bg_b=46
+  local esc="$1" keep="${2:-33}" bg_r=30 bg_g=30 bg_b=46
   local rgb=${esc#*38;2;}; rgb=${rgb%m}
   local r=${rgb%%;*} rest=${rgb#*;} g b
   g=${rest%%;*}; b=${rest#*;}
@@ -142,12 +142,14 @@ for k in sorted(d.get("accounts") or {}, key=int):
   while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
-    marker=" "
+    # Opens with a color escape so the row never begins with whitespace, which the
+    # renderer trims — that pulled the inactive rows a column left of the active one.
+    marker="${c_off} "
     label="$c_dim"
     track="$c_dim"
     empty="$c_darkest"
     if [ "$is_active" = true ]; then
-      marker="${c_ok}●${c_off}"
+      marker="${c_ok}${g_active}${c_off}"
       label="$c_active"
       track="$c_track"
       empty="$c_surface"
@@ -165,7 +167,7 @@ for k in sorted(d.get("accounts") or {}, key=int):
       fi
       local seg="${label}${name}${c_off} $(bar "$pct" "$track" "$empty") ${color}$(printf '%3d%%' "$pct")${c_off}"
       if [ "$resets" -gt 0 ]; then
-        seg="${seg} ${label}($(countdown "$resets"))${c_off}"
+        seg="${seg} $(fade "$label" 70)($(countdown "$resets"))${c_off}"
       elif [ "$timed" = timed ]; then
         seg="${seg} $(printf '%9s' '')"
       fi
@@ -175,7 +177,7 @@ for k in sorted(d.get("accounts") or {}, key=int):
     add_meter 7d "$p7" "$r7" timed
     [ -n "$sname" ] && add_meter "$sname" "$spct" 0
 
-    row="  ${c_surface}${num}${c_off} ${marker} ${label}$(printf '%-8s' "$email")${c_off}${meters}"
+    row="${marker} ${c_italic}${label}$(printf '%-6s' "$email")${c_off}${meters}"
 
     [ "$stale" = 1 ] && { row="${row}  ${c_err}stale${c_off}"; any_stale=1; }
     cswap_lines+=("$row")
@@ -196,54 +198,6 @@ if [ "$any_stale" = 1 ] && [ -x "$cswap_bin" ]; then
     ( "$cswap_bin" auto --once --dry-run >/dev/null 2>&1 & ) &
     disown 2>/dev/null || true
   fi
-fi
-
-# ── background jobs ──────────────────────────────────────────
-bg_lines=()
-daemon_lock="$HOME/.claude/daemon.lock"
-daemon_live=""
-daemon_pid=$(jq -r '.pid // empty | floor' "$daemon_lock" 2>/dev/null)
-case "$daemon_pid" in
-  ''|*[!0-9]*|0|1) ;;
-  *) kill -0 "$daemon_pid" 2>/dev/null && daemon_live=1 ;;
-esac
-# `claude agents --json` is the documented roster and the only supported source for
-# background-session state; the docs disclaim the files under ~/.claude/jobs/<id>/
-# ("not a stable interface", overwritten on the next update) and name no progress
-# field anywhere, so elapsed-since-startedAt is the finest real signal available.
-# The roster costs ~120ms, too slow per render, so it is cached for 5s.
-# This session is excluded by its own session_id, which the statusline input carries.
-if [ -n "$daemon_live" ]; then
-  roster_cache="${TMPDIR:-/tmp}/claude-statusline-roster.$UID.json"
-  cache_age=$(( $(date +%s) - $(stat -f %m "$roster_cache" 2>/dev/null || echo 0) ))
-  if [ ! -s "$roster_cache" ] || [ "$cache_age" -ge 5 ]; then
-    claude agents --json >"$roster_cache".tmp 2>/dev/null && mv -f "$roster_cache".tmp "$roster_cache" || rm -f "$roster_cache".tmp
-  fi
-  bg_rows=$(jq -r --arg me "$session_id" --argjson now "$(date +%s)" '
-    map(select(.kind == "background" and .sessionId != $me and (.id // "") != ""))
-    | sort_by(.startedAt // 0)[]
-    | [ .id,
-        (.state // "-"),
-        (.waitingFor // "-"),
-        ($now - ((.startedAt // 0) / 1000 | floor) | tostring),
-        ((.name // "") | gsub("\\s+"; " ") | .[0:34]) ]
-    | @tsv
-  ' "$roster_cache" 2>/dev/null)
-
-  while IFS=$'\t' read -r short state waiting_for elapsed name; do
-    [ -z "$short" ] && continue
-    case "$state" in
-      working) glyph="$g_working"; state_color="$c_ok" ;;
-      blocked) glyph="$g_waiting"; state_color="$c_err" ;;
-      done)    glyph="$g_done";    state_color="$c_muted" ;;
-      failed)  glyph="$g_failed";  state_color="$c_err" ;;
-      stopped) glyph="$g_idle";    state_color="$c_muted" ;;
-      *)       glyph="$g_idle";    state_color="$c_dim" ;;
-    esac
-    wait_str=""
-    [ "$waiting_for" != - ] && wait_str="  ${c_err}(${waiting_for})${c_off}"
-    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}${glyph}${c_off} ${c_muted}$(printf '%6s' "$(fmt_elapsed "$elapsed")")${c_off}  ${c_dim}${name}${c_off}${wait_str}")
-  done <<< "$bg_rows"
 fi
 
 # ── permission mode badge ────────────────────────────────────
@@ -267,9 +221,6 @@ for seg in "${segments[@]}"; do
   out="${out}${seg}"
 done
 for line in "${cswap_lines[@]}"; do
-  out="${out}\n${line}"
-done
-for line in "${bg_lines[@]}"; do
   out="${out}\n${line}"
 done
 printf '%b' "$out"
