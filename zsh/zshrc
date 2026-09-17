@@ -24,6 +24,28 @@ if [[ -z "$CLAUDECODE" ]]; then
 fi
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"   # adds `z` / `zi`; leaves `cd` untouched
 
+# Claude Code reads ~/.claude/CLAUDE.md as a user message, which its own docs
+# call context rather than enforced configuration, with no compliance
+# guarantee. --append-system-prompt puts the same text in the system prompt,
+# where it is re-sent every request (docs/claude/instructing-claude.md § 2).
+#
+# The file therefore loads twice, measured at 6,232 duplicate tokens. That is
+# deliberate: this function covers the terminal only, so dropping the deployed
+# ~/.claude/CLAUDE.md link would leave an IDE or web session with no global
+# rules at all. Both copies sit in the cached prefix at 0.1x input, so the
+# duplicate costs a fraction of a cent per session — cheaper than the hole.
+#
+# A function, not an alias, so `claude mcp`, `claude agents` and `claude -p`
+# keep their arguments.
+claude() {
+  local rules="$HOME/dotfiles/claude/CLAUDE.md"
+  if [[ -r "$rules" ]]; then
+    command claude --append-system-prompt "$(<"$rules")" "$@"
+  else
+    command claude "$@"
+  fi
+}
+
 source "$HOME/dotfiles/brew/env.sh"
 
 # fnm — per-service Node version via .nvmrc; auto-switch on cd
