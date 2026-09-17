@@ -59,6 +59,8 @@ count=$(printf '%s\n' "$staged" | grep -c . || true)
   echo
   echo "  bash ~/dotfiles/scripts/rule-audit.sh $root"
   echo
-  echo "It writes the receipt on a clean pass. Editing a file afterwards re-arms this gate."
+  echo "It writes the receipt unless a correctness finding survives — a claim the text"
+  echo "makes that running the thing disproves. Style findings print and pass."
+  echo "Editing a file afterwards re-arms this gate."
 } >&2
 exit 1
