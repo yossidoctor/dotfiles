@@ -8,9 +8,10 @@ def s(v): (v // "") | if type == "string" then . else tostring end;
 "model=" + (s(.model.display_name) | @sh),
 "effort=" + (s(.effort.level) | @sh),
 "used_pct=" + ((.context_window.used_percentage) | if type == "number" then (round | tostring) else "" end | @sh),
-"permission_mode=" + (s(.permission_mode) | @sh)
+"permission_mode=" + (s(.permission_mode) | @sh),
+"session_id=" + (s(.session_id) | @sh)
 ' 2>/dev/null)"
-: "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}"
+: "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}" "${session_id=}"
 model=${model/ context)/)}
 
 countdown() {
@@ -24,7 +25,7 @@ countdown() {
 }
 
 fade() {
-  local esc="$1" keep=33 bg_r=30 bg_g=30 bg_b=46
+  local esc="$1" keep="${2:-33}" bg_r=30 bg_g=30 bg_b=46
   local rgb=${esc#*38;2;}; rgb=${rgb%m}
   local r=${rgb%%;*} rest=${rgb#*;} g b
   g=${rest%%;*}; b=${rest#*;}
@@ -141,12 +142,14 @@ for k in sorted(d.get("accounts") or {}, key=int):
   while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
-    marker=" "
+    # Opens with a color escape so the row never begins with whitespace, which the
+    # renderer trims — that pulled the inactive rows a column left of the active one.
+    marker="${c_off} "
     label="$c_dim"
     track="$c_dim"
     empty="$c_darkest"
     if [ "$is_active" = true ]; then
-      marker="${c_ok}●${c_off}"
+      marker="${c_ok}${g_active}${c_off}"
       label="$c_active"
       track="$c_track"
       empty="$c_surface"
@@ -164,7 +167,7 @@ for k in sorted(d.get("accounts") or {}, key=int):
       fi
       local seg="${label}${name}${c_off} $(bar "$pct" "$track" "$empty") ${color}$(printf '%3d%%' "$pct")${c_off}"
       if [ "$resets" -gt 0 ]; then
-        seg="${seg} ${label}($(countdown "$resets"))${c_off}"
+        seg="${seg} $(fade "$label" 70)($(countdown "$resets"))${c_off}"
       elif [ "$timed" = timed ]; then
         seg="${seg} $(printf '%9s' '')"
       fi
@@ -174,7 +177,7 @@ for k in sorted(d.get("accounts") or {}, key=int):
     add_meter 7d "$p7" "$r7" timed
     [ -n "$sname" ] && add_meter "$sname" "$spct" 0
 
-    row="  ${c_surface}${num}${c_off} ${marker} ${label}$(printf '%-8s' "$email")${c_off}${meters}"
+    row="${marker} ${c_italic}${label}$(printf '%-6s' "$email")${c_off}${meters}"
 
     [ "$stale" = 1 ] && { row="${row}  ${c_err}stale${c_off}"; any_stale=1; }
     cswap_lines+=("$row")
@@ -195,68 +198,6 @@ if [ "$any_stale" = 1 ] && [ -x "$cswap_bin" ]; then
     ( "$cswap_bin" auto --once --dry-run >/dev/null 2>&1 & ) &
     disown 2>/dev/null || true
   fi
-fi
-
-# ── background jobs ──────────────────────────────────────────
-bg_lines=()
-jobs_dir="$HOME/.claude/jobs"
-daemon_lock="$HOME/.claude/daemon.lock"
-daemon_live=""
-daemon_pid=$(jq -r '.pid // empty | floor' "$daemon_lock" 2>/dev/null)
-case "$daemon_pid" in
-  ''|*[!0-9]*|0|1) ;;
-  *) kill -0 "$daemon_pid" 2>/dev/null && daemon_live=1 ;;
-esac
-if [ -d "$jobs_dir" ] && [ -n "$daemon_live" ]; then
-  bg_rows=$(python3 -c '
-import json, pathlib, sys
-for state_path in sorted(pathlib.Path(sys.argv[1]).glob("*/state.json")):
-    try:
-        d = json.loads(state_path.read_text())
-    except Exception:
-        continue
-    if d.get("firstTerminalAt"):
-        continue
-    state = d.get("state") or ""
-    if state not in ("working", "blocked"):
-        continue
-    if (d.get("updatedAt") or "")[:19] < sys.argv[2]:
-        continue
-    tokens = d.get("tokens")
-    try:
-        tokens = int(tokens)
-    except (TypeError, ValueError):
-        tokens = -1
-    in_flight = (d.get("inFlight") or {}).get("tasks")
-    try:
-        in_flight = int(in_flight)
-    except (TypeError, ValueError):
-        in_flight = 0
-    print("\t".join([state_path.parent.name, state, str(tokens), str(in_flight),
-        " ".join((d.get("name") or d.get("intent") or "").split())[:34]]))
-' "$jobs_dir" "$(date -u -v-12H '+%Y-%m-%dT%H:%M:%S')" 2>/dev/null)
-
-  while IFS=$'\t' read -r short state tokens in_flight name; do
-    [ -z "$short" ] && continue
-    if [ "$state" = working ]; then
-      state_color="$c_err"
-    else
-      state_color=$(ramp_color 75 40 70 muted)
-    fi
-    tok_str=""
-    if [ "$tokens" -ge 0 ]; then
-      if [ "$tokens" -ge 1000 ]; then
-        tok_str="$(printf '%dk' $(( tokens / 1000 )))"
-      else
-        tok_str="${tokens}"
-      fi
-      tok_color=$(ramp_color $(( tokens / 4000 )) 40 70 muted)
-      tok_str=" ${tok_color}$(printf '%5s' "$tok_str")${c_off}"
-    fi
-    flight_str=""
-    [ "$in_flight" -gt 0 ] && flight_str=" ${c_muted}(${in_flight} in flight)${c_off}"
-    bg_lines+=("  ${c_surface}${short}${c_off} ${state_color}$(printf '%-7s' "$state")${c_off}${tok_str} ${c_dim}${name}${c_off}${flight_str}")
-  done <<< "$bg_rows"
 fi
 
 # ── permission mode badge ────────────────────────────────────
@@ -280,9 +221,6 @@ for seg in "${segments[@]}"; do
   out="${out}${seg}"
 done
 for line in "${cswap_lines[@]}"; do
-  out="${out}\n${line}"
-done
-for line in "${bg_lines[@]}"; do
   out="${out}\n${line}"
 done
 printf '%b' "$out"
