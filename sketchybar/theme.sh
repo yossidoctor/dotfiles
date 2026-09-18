@@ -65,6 +65,15 @@ BRAND_CHROME=0xff4285f4
 BRAND_TV=0xffffffff
 BRAND_DEFAULT=0xff30d158
 
+# Distance from the top of the screen past which the pointer is no longer over
+# the bar or an open popup. Bar height 38 + popup y_offset 4 + at most three
+# rows at background.height 26 comes to ~120; this rounds well past that.
+# Generous on purpose: overshooting only keeps a menu open slightly below its
+# own bottom edge, while falling short closes it under the pointer. Read by both
+# plugins/media.sh and plugins/media-row.sh, which is why it lives here rather
+# than in either.
+POPUP_BOTTOM=190
+
 # Shadow behind every glyph and label. sketchybar takes a polar offset and
 # computes y as -distance*sin(angle) (src/shadow.c), in a space where y grows
 # upward — so the shadow falls BELOW the text at angle 90, and 270 would lift it

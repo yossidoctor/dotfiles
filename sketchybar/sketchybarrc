@@ -329,7 +329,7 @@ sketchybar --set media \
   popup.blur_radius=25 \
   popup.y_offset=4 \
   popup.align=right \
-  update_freq=15 \
+  update_freq=5 \
   --subscribe media media_update mouse.exited.global system_woke
 
 # One row per audio source. macOS hands third parties only a single now-playing

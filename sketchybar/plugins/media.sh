@@ -75,18 +75,33 @@ case "$SENDER" in
     # dedup hides, so the entries appear to reorder while being read. Neither is
     # acceptable in an open menu, and neither loses anything by waiting — the
     # repaint happens as soon as the popup closes.
+    #
+    # The tick doubles as the popup's backstop. Every event-driven close depends
+    # on the pointer crossing an item boundary, and a pointer that leaves the bar
+    # by a path that fires no such event would strand the menu open until the
+    # next hover. Checking the position here means a stranded popup closes
+    # within one update_freq no matter how it was orphaned.
     if [ "$(sketchybar --query media 2>/dev/null | jq -r '.popup.drawing')" = "on" ]; then
+      y="$("$HOME/.config/sketchybar/pointer-y" 2>/dev/null || echo 0)"
+      if [ "$y" -gt "$POPUP_BOTTOM" ]; then
+        sketchybar --set "$NAME" popup.drawing=off
+      fi
       exit 0
     fi
     ;;
   mouse.exited.global)
     # Fires whenever the pointer leaves ANY item, including on its way from the
-    # pill into the popup — closing here killed the popup the instant it opened.
-    # The fill is cleared, but the popup is left alone; it closes when the
-    # pointer genuinely leaves the popup's own rows (mouse.exited on a row) or
-    # when a row is clicked.
+    # pill into the popup — so this must not close blindly, or the popup dies
+    # the instant it opens. It asks where the pointer actually is instead, which
+    # makes this the general close path: a row's own mouse.exited cannot be
+    # relied on, since leaving the popup sideways or quickly fires no row event
+    # at all and would leave the menu stranded open.
     rm -f "$HOVER_FILE"
     sketchybar --set "$NAME" background.color=0x00000000
+    y="$("$HOME/.config/sketchybar/pointer-y" 2>/dev/null || echo 0)"
+    if [ "$y" -gt "$POPUP_BOTTOM" ]; then
+      sketchybar --set "$NAME" popup.drawing=off
+    fi
     exit 0
     ;;
 esac
@@ -150,8 +165,9 @@ bundle="${BUNDLE:-}"
 # That routine tick is what makes the pill self-healing: media-stream.sh is a
 # LaunchAgent whose child does not always survive a sketchybar restart, and
 # without a second path to the state the pill would sit blank until the next
-# track change. The tick costs one media-control get, which is also why this
-# item is not on a 1s update_freq.
+# track change. It costs one media-control get per tick — the frequency is a
+# balance against that, and the popup-open branch above returns before spending
+# it at all.
 if [ "$SENDER" != "media_update" ]; then
   eval "$(
     media-control get 2>/dev/null | jq -r '

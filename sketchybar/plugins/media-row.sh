@@ -4,27 +4,18 @@
 # The popup cannot be closed from the pill's own mouse.exited: the pointer has
 # to leave the pill to reach the rows, so that event fires on the way IN.
 #
-# It also cannot be closed on a row's mouse.exited alone. That event fires on
-# small movements WITHIN a row as well as on leaving it, and an earlier version
-# deferred the close and cancelled it when another row was entered. That works
-# for every row except the last one: below the bottom row there is no row to
-# enter, so nothing cancels the pending close and the menu shuts while the
-# pointer is still resting on it.
+# It also cannot be closed on a row's mouse.exited alone, in either direction:
+# that event fires on small movements WITHIN a row as well as on leaving one, so
+# closing on it shuts the menu mid-read, and it does not fire at all when the
+# pointer leaves the popup sideways or quickly, so relying on it strands the
+# menu open.
 #
-# So the close asks where the pointer actually is. POPUP_BOTTOM is the distance
-# from the top of the screen past which the pointer is no longer over the bar or
-# its popup; while the pointer is above that line the menu stays open no matter
-# how many spurious exits arrive, and the moment it drops below, the menu closes
-# on the next event without waiting on a timer.
+# So neither the event nor a timer decides — the pointer's actual position does,
+# against POPUP_BOTTOM in theme.sh. This handler covers leaving a row, and
+# media.sh's mouse.exited.global covers every other way out of the popup.
 set -uo pipefail
 
 source "$HOME/.config/sketchybar/theme.sh"
-
-# Bar height 38 + popup y_offset 4 + at most three rows at background.height 26
-# comes to ~120; this rounds well past that. Generous on purpose: overshooting
-# only keeps the menu open slightly below its own bottom edge, while falling
-# short reintroduces exactly the premature close this replaces.
-POPUP_BOTTOM=190
 
 case "$SENDER" in
   mouse.entered)
