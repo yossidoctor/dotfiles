@@ -13,11 +13,13 @@ source "$HOME/.config/sketchybar/theme.sh"
 
 case "$SENDER" in
   mouse.entered)
-    sketchybar --animate tanh 20 --set "$NAME" label.width=dynamic
+    sketchybar --animate sin 12 --set "$NAME" label.width=dynamic \
+      background.color="$HOVER_BG"
     exit 0
     ;;
   mouse.exited)
-    sketchybar --animate tanh 20 --set "$NAME" label.width=0
+    sketchybar --animate sin 12 --set "$NAME" label.width=0 \
+      background.color=0x00000000
     exit 0
     ;;
 esac

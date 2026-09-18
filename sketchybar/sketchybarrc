@@ -25,7 +25,6 @@ source "$CONFIG_DIR/theme.sh"
 
 BAR_HEIGHT=38
 ITEM_HEIGHT=24
-CORNER_RADIUS=6
 GROUP_PADDING=5
 
 # workspace -> display index. Workspaces absent here are unpinned and follow the
@@ -58,6 +57,10 @@ ws_display() {
   esac
 }
 
+# Full-bleed translucent strip: no corner_radius, no margin, no y_offset, so the
+# bar occupies the menu bar's own geometry. blur_radius is what makes the tint in
+# BAR_BG read as frosted glass; it is a real backdrop blur
+# (SLSSetWindowBackgroundBlurRadius), verified rendering on this OS.
 sketchybar --bar \
   height="$BAR_HEIGHT" \
   position=top \
@@ -65,25 +68,42 @@ sketchybar --bar \
   padding_left=12 \
   padding_right=12 \
   color="$BAR_BG" \
+  blur_radius=34 \
+  corner_radius=0 \
+  margin=0 \
+  y_offset=0 \
+  shadow=off \
+  topmost=on \
+  show_in_fullscreen=on \
   font_smoothing=on
 
+# No background on any item: text sits directly on the glass, so the shadow
+# below carries all of the legibility. The one exception is the focused
+# workspace chip, which turns its background on in plugins/aerospace.sh.
+#
 # updates=when_shown keeps a hidden item from running its script at all, which is
 # what makes the hover-collapsed right side free at rest.
 sketchybar --default \
   updates=when_shown \
+  background.drawing=off \
   background.height="$ITEM_HEIGHT" \
-  background.corner_radius="$CORNER_RADIUS" \
-  background.border_width=1 \
-  background.color="$ITEM_BG" \
-  background.border_color="$ITEM_BORDER" \
-  icon.font="$FONT_TEXT:Bold:12.0" \
+  background.border_width=0 \
+  icon.font="$FONT_TEXT:Semibold:13.0" \
   icon.color="$TEXT" \
   icon.padding_left=8 \
   icon.padding_right=4 \
-  label.font="$FONT_TEXT:Medium:12.0" \
+  icon.shadow.drawing=on \
+  icon.shadow.color="$TEXT_SHADOW" \
+  icon.shadow.angle="$SHADOW_ANGLE" \
+  icon.shadow.distance="$SHADOW_DISTANCE" \
+  label.font="$FONT_TEXT:Medium:12.5" \
   label.color="$SUBTEXT" \
   label.padding_left=0 \
   label.padding_right=8 \
+  label.shadow.drawing=on \
+  label.shadow.color="$TEXT_SHADOW" \
+  label.shadow.angle="$SHADOW_ANGLE" \
+  label.shadow.distance="$SHADOW_DISTANCE" \
   padding_left="$GROUP_PADDING" \
   padding_right="$GROUP_PADDING"
 
@@ -98,22 +118,41 @@ sketchybar --add event aerospace_workspace_change
 sketchybar --add event aerospace_window_change
 sketchybar --add event media_update
 
+# Holds the native menu bar suppressed. macOS resets the alpha on space and
+# display changes and on leaving Mission Control, so it is re-applied on the
+# events that follow those; see plugins/menubar.sh and menubar-hide.c. The item
+# draws nothing — it exists only to own the subscription.
+sketchybar --add item menubar.keeper left \
+  --set menubar.keeper drawing=off updates=on \
+    script="$PLUGINS/menubar.sh" \
+  --subscribe menubar.keeper space_change display_change front_app_switched \
+    system_woke
+
+# The focused chip is the only filled shape in the bar, so highlight_color is
+# the color the text takes ON that fill rather than an accent tint: the fill is
+# white and ON_ACCENT inverts the glyphs to near-black over it.
+# plugins/aerospace.sh swaps each chip's fill, and paints an empty workspace
+# fainter than an occupied one.
 for sid in $WORKSPACES; do
   sketchybar --add item "space.$sid" left \
     --set "space.$sid" \
       display="$(ws_display "$sid")" \
-      icon.font="$FONT_APP:Regular:15.0" \
+      icon.font="$FONT_APP:Regular:14.0" \
       icon.color="$SUBTEXT" \
-      icon.highlight_color="$ACCENT" \
-      icon.padding_left=6 \
-      icon.padding_right=6 \
-      label.font="$FONT_TEXT:Semibold:11.5" \
+      icon.highlight_color="$ON_ACCENT" \
+      icon.padding_left=7 \
+      icon.padding_right=7 \
+      label.font="$FONT_TEXT:Semibold:12.0" \
       label.padding_left=5 \
-      label.padding_right=7 \
-      label.highlight_color="$ACCENT" \
-      label.max_chars=24 \
+      label.padding_right=8 \
+      label.highlight_color="$ON_ACCENT" \
+      background.corner_radius=11 \
+      background.height=22 \
       background.drawing=on \
-      click_script="aerospace workspace $sid"
+      background.color=0x00000000 \
+      script="$PLUGINS/hover.sh" \
+      click_script="aerospace workspace $sid" \
+    --subscribe "space.$sid" mouse.entered mouse.exited
 done
 
 # One painter for all nine chips, driven by an item that draws nothing: the
@@ -126,76 +165,146 @@ sketchybar --add item spaces.painter left \
     script="$PLUGINS/aerospace.sh" \
   --subscribe spaces.painter aerospace_workspace_change aerospace_window_change
 
-sketchybar --add bracket spaces '/space\..*/' \
-  --set spaces background.color="$GROUP_BG" \
-                background.border_color="$ITEM_BORDER" \
-                background.height=$((ITEM_HEIGHT + 4)) \
-                background.corner_radius=$((CORNER_RADIUS + 2))
+# A hairline between the workspace chips and the focused-window tile, drawn as a
+# glyph rather than as a 1px background: a background that thin has no room to
+# paint once the item's own padding is applied, and renders as nothing at all.
+#
+# The gap is measured to what is DRAWN on each side, which on the right is the
+# edge of front_app's hover pill, not its glyph: icon.padding_left sits INSIDE
+# that background and so adds nothing to the gap. front_app carries no item
+# padding of its own, while the chip on the left ends with its inherited
+# GROUP_PADDING of 5 — so the left value is the right one minus that 5, and both
+# visible gaps come to 11.
+sketchybar --add item divider.apps left \
+  --set divider.apps \
+    icon="│" \
+    icon.font="$FONT_TEXT:Regular:15.0" \
+    icon.color="$DIVIDER" \
+    icon.padding_left=0 \
+    icon.padding_right=0 \
+    icon.shadow.drawing=off \
+    label.drawing=off \
+    background.drawing=off \
+    padding_left=6 \
+    padding_right=11
+
+# The focused window, on the left after the workspace chips. NOT center_left:
+# that anchors to the left edge of the notch and the tile is long enough to run
+# back underneath the camera housing, which hides the start of the title. The
+# left side flows rightward from the chips and simply stops short of the notch.
+sketchybar --add item front_app left \
+  --set front_app \
+    icon.font="$FONT_APP:Regular:14.0" \
+    icon.color="$TEXT" \
+    icon.padding_left=10 \
+    icon.padding_right=7 \
+    label.font="$FONT_TEXT:Medium:12.0" \
+    label.color="$SUBTEXT" \
+    label.padding_right=12 \
+    padding_left=0 \
+    padding_right=0 \
+    background.corner_radius=11 \
+    background.height=22 \
+    background.drawing=on \
+    background.color=0x00000000 \
+    updates=on \
+    script="$PLUGINS/front-app.sh" \
+  --subscribe front_app front_app_switched aerospace_window_change \
+    aerospace_workspace_change mouse.entered mouse.exited
 
 # Right side is laid out right-to-left: the clock is added first so it sits
-# outermost. It is deliberately NOT in the hover group — a time you have to
-# hover for is not a clock — so it carries no mouse.entered subscription and no
-# collapsed label.
+# outermost. It is deliberately NOT in the hover GROUP — a time you have to hover
+# for is not a clock — so it carries no collapsed label; it does take the hover
+# fill, so the bar responds to the pointer consistently.
+#
+# font.features=tnum holds the digits on a fixed advance, so the minute ticking
+# over cannot shift the clock's width and nudge everything left of it.
+#
+# label.padding_right is 0 so the time's ink ends the same distance from the
+# screen edge as the leftmost chip's pill begins from its own: the bar's
+# padding_right of 12 plus the item's inherited 5.
 sketchybar --add item clock right \
   --set clock \
     background.height="$ITEM_HEIGHT" \
     icon="$(date '+%a %d %b')" \
-    icon.font="$FONT_TEXT:Medium:11.5" \
+    icon.font="$FONT_TEXT:Medium:12.0" \
     icon.color="$SUBTEXT" \
     icon.padding_left=10 \
     icon.padding_right=6 \
     label.padding_left=4 \
-    label.font="$FONT_NUM:Bold:11.5" \
+    label.font="$FONT_NUM:Semibold:12.0" \
+    label.font.features=tnum \
     label.color="$TEXT" \
-    label.padding_right=10 \
+    label.padding_right=0 \
+    background.corner_radius=11 \
+    background.drawing=on \
+    background.color=0x00000000 \
     update_freq=30 \
     script="$PLUGINS/clock.sh" \
     click_script="open -a Calendar" \
-  --subscribe clock system_woke
+  --subscribe clock system_woke mouse.entered mouse.exited
 
 # The hover group: collapsed to a bare icon, label revealed on mouse.entered.
 # label.width=0 is the collapsed state; the plugin animates it to dynamic.
+# background.corner_radius here is what makes the HOVER fill a pill rather than
+# a sharp rectangle: these items draw no background at rest (the color is
+# transparent) and each plugin swaps in HOVER_BG on mouse.entered, so the radius
+# is only ever visible under the pointer.
 for item in battery volume media; do
   sketchybar --add item "$item" right \
     --set "$item" label.width=0 \
+      background.drawing=on \
+      background.color=0x00000000 \
+      background.corner_radius=11 \
+      background.height=22 \
     --subscribe "$item" mouse.entered mouse.exited
 done
 
 sketchybar --set battery \
-  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.font="$FONT_TEXT:Regular:14.0" \
   icon.padding_left=7 \
   icon.padding_right=6 \
-  label.font="$FONT_NUM:Medium:11.5" \
+  label.font="$FONT_NUM:Medium:12.0" \
+  label.font.features=tnum \
   update_freq=180 \
   script="$PLUGINS/battery.sh" \
   click_script="sketchybar --set battery popup.drawing=toggle" \
   popup.background.color="$POPUP_BG" \
-  popup.background.border_color="$ITEM_BORDER" \
-  popup.background.border_width=2 \
-  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.background.corner_radius=10 \
+  popup.background.shadow.drawing=on \
+  popup.blur_radius=25 \
+  popup.y_offset=4 \
   popup.align=right
 
+# Popup rows sit on the popup's own blurred panel, so their text needs no
+# shadow — the panel already supplies the contrast the bar's glass does not.
 sketchybar --add item battery.remaining popup.battery \
   --set battery.remaining \
     icon="remaining" \
+    icon.font="$FONT_TEXT:Regular:12.0" \
     icon.color="$SUBTEXT" \
-    label.font="$FONT_NUM:Medium:11.0" \
+    icon.shadow.drawing=off \
+    label.font="$FONT_NUM:Medium:12.0" \
+    label.color="$TEXT" \
+    label.shadow.drawing=off \
     background.drawing=off \
     width=150
 
 sketchybar --subscribe battery power_source_change system_woke
 
 sketchybar --set volume \
-  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.font="$FONT_TEXT:Regular:14.0" \
   icon.padding_left=7 \
   icon.padding_right=6 \
-  label.font="$FONT_NUM:Medium:11.5" \
+  label.font="$FONT_NUM:Medium:12.0" \
+  label.font.features=tnum \
   script="$PLUGINS/volume.sh" \
   click_script="$PLUGINS/volume.sh" \
   popup.background.color="$POPUP_BG" \
-  popup.background.border_color="$ITEM_BORDER" \
-  popup.background.border_width=2 \
-  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.background.corner_radius=10 \
+  popup.background.shadow.drawing=on \
+  popup.blur_radius=25 \
+  popup.y_offset=4 \
   popup.align=right \
   --subscribe volume volume_change mouse.scrolled mouse.clicked
 
@@ -207,36 +316,87 @@ sketchybar --set volume \
 # playing yet) and a when_shown item runs no script while hidden, so it could
 # never react to the media_update that should bring it back.
 sketchybar --set media \
-  icon.font="$FONT_TEXT:Regular:13.0" \
+  icon.font="$FONT_TEXT:Regular:14.0" \
   icon.padding_left=7 \
   icon.padding_right=6 \
-  label.font="$FONT_TEXT:Medium:11.0" \
-  label.max_chars=28 \
+  label.font="$FONT_TEXT:Medium:12.0" \
   drawing=off \
   updates=on \
   script="$PLUGINS/media.sh" \
-  click_script="sketchybar --set media popup.drawing=toggle" \
   popup.background.color="$POPUP_BG" \
-  popup.background.border_color="$ITEM_BORDER" \
-  popup.background.border_width=2 \
-  popup.background.corner_radius="$CORNER_RADIUS" \
+  popup.background.corner_radius=10 \
+  popup.background.shadow.drawing=on \
+  popup.blur_radius=25 \
+  popup.y_offset=4 \
   popup.align=right \
-  popup.horizontal=on \
-  --subscribe media media_update
+  update_freq=15 \
+  --subscribe media media_update mouse.exited.global system_woke
 
-for ctl in prev play next; do
-  sketchybar --add item "media.$ctl" popup.media \
-    --set "media.$ctl" \
-      background.drawing=off \
-      icon.padding_left=6 \
-      icon.padding_right=6 \
-      label.drawing=off \
-      click_script="$PLUGINS/media-control.sh $ctl"
+# One row per audio source. macOS hands third parties only a single now-playing
+# session, so every row past the first is a player read through its own
+# scripting dictionary — see plugins/media.sh. Rows draw only when their source
+# has a track loaded.
+#
+# The transport glyph is each row's ICON, not a character appended to its label,
+# and the icon is drawn before the label in a fixed-width slot. That is what
+# pins it to a column: a glyph inside the label text tracks the text and lands
+# at a different x on every row, since SF Pro is proportional and no amount of
+# space padding aligns it. The source is then identified by that glyph's brand
+# TINT rather than by a second app glyph competing beside it.
+#
+# There is no shared prev/play/next strip: popup.horizontal is a per-popup
+# setting, so a horizontal button row cannot coexist with this vertical list.
+# Each row is its own play/pause instead, which with more than one source is the
+# control that was actually missing — "pause THIS one".
+#
+# Clicking a row toggles that source and REPAINTS the popup rather than closing
+# it — a play/pause you have to reopen the menu to undo is a worse control than
+# the one it replaced. media.sh is re-run so the row's glyph flips to match.
+ROW_LABEL_WIDTH=300
+MEDIA_REPAINT="rm -f \"\${TMPDIR:-/tmp}/sketchybar-media-popup-leave\"; sleep 0.35; NAME=media SENDER=media_refresh $PLUGINS/media.sh"
+
+for row in system spotify vlc; do
+  sketchybar --add item "media.row.$row" popup.media \
+    --set "media.row.$row" \
+      drawing=off \
+      icon.font="$FONT_TEXT:Regular:13.0" \
+      icon.color="$TEXT" \
+      icon.shadow.drawing=off \
+      icon.padding_left=14 \
+      icon.padding_right=10 \
+      icon.width=26 \
+      icon.align=center \
+      label.font="$FONT_TEXT:Medium:12.0" \
+      label.color="$TEXT" \
+      label.shadow.drawing=off \
+      label.align=left \
+      label.width="$ROW_LABEL_WIDTH" \
+      label.padding_right=14 \
+      background.drawing=on \
+      background.color=0x00000000 \
+      background.corner_radius=7 \
+      background.height=26 \
+      script="$PLUGINS/media-row.sh" \
+    --subscribe "media.row.$row" mouse.entered mouse.exited
 done
 
-sketchybar --set media.prev icon="$ICON_PREV"
-sketchybar --set media.play icon="$ICON_PLAY"
-sketchybar --set media.next icon="$ICON_NEXT"
+sketchybar --set media.row.system \
+  click_script="media-control toggle-play-pause; $MEDIA_REPAINT"
+sketchybar --set media.row.spotify \
+  click_script="osascript -e 'tell application \"Spotify\" to playpause'; $MEDIA_REPAINT"
+sketchybar --set media.row.vlc \
+  click_script="osascript -e 'tell application \"VLC\" to play'; $MEDIA_REPAINT"
+
+# Build the C helpers if either is missing or older than its source, then apply
+# the menu bar suppression once — its subscription above only covers later
+# resets, not startup. Kept quiet and non-fatal: a failure here should cost the
+# menu bar suppression, not the whole bar.
+if [ ! -x "$CONFIG_DIR/menubar-hide" ] || [ ! -x "$CONFIG_DIR/pointer-y" ] || \
+   [ "$CONFIG_DIR/menubar-hide.c" -nt "$CONFIG_DIR/menubar-hide" ] || \
+   [ "$CONFIG_DIR/pointer-y.c" -nt "$CONFIG_DIR/pointer-y" ]; then
+  (cd "$CONFIG_DIR" && make >/dev/null 2>&1) || true
+fi
+"$CONFIG_DIR/menubar-hide" 0.0 >/dev/null 2>&1 || true
 
 sketchybar --hotload on
 sketchybar --update

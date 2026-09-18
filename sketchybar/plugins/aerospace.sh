@@ -52,6 +52,10 @@ for sid in $workspaces; do
   # workspace number plus the app names in the text font. An empty workspace
   # keeps its chip — all nine are always drawn, which sidesteps the intermittent
   # `drawing` property bug on this OS class (#787).
+  # Truncated in the script rather than by label.max_chars, which cuts with no
+  # indication that names were dropped; a chip holding four apps should say so.
+  # The cut falls on a word boundary where one is available, so the label reads
+  # as a list of whole app names with the rest elided rather than a severed word.
   if [ -z "$strip" ]; then
     icon=""
     label="$sid"
@@ -59,17 +63,40 @@ for sid in $workspaces; do
   else
     icon="$strip"
     label="$sid ${names# }"
+    if [ "${#label}" -gt 34 ]; then
+      cut="${label:0:33}"
+      case "$cut" in
+        *\ *) label="${cut% *}…" ;;
+        *) label="$cut…" ;;
+      esac
+    fi
     icon_pad=6
   fi
 
+  # Focus is carried by the fill alone: the focused chip fills with the accent
+  # and its text highlights to white, every other chip fills with nothing and
+  # sits as bare text on the bar's glass. The fill is swapped rather than
+  # background.drawing toggled, so this does not depend on running after
+  # sketchybarrc — a paint that lands first would otherwise be overwritten and
+  # leave every chip drawn. The text shadow carries legibility off the fill and
+  # would only muddy the glyphs on top of it, so the focused chip drops it.
+  # Three states, not two: the focused chip fills white with dark text; an
+  # occupied-but-unfocused chip keeps readable text; an EMPTY chip fades back to
+  # IDLE, so the row reads as "these are live, those are just slots".
   if [ "$sid" = "$focused" ]; then
     highlight=on
     bg="$ACCENT_FILL"
-    border="$ACCENT"
+    shadow=off
+    text_color="$TEXT"
   else
     highlight=off
-    bg="$ITEM_BG"
-    border="$ITEM_BORDER"
+    bg=0x00000000
+    shadow=on
+    if [ -z "$strip" ]; then
+      text_color="$IDLE"
+    else
+      text_color="$SUBTEXT"
+    fi
   fi
 
   args+=(--set "space.$sid"
@@ -79,8 +106,11 @@ for sid in $workspaces; do
     icon.padding_right="$icon_pad"
     icon.highlight="$highlight"
     label.highlight="$highlight"
-    background.color="$bg"
-    background.border_color="$border")
+    icon.color="$text_color"
+    label.color="$text_color"
+    icon.shadow.drawing="$shadow"
+    label.shadow.drawing="$shadow"
+    background.color="$bg")
 done
 
 sketchybar "${args[@]}"

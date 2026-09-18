@@ -14,3 +14,8 @@ karabiner/assets/
 # is a whole-dir symlink into this repo, so an untracked+ignored hosts.yml keeps
 # a leaked token out of git. config.yml stays tracked (no secrets).
 /gh/hosts.yml
+# Compiled from the matching .c by sketchybar/makefile, which sketchybarrc runs
+# on startup when a binary is missing or stale. The sources are tracked; the
+# machine-local build products are not.
+/sketchybar/menubar-hide
+/sketchybar/pointer-y
