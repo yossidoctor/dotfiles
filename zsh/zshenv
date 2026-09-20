@@ -4,7 +4,10 @@
 # reads this file — its PATH mirror lives in claude/settings.json `env`.
 
 export BREW_PREFIX=/opt/homebrew   # constant on Apple Silicon; avoids a ~50-100ms `brew --prefix` ruby fork per shell
-export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
 
-# uv tools (cswap, claude-swap)
-export PATH="$HOME/.local/bin:$PATH"
+# -U dedupes: zshrc re-prepends the brew dirs after path_helper, and without
+# this every interactive shell carried them twice. Order, first wins:
+# uv tools (cswap, claude-swap), then brew, then the system.
+typeset -U path PATH
+path=("$HOME/.local/bin" "$BREW_PREFIX/bin" "$BREW_PREFIX/sbin" $path)
+export PATH

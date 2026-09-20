@@ -1,6 +1,7 @@
 # /etc/zprofile runs path_helper on login shells, which hoists /usr/bin ahead of
-# the brew prefix that .zshenv set. Re-prepend here (zshrc runs after zprofile).
-export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+# the dirs .zshenv set. Re-prepend in the same order (zshrc runs after zprofile);
+# `typeset -U path` in zshenv drops the copies path_helper left behind.
+path=("$HOME/.local/bin" "$BREW_PREFIX/bin" "$BREW_PREFIX/sbin" $path)
 
 # Completion. -C trusts the existing dump instead of compaudit-ing every fpath
 # entry per shell (single-user machine; brew owns the dirs). Existence guards
@@ -38,7 +39,7 @@ command -v zoxide >/dev/null && eval "$(zoxide init zsh)"   # adds `z` / `zi`; l
 # A function, not an alias, so `claude mcp`, `claude agents` and `claude -p`
 # keep their arguments.
 claude() {
-  local rules="$HOME/dotfiles/claude/CLAUDE.md"
+  local rules="$HOME/.claude/CLAUDE.md"
   if [[ -r "$rules" ]]; then
     command claude --append-system-prompt "$(<"$rules")" "$@"
   else
