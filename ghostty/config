@@ -23,7 +23,6 @@ shell-integration = zsh
 shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo,path
 
 # ── Keybindings ───────────────────────────────────────────────────────────────
-keybind = cmd+t=new_tab
 keybind = shift+cmd+d=new_split:down
 keybind = shift+left=goto_split:left
 keybind = shift+right=goto_split:right
@@ -40,8 +39,6 @@ mouse-scroll-multiplier = 0.35
 copy-on-select = clipboard
 clipboard-paste-protection = false
 notify-on-command-finish = unfocused
-# OSC 9 / OSC 777 desktop notifications — Claude Code pings when a task finishes
-desktop-notifications = true
 
 # ── Performance ───────────────────────────────────────────────────────────────
 scrollback-limit = 40000

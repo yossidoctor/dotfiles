@@ -102,14 +102,12 @@ var("HOOK_TRANSCRIPT"; .transcript_path),
 }
 
 hook_strip_heredocs() {
-  # No `<<` means no heredoc to drop, and the python parse below is the single
-  # most expensive thing a Bash hook does. Pass the text straight through.
-  local src
+  # No heredoc operator — `<<`, optional `-`, optional quote, a delimiter word;
+  # `<<<` is a herestring — means nothing to drop, and the python parse below
+  # is the single most expensive thing a Bash hook does. Pass the text through.
+  local src re="(^|[^<])<<-?[[:space:]]*['\"]?[A-Za-z_]"
   src=$(cat)
-  case "$src" in
-    *'<<'*) ;;
-    *) printf '%s' "$src"; return ;;
-  esac
+  [[ $src =~ $re ]] || { printf '%s' "$src"; return; }
   printf '%s' "$src" | python3 -c '
 import re, sys
 src = sys.stdin.read()

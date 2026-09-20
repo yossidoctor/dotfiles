@@ -38,6 +38,11 @@ hook_read_input
 transcript="$HOOK_TRANSCRIPT"
 [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
 
+# A rule edit is an Edit/Write row whose file_path is markdown, or a Bash row
+# naming a markdown file. A transcript carrying neither has nothing to audit,
+# and grep settles that before python parses every row of it.
+grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit)".*"file_path":"[^"]*\.(md|mdc|mdx)"|"name":"Bash".*\.(md|mdc|mdx)\b' "$transcript" || exit 0
+
 # Turn number, and whether this turn edited a rule file at all.
 read -r turn edited <<EOF
 $(python3 - "$transcript" "$(dirname "${BASH_SOURCE[0]}")" <<'PY'

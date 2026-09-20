@@ -19,13 +19,11 @@
     "diffEditor.renderSideBySide": false,                           // inline mode; required for useTrueInlineView
     "diffEditor.experimental.useTrueInlineView": true,              // show word changes inline in one line, no red/green line pair
     "diffEditor.maxComputationTime": 0,                             // no timeout, so long lines don't fall back to line-diff
-    "diffEditor.diffAlgorithm": "advanced",                         // char-level matching (vs "legacy")
     "diffEditor.renderMarginRevertIcon": false,                     // no revert-arrow in the gutter between panes
     "diffEditor.experimental.showMoves": true,                      // draw moved blocks as moves, not delete+insert
     "diffEditor.hideUnchangedRegions.enabled": true,                // fold unchanged regions, showing only changed lines + context
     "diffEditor.hideUnchangedRegions.contextLineCount": 5,          // lines of context kept around each change
     "diffEditor.hideUnchangedRegions.minimumLineCount": 5,          // smallest unchanged block that gets folded
-    "diffEditor.hideUnchangedRegions.revealLineCount": 20,          // lines revealed when clicking "Show more"
     "[markdown]": {
         "diffEditor.ignoreTrimWhitespace": false                    // trailing-space changes are real edits in prose
     },
@@ -72,13 +70,11 @@
 
     // TypeScript: stop auto-downloading @types
     "typescript.disableAutomaticTypeAcquisition": true,             // never auto-install @types/* on open
-    "typescript.tsserver.log": "off",                               // disable tsserver log file
 
     // Render: kill the minimap
     "editor.minimap.enabled": false,
 
     // Line-number gutter: shrink left-side dead space
-    "editor.lineNumbers": "on",                                     // absolute (not "relative"/"interval" which right-align + widen gutter)
     "editor.lineNumbersMinChars": 3,                                // reserve width for 3 digits, not default 5
     "editor.lineDecorationsWidth": 10,                              // gap between line numbers and text
     "editor.folding": false,                                        // drop fold-arrow column (lose code folding)
@@ -92,14 +88,11 @@
     "editor.scrollbar.horizontalScrollbarSize": 8,                  // thinner horizontal scrollbar
     "editor.lightbulb.enabled": "off",                              // no quick-fix bulb popups
     "editor.colorDecorators": false,                                // no color swatch next to hex/rgb values
-    "editor.linkedEditing": false,                                  // don't auto-rename matching HTML/JSX tag
     "editor.matchBrackets": "never",                                // don't box the matching bracket when cursor is adjacent to one
     "breadcrumbs.enabled": false,                                   // hide file-path breadcrumb bar
-    "workbench.editor.showTabs": "multiple",
     "workbench.editor.tabSizing": "shrink",                         // compress tabs when many are open
     "workbench.editor.pinnedTabSizing": "compact",                  // pinned tabs show icon only
     "workbench.editor.labelFormat": "medium",                       // tab labels include containing folder (disambiguates same filename across repos)
-    "workbench.activityBar.location": "default",                    // icon strip on left edge, always visible (Explorer/Search/SCM/Extensions)
     "workbench.activityBar.compact": true,                          // smaller icons in that strip
     "workbench.layoutControl.enabled": false,                       // hide titlebar layout-toggle buttons
     "chat.disableAIFeatures": true,                                 // disable & hide built-in AI features (chat panel, inline suggestions, Copilot extensions)
@@ -120,15 +113,11 @@
     },
     "editor.suggestOnTriggerCharacters": false,                     // no popup on '.', '(' etc
     "editor.parameterHints.enabled": false,                         // no signature-hint popup
-    "editor.hover.delay": 300,                                      // wait 300ms before hover tooltip
     "editor.snippetSuggestions": "none",                            // exclude snippets from completions
     "editor.wordBasedSuggestions": "off",                           // no completions from open-file words
-    "editor.formatOnPaste": false,                                  // don't reformat pasted code
-    "editor.formatOnType": false,                                   // don't reformat as you type
 
     // Startup speed
     "workbench.startupEditor": "none",                              // blank editor on launch (no welcome tab)
-    "window.restoreWindows": "all",                                 // reopen all windows from last session on launch
     "workbench.editor.restoreViewState": false,                     // don't restore scroll/cursor per file
     "files.restoreUndoStack": false,                                // drop undo history between sessions
     "extensions.autoCheckUpdates": false,                           // don't check for extension updates in background
@@ -165,26 +154,15 @@
     "files.trimTrailingWhitespace": true,                           // strip trailing spaces on save
     "files.insertFinalNewline": true,                               // ensure file ends with newline
     "files.trimFinalNewlines": true,                                // collapse multiple trailing newlines to one
-    "files.encoding": "utf8",                                       // default new files to UTF-8
-    "files.hotExit": "onExit",                                      // remember unsaved buffers between sessions
 
-    // Editor: indentation & whitespace
-    "editor.detectIndentation": true,                               // pick tabs/spaces & width from file content
-    "editor.rulers": [],                                            // no vertical column guides
+    // Editor: whitespace
     "editor.renderWhitespace": "none",                              // don't render dots/arrows for spaces/tabs
 
     // Editor: font
     "editor.fontFamily": "'JetBrainsMono Nerd Font', Menlo, monospace",
     "editor.fontLigatures": true,                                   // enable programming ligatures (=>, !==, etc)
 
-    // Editor: visual guides
-    "editor.guides.bracketPairs": false,                            // no rainbow bracket-pair lines
-    "editor.bracketPairColorization.enabled": true,                 // color nested pairs distinctly
-    "editor.guides.indentation": true,                              // vertical line at each indent level
-    "editor.guides.highlightActiveIndentation": true,               // bold the indent line for current block
-
     // Editor: highlights fire on explicit selection only, not on cursor placement
-    "editor.selectionHighlight": true,                              // selecting (e.g. double-click) a word highlights other matches
     "editor.occurrencesHighlight": "off",                           // single-click / cursor-only does NOT highlight other occurrences
 
     // Editor: Ctrl+scroll to zoom font size
@@ -206,7 +184,6 @@
     "terminal.integrated.cursorBlinking": true,                     // blink the terminal cursor
     "terminal.integrated.copyOnSelection": true,                    // select text = copy to clipboard
     "terminal.integrated.gpuAcceleration": "on",                    // GPU-render the terminal (smoother)
-    "terminal.integrated.shellIntegration.enabled": true,           // inject zsh hooks (cmd timing, exit code, cwd)
     "terminal.integrated.shellIntegration.decorationsEnabled": "gutter", // show cmd status marker in gutter
     "terminal.integrated.mouseWheelZoom": true,                     // Ctrl+scroll zooms terminal font
     "terminal.integrated.persistentSessionReviveProcess": "never",  // don't restart shells on window reopen
@@ -217,23 +194,13 @@
     "git.pruneOnFetch": true,                                       // drop local refs for deleted remote branches on fetch
     "git.openRepositoryInParentFolders": "always",                  // detect git repo above the opened folder
     "git.detectSubmodules": false,                                  // don't register git submodules as separate SCM repos
-    "git.repositoryScanIgnoredFolders": [                           // skip these dir names when scanning for nested orphan git repos
-        "node_modules"
-    ],
     "scm.repositories.sortOrder": "name",                           // alphabetical repo order in SCM panel
     "git.branchProtection": ["main", "master", "development"],      // warn before direct commit/push to these branches
-    "git.confirmForcePush": true,                                   // extra prompt before --force (default true; explicit for documentation)
     "git.autoStash": true,                                          // auto-stash on pull, restore after
     "git.decorations.enabled": false,                               // no M/U letters in file explorer
-    "scm.diffDecorations": "all",                                   // green/red gutter bars + overview ruler marks for changed lines
-    "scm.diffDecorationsGutterVisibility": "always",                // always show gutter (not just on hover)
-    "scm.diffDecorationsGutterWidth": 3,                            // gutter bar thickness in px
     "git.confirmSync": false,                                       // skip "are you sure" on pull+push
-    "git.autofetch": false,                                         // don't auto-fetch in background
 
     // GitLens
-    "gitlens.currentLine.enabled": true,                            // end-of-line author/date annotation
-    "gitlens.codeLens.enabled": true,                               // "N authors, M commits" above functions
     "gitlens.hovers.currentLine.over": "line",                      // hover anywhere on line to see commit details
     "gitlens.blame.toggleMode": "window",
 
