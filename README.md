@@ -100,7 +100,7 @@ Overrides the agent-panel rows via `subagentStatusLine`. Per row: description le
 
 ### Brew maintenance
 
-`brew/brew-maintenance.sh` (on PATH as `brew-maintenance`) runs `update`, `upgrade`, `upgrade --cask --greedy`, `bundle check` (Brewfile drift), `missing`, `autoremove`, `cleanup --prune=all`, `doctor` — continues on per-step failure, collects them into end summary. `brew update` itself fails → run flagged STALE (later steps hit stale tap metadata). Cask upgrades pass `--no-quit`, so a running app is left alone and serves its old binary until quit by hand. Closes with inventory of pinned formulae, `:latest` casks, started services.
+`brew/brew-maintenance.sh` (on PATH as `brew-maintenance`) runs `update`, `upgrade --formula`, `upgrade --cask --greedy`, `missing`, `autoremove`, `cleanup --prune=all`, `doctor`, `bundle check` (Brewfile drift) — continues on per-step failure, collects them into end summary. `brew update` itself fails → run flagged STALE (later steps hit stale tap metadata). Cask upgrades pass `--no-quit`, so a running app is left alone and serves its old binary until quit by hand. Closes with inventory of pinned formulae, `:latest` casks, started services.
 
 ### macOS defaults
 
