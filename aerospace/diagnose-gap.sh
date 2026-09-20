@@ -28,8 +28,9 @@
 # and with --notify also lands as a macOS notification — that flag exists
 # for the alt-shift-d binding in aerospace.toml, so the capture is one
 # keystroke at the moment a gap is on screen, no terminal needed.
-# Uses reap-ghosts.sh's compiled cg-window-ids oracle (builds it the same
-# way if missing).
+# Uses reap-ghosts.sh's compiled window-oracle (builds it the same way if
+# missing); its ALL line is the window-server read taken before and after the
+# aerospace call, and its PHANTOM line the minimize verdict.
 set -euo pipefail
 
 NOTIFY=0
@@ -45,22 +46,21 @@ verdict() {
 AS=/opt/homebrew/bin/aerospace
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
-BIN="$CACHE/bin/cg-window-ids"
+BIN="$CACHE/bin/window-oracle"
 ts=$(date '+%Y%m%d-%H%M%S')
 LOG="$CACHE/diagnose-$ts.log"
 mkdir -p "$CACHE/bin"
 
-for helper in cg-window-ids phantom-check; do
-  src="$DIR/$helper.swift"
-  bin="$CACHE/bin/$helper"
-  if [ ! -x "$bin" ] || [ "$src" -nt "$bin" ]; then
-    tmp=$(mktemp "$CACHE/bin/.$helper-XXXXXX")
-    xcrun swiftc -O -o "$tmp" "$src"
-    mv -f "$tmp" "$bin"
-  fi
-done
+ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
-cg_before=$("$BIN" | sort -u)
+src="$DIR/window-oracle.swift"
+if [ ! -x "$BIN" ] || [ "$src" -nt "$BIN" ]; then
+  tmp=$(mktemp "$CACHE/bin/.window-oracle-XXXXXX")
+  xcrun swiftc -O -o "$tmp" "$src"
+  mv -f "$tmp" "$BIN"
+fi
+
+cg_before=$(ids_of "$("$BIN")" ALL | sort -u)
 {
   echo "=== diagnose-gap $ts ==="
   echo "--- window-server ids (before any aerospace call) ---"
@@ -98,7 +98,7 @@ call_ms=$((now - t0))
 tree_ids=$(printf '%s\n' "$tree_json" | /usr/bin/grep -o '"window-id" : [0-9]*' | /usr/bin/grep -o '[0-9]*' | sort -u)
 ghosts=$(comm -23 <(printf '%s\n' "$tree_ids") <(printf '%s\n' "$cg_before"))
 sleep 0.3
-cg_after=$("$BIN" | sort -u)
+cg_after=$(ids_of "$("$BIN")" ALL | sort -u)
 
 {
   echo "--- aerospace tree (call took ${call_ms}ms) ---"
@@ -111,7 +111,7 @@ cg_after=$("$BIN" | sort -u)
 
 tiled=$("$AS" list-windows --workspace visible --format '%{window-id} %{window-layout}' 2>/dev/null | /usr/bin/awk '$2 != "floating" { print $1 }' | tr '\n' ' ')
 phantoms=""
-[ -n "${tiled// /}" ] && phantoms=$("$CACHE/bin/phantom-check" $tiled 2>/dev/null || true)
+[ -n "${tiled// /}" ] && phantoms=$(ids_of "$("$BIN" $tiled 2>/dev/null || true)" PHANTOM)
 {
   echo "--- phantom tiles (visible-workspace, minimized but still tiled) ---"
   printf '%s\n' "${phantoms:-none}"

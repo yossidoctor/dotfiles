@@ -16,7 +16,7 @@
 # the passive fingerprint of the maintainer-described GC hang (2026-07-29
 # 13:09 episode: mis-tiled frames with a clean tree and a silent log were
 # indistinguishable from a healthy run). Silence therefore means clean AND
-# fast. Oracle-failure guard: if cg-window-ids crashes or returns fewer ids
+# fast. Oracle-failure guard: if window-oracle crashes or returns fewer ids
 # than the tree has windows, that is oracle failure, not mass window death —
 # the line is tagged ORACLE-SUSPECT and nothing on it is trusted (the exact
 # failure behind the incident: an empty oracle made every window look like
@@ -34,8 +34,19 @@
 # and a window this script floated is out of the candidate set from the
 # next run on. Gated on three independent signals — tiled in a visible
 # workspace, absent from the window server's on-screen list, AND AX
-# kAXMinimizedAttribute true (phantom-check.swift, same dir; errs toward
+# kAXMinimizedAttribute true (window-oracle.swift, same dir; errs toward
 # inaction by design) — and every float is logged, once per phantom.
+#
+# ONE snapshot, ONE oracle run. The daemon is asked once
+# (`list-windows --all`) and %{workspace-is-visible} filters the tiled
+# candidates out of that same answer, because a second `--workspace visible`
+# call would cost another round trip — each cancels the heavy refresh
+# (docs/aerospace/RETILE-DELAY.md § Root cause) — and would read a tree ~20ms
+# younger than the ghost pass, letting a window that closed in between be
+# judged against mismatched state. window-oracle likewise answers the ghost
+# question (ALL) and the phantom question (PHANTOM) from a single
+# window-server read, so the two verdicts cannot disagree about which windows
+# existed at that instant.
 #
 # Helpers compile with swiftc to ~/.cache/aerospace/bin/ when missing or
 # older than source — to a temp file first, atomically mv'd into place,
@@ -66,14 +77,18 @@ ensure_bin() {
   fi
 }
 
-ensure_bin cg-window-ids || exit 0
-ensure_bin phantom-check || exit 0
+ensure_bin window-oracle || exit 0
 
 t0=$(/usr/bin/perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
-tree=$("$AS" list-windows --all --format '%{window-id}' 2>/dev/null | sort -u)
+snapshot=$("$AS" list-windows --all \
+           --format '%{window-id} %{window-layout} %{workspace-is-visible}' 2>/dev/null)
 dur=$(($(/usr/bin/perl -MTime::HiRes=time -e 'printf "%d", time()*1000') - t0))
+tree=$(printf '%s\n' "$snapshot" | /usr/bin/awk 'NF { print $1 }' | sort -u)
 [ -z "$tree" ] && exit 0
-cg=$("$CACHE/bin/cg-window-ids" 2>/dev/null | sort -u || true)
+
+tiled=$(printf '%s\n' "$snapshot" | /usr/bin/awk '$3 == "true" && $2 != "floating" { print $1 }' | tr '\n' ' ')
+oracle=$("$CACHE/bin/window-oracle" $tiled 2>/dev/null || true)
+cg=$(printf '%s\n' "$oracle" | /usr/bin/awk '$1 == "ALL" { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF' | sort -u)
 
 tree_n=$(printf '%s\n' "$tree" | wc -l | tr -d ' ')
 cg_n=0
@@ -92,9 +107,7 @@ if [ -n "$candidates" ] || [ "$tag" != ok ]; then
     "$(printf '%s' "$candidates" | tr '\n' ' ')" >> "$LOG"
 fi
 
-tiled=$("$AS" list-windows --workspace visible --format '%{window-id} %{window-layout}' 2>/dev/null | /usr/bin/awk '$2 != "floating" { print $1 }' | tr '\n' ' ')
-[ -z "${tiled// /}" ] && exit 0
-phantoms=$("$CACHE/bin/phantom-check" $tiled 2>/dev/null || true)
+phantoms=$(printf '%s\n' "$oracle" | /usr/bin/awk '$1 == "PHANTOM" { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF')
 [ -z "$phantoms" ] && exit 0
 
 meta=$("$AS" list-windows --all --format '%{window-id} %{app-name} [%{window-title}] ws=%{workspace}' 2>/dev/null)
