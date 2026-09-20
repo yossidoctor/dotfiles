@@ -16,7 +16,9 @@
 #   silently borrows an account, mirroring user.useConfigOnly.
 #
 # Git invokes this with verb `get` (creds out) or `store`/`erase` (no-op; gh owns
-# the token store).
+# the token store, so those return before reading a single identity file).
+
+[ "$1" = "get" ] || exit 0
 
 ID_DIR="$HOME/.config/git/identities.d"
 
@@ -55,12 +57,10 @@ if [ -z "$L" ]; then
   exit 1
 fi
 
-if [ "$1" = "get" ]; then
-  token=$(gh auth token --user "$L" 2>/dev/null)
-  if [ -z "$token" ]; then
-    echo "gh auth token failed for user '$L' — run: gh auth login --user $L" >&2
-    exit 1
-  fi
-  echo "username=$L"
-  echo "password=$token"
+token=$(gh auth token --user "$L" 2>/dev/null)
+if [ -z "$token" ]; then
+  echo "gh auth token failed for user '$L' — run: gh auth login --user $L" >&2
+  exit 1
 fi
+echo "username=$L"
+echo "password=$token"
