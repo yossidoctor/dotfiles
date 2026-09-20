@@ -98,6 +98,14 @@ case "$SENDER" in
     # at all and would leave the menu stranded open.
     rm -f "$HOVER_FILE"
     sketchybar --set "$NAME" background.color=0x00000000
+
+    # The same settle media-row.sh uses, and for a stronger reason: this fires
+    # on EVERY item boundary the pointer crosses, so moving from one popup row
+    # to the next triggers it mid-flight. Sampling immediately catches the
+    # pointer in the gap between two rows and closes the menu underneath a
+    # gesture that never left it.
+    sleep 0.25
+
     y="$("$HOME/.config/sketchybar/pointer-y" 2>/dev/null || echo 0)"
     if [ "$y" -gt "$POPUP_BOTTOM" ]; then
       sketchybar --set "$NAME" popup.drawing=off
@@ -106,17 +114,11 @@ case "$SENDER" in
     ;;
 esac
 
-# Truncation happens here rather than via label.max_chars, which hard-cuts with
-# no indication that anything was removed. Measured in characters, not bytes, so
-# a Hebrew or CJK title is cut at the same visual length as a Latin one.
-__ellipsize() {
-  local text="$1" limit="$2"
-  if [ "${#text}" -gt "$limit" ]; then
-    printf '%s…' "${text:0:$((limit - 1))}"
-  else
-    printf '%s' "$text"
-  fi
-}
+# Titles are NOT truncated, here or by label.max_chars: the pill and the rows
+# both size to their content, so a long track name is shown in full rather than
+# cut. The pill grows leftward from the clock and the popup widens to its widest
+# row, which is the trade — a wide pill in exchange for never hiding the thing
+# the item exists to report.
 
 # The app-font glyph and brand tint for a source, from the bundle id
 # media-control reports. WebKit.GPU is the process that owns playback for every
@@ -213,7 +215,7 @@ if [ -n "$title" ]; then
     drawing=on
     icon="$state"
     icon.color="$color"
-    label="$(__ellipsize "$label" 34)"
+    label="$label"
     label.color="$TEXT")
 else
   args+=(--set media.row.system drawing=off)
@@ -259,7 +261,7 @@ for entry in "${PLAYERS[@]}"; do
     drawing=on
     icon="$row_state"
     icon.color="$row_color"
-    label="$(__ellipsize "$row_label" 34)")
+    label="$row_label")
 done
 
 if [ "$sources" -eq 0 ]; then
@@ -303,7 +305,7 @@ if [ "$hovered" = on ]; then
     icon="$pill_icon" \
     icon.font="$FONT_APP:Regular:14.0" \
     icon.color="$color" \
-    label="$(__ellipsize "$label" 32)" \
+    label="$label" \
     "${args[@]}"
 else
   sketchybar --set "$NAME" \
@@ -311,7 +313,7 @@ else
     icon="$pill_icon" \
     icon.font="$FONT_APP:Regular:14.0" \
     icon.color="$color" \
-    label="$(__ellipsize "$label" 32)" \
+    label="$label" \
     label.width="$width" \
     "${args[@]}"
 fi

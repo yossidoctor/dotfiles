@@ -1,10 +1,10 @@
 # sketchybar
 
-A status bar for the AeroSpace setup, styled to read as macOS's own: a
-translucent full-bleed strip in SF Pro with SF Symbols, a chip per workspace
+A status bar for the AeroSpace setup, styled to read as macOS's own: an opaque
+full-bleed strip in SF Pro with SF Symbols, a chip per workspace
 carrying its app icons and names, the focused window, and a right side with
-now-playing, volume, battery and a clock. It replaces the native menu bar
-outright rather than sitting over it — see § Suppressing the native menu bar.
+now-playing, volume, battery and a clock. It covers the native menu bar rather
+than replacing it — see § The native menu bar, and why BAR_BG is opaque.
 
 Each script's header comment is the SoT for its own behavior; this file holds
 what no single script owns — the geometry contract, and the traps that cost a
@@ -22,10 +22,9 @@ session to find.
 | `plugins/clock.sh`, `battery.sh`, `volume.sh`, `media.sh` | one item each |
 | `plugins/media-row.sh` | hover and dismissal for the now-playing source rows |
 | `plugins/hover.sh` | the pointer fill, for items with no script of their own |
-| `plugins/menubar.sh` | re-applies the native menu bar suppression |
 | `media-stream.sh` | the now-playing daemon |
 | `media-stream-agent.sh` | installs that daemon as a LaunchAgent |
-| `menubar-hide.c`, `pointer-y.c`, `makefile` | two C helpers; the rc builds them when stale |
+| `pointer-y.c`, `makefile` | a C helper for pointer position; the rc builds it when stale |
 
 ## The geometry contract
 
@@ -55,15 +54,14 @@ the physical top edge and has them covered by the bar, so it carries
 **The bar is full-bleed, not an island.** No `margin`, no `corner_radius`, no
 bar-level border — the native menu bar's shape. `margin` additionally insets the
 frame on every side, so a bar carrying one can never sit flush at its exact
-height. It is translucent rather than opaque: `blur_radius=34` under a low-alpha
-`BAR_BG` is a real backdrop blur (`SLSSetWindowBackgroundBlurRadius`), which
-works on macOS 27 — the renderer bugs that once made it unusable no longer bite.
+height. It is opaque, because the native menu bar sits directly behind it — see
+§ The native menu bar. `blur_radius` is real (`SLSSetWindowBackgroundBlurRadius`,
+and it does work on macOS 27) but is off, since a backdrop blur behind a fill
+nothing shows through renders nothing.
 
-**Items draw no background at rest.** Text sits directly on that glass, so
-`icon.shadow` / `label.shadow` carry the legibility: the blur is a plain Gaussian
-with none of `NSVisualEffectView`'s contrast clamping, so a shadow is
-load-bearing here rather than decorative. The one filled shape is the focused
-workspace chip.
+**Items draw no background at rest.** Text sits directly on the bar, and
+`icon.shadow` / `label.shadow` carry the legibility. The one filled shape is the
+focused workspace chip.
 
 ## Traps, each found the hard way
 
@@ -222,28 +220,32 @@ top level. The jq filter reads `.payload // .` so either shape works.
 Seek is unreliable on macOS 26+ upstream, so the popup wires only
 `previous-track`, `toggle-play-pause` and `next-track`.
 
-## Suppressing the native menu bar
+## The native menu bar, and why BAR_BG is opaque
 
-macOS has **no setting for this**. "Automatically hide and show the menu bar"
-keeps the hover reveal in every one of its states, and that reveal is enforced by
-the window server rather than a preference. Every third-party menu bar tool —
-Ice, Bartender, Hidden Bar, Dozer — manages *items*, not the strip.
+**The menu bar cannot be hidden, and the bar covers it instead.** It is a Window
+Server window at layer **24**; sketchybar draws at **25**, one above it. So the
+bar is always in front — but only an opaque bar actually conceals it. At any
+alpha below `0xff` the menu bar's text reads through as a washed-out band, worst
+on an external display.
 
-`menubar-hide.c` is the mechanism: `SLSSetMenuBarInsetAndAlpha(cid, 0, 1, 0.0)`.
-At alpha **exactly 0.0** this is not merely a transparent bar — the menu bar stops
-accepting mouse events, so the reveal never fires and clicks fall through. yabai
-documents the same call under its `menubar_opacity` config.
+Two approaches were tried and both failed, so do not spend the session on them
+again:
 
-**SIP can stay enabled.** It is a plain SkyLight call on an ordinary connection,
-not a Dock.app injection; yabai reaches it without its scripting addition. Link
-against SkyLight through the framework search path — CoreGraphics does not export
-the symbol, and the on-disk `Versions/A/SkyLight` does not exist on this OS.
+- **`SLSSetMenuBarInsetAndAlpha(cid, 0, 1, 0.0)`** — yabai's `menubar_opacity`
+  mechanism, and the widely cited answer. It returns success on macOS 27 and
+  changes **nothing**: screenshots taken at alpha `1.0` and `0.0` are
+  byte-identical. The same goes for `SLSSetMenuBarVisibilityOverrideOnDisplay`.
+- **Turning off "Automatically hide and show the menu bar"** — this does make
+  macOS reserve the band (measured: an external went 0 → 31pt), but the menu bar
+  still *draws* there, so a translucent bar still shows it.
 
-**macOS resets the alpha** on space changes, display changes and on leaving
-Mission Control, so a one-shot call lasts until the first Ctrl+arrow.
-`menubar.keeper` in the rc re-applies it on the corresponding events, and the rc
-applies it once at startup for the reboot case. `./menubar-hide 1.0` restores the
-bar.
+Every third-party tool in this space — Ice, Bartender, Hidden Bar, Dozer —
+manages menu bar *items*, not the strip.
+
+Hence `BAR_BG=0xff1c1c1e` and `blur_radius=0`. The two move together: restoring
+translucency means restoring the blur, and brings the bleed back with it. The
+popup keeps its own translucency and blur, because it is a separate window with
+nothing behind it to bleed through.
 
 ## Restarting the bar
 

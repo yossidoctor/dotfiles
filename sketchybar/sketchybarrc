@@ -57,10 +57,14 @@ ws_display() {
   esac
 }
 
-# Full-bleed translucent strip: no corner_radius, no margin, no y_offset, so the
-# bar occupies the menu bar's own geometry. blur_radius is what makes the tint in
-# BAR_BG read as frosted glass; it is a real backdrop blur
-# (SLSSetWindowBackgroundBlurRadius), verified rendering on this OS.
+# Full-bleed strip: no corner_radius, no margin, no y_offset, so the bar
+# occupies the menu bar's own geometry.
+#
+# blur_radius is 0 because BAR_BG is opaque — see theme.sh for why it has to be.
+# A backdrop blur behind a fill nothing shows through costs a compositor pass
+# and renders nothing, so the two settings move together: restoring any
+# translucency to BAR_BG means restoring the blur with it, and brings the menu
+# bar's bleed back too.
 sketchybar --bar \
   height="$BAR_HEIGHT" \
   position=top \
@@ -68,7 +72,7 @@ sketchybar --bar \
   padding_left=12 \
   padding_right=12 \
   color="$BAR_BG" \
-  blur_radius=34 \
+  blur_radius=0 \
   corner_radius=0 \
   margin=0 \
   y_offset=0 \
@@ -117,16 +121,6 @@ sketchybar --default \
 sketchybar --add event aerospace_workspace_change
 sketchybar --add event aerospace_window_change
 sketchybar --add event media_update
-
-# Holds the native menu bar suppressed. macOS resets the alpha on space and
-# display changes and on leaving Mission Control, so it is re-applied on the
-# events that follow those; see plugins/menubar.sh and menubar-hide.c. The item
-# draws nothing — it exists only to own the subscription.
-sketchybar --add item menubar.keeper left \
-  --set menubar.keeper drawing=off updates=on \
-    script="$PLUGINS/menubar.sh" \
-  --subscribe menubar.keeper space_change display_change front_app_switched \
-    system_woke
 
 # The focused chip is the only filled shape in the bar, so highlight_color is
 # the color the text takes ON that fill rather than an accent tint: the fill is
@@ -352,7 +346,10 @@ sketchybar --set media \
 # Clicking a row toggles that source and REPAINTS the popup rather than closing
 # it — a play/pause you have to reopen the menu to undo is a worse control than
 # the one it replaced. media.sh is re-run so the row's glyph flips to match.
-ROW_LABEL_WIDTH=300
+# dynamic, not a fixed width: a fixed one clips the long titles this list exists
+# to show. The rows are left-aligned and the popup sizes to its widest row, so
+# they still line up with each other.
+ROW_LABEL_WIDTH=dynamic
 # A click_script runs with a minimal PATH carrying /usr/bin but NOT Homebrew's
 # prefix, so a bare `media-control` is not found and the click silently does
 # nothing — no error reaches the bar. Anything from Homebrew is therefore named
@@ -393,16 +390,13 @@ sketchybar --set media.row.spotify \
 sketchybar --set media.row.vlc \
   click_script="osascript -e 'tell application \"VLC\" to play'; $MEDIA_REPAINT"
 
-# Build the C helpers if either is missing or older than its source, then apply
-# the menu bar suppression once — its subscription above only covers later
-# resets, not startup. Kept quiet and non-fatal: a failure here should cost the
-# menu bar suppression, not the whole bar.
-if [ ! -x "$CONFIG_DIR/menubar-hide" ] || [ ! -x "$CONFIG_DIR/pointer-y" ] || \
-   [ "$CONFIG_DIR/menubar-hide.c" -nt "$CONFIG_DIR/menubar-hide" ] || \
+# Build pointer-y if it is missing or older than its source. Kept quiet and
+# non-fatal: without it the media popup falls back to closing on a row's own
+# exit, which is worse but not broken.
+if [ ! -x "$CONFIG_DIR/pointer-y" ] || \
    [ "$CONFIG_DIR/pointer-y.c" -nt "$CONFIG_DIR/pointer-y" ]; then
   (cd "$CONFIG_DIR" && make >/dev/null 2>&1) || true
 fi
-"$CONFIG_DIR/menubar-hide" 0.0 >/dev/null 2>&1 || true
 
 sketchybar --hotload on
 sketchybar --update

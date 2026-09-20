@@ -7,16 +7,25 @@
 # / systemOrange / systemRed / systemGray in their dark-appearance variants.
 # Format is sketchybar's 0xAARRGGBB, so every literal carries its own alpha.
 #
-# The bar is translucent over a real backdrop blur. blur_radius is set in
-# sketchybarrc; BAR_BG supplies the tint that blur alone cannot, at an alpha low
-# enough to read as frosted glass rather than as a painted strip.
+# BAR_BG is OPAQUE, and must stay opaque. The native menu bar is a Window
+# Server window at layer 24 and sketchybar draws at 25 — one above it, but only
+# one — so any alpha below 0xff lets the real menu bar read through the bar as a
+# washed-out band of its text. That is not fixable from sketchybar's side:
 #
-# Text sits directly on that glass with no chip behind it, so legibility rests
-# on TEXT_SHADOW: SketchyBar's blur has no vibrancy (it is a plain
-# SLSSetWindowBackgroundBlurRadius Gaussian, with none of NSVisualEffectView's
-# contrast clamping), so a shadow is load-bearing here, not decoration.
+#   * hiding the menu bar via SLSSetMenuBarInsetAndAlpha(cid, 0, 1, 0.0) returns
+#     success and changes NOTHING on macOS 27 — screenshots at alpha 1.0 and 0.0
+#     are byte-identical. Do not reach for it again.
+#   * turning OFF menu-bar auto-hide makes macOS reserve the band (measured: the
+#     external went 0 -> 31pt) but the menu bar still DRAWS there, so the bleed
+#     remains.
+#
+# The popup is a separate window with nothing behind it to bleed through, so it
+# keeps its translucency and its own blur.
+#
+# Text sits directly on the bar with no chip behind it, so legibility rests on
+# TEXT_SHADOW; the shadow is load-bearing here, not decoration.
 
-BAR_BG=0x8c1c1c1e
+BAR_BG=0xff1c1c1e
 POPUP_BG=0xa61c1c1e
 
 # The focused workspace is the one filled shape in the bar. Everything else
