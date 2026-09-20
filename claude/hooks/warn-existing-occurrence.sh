@@ -44,7 +44,8 @@ esac
 real=$(realpath "$HOOK_FILE_PATH" 2>/dev/null) || real="$HOOK_FILE_PATH"
 case "$real" in
   */CLAUDE.md) ;;
-  */claude/*/skills/*|*/claude/*/agents/*|*/claude/skills/*|*/claude/agents/*) ;;
+  */claude/*|*/.claude/*)
+    case "$real" in */skills/*|*/agents/*) ;; *) exit 0 ;; esac ;;
   *) exit 0 ;;
 esac
 

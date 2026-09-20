@@ -8,7 +8,7 @@ activate — the identical pair AeroSpace itself uses in its one and only
 raise path) right after the Hyper+f toggle and on every focus event that lands
 on a fullscreen window. See `raise-fullscreen.sh`'s header for mechanics and
 `raise-window.swift` for the raise itself; wiring is the Hyper+f binding and
-the third `on-focus-changed` entry in `aerospace.toml`.
+the second `on-focus-changed` entry in `aerospace.toml`.
 
 ## Root cause, verified against AeroSpace source (0.21.3-Beta era, main)
 

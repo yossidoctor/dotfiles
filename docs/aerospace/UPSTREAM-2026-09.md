@@ -31,8 +31,9 @@ source, and **`Add macos-27` (2026-09-15)** — the OS this config runs on.
   a light session. Enabled here; verified against a rename-style write
   (`sed -i`) with no other reload path involved.
 - `on-window-detected` gained an inline-table syntax with `if = 'test …'`
-  commands and `check-further-callbacks`; the `[[on-window-detected]]` form
-  used here "is still supported and probably will remain supported forever"
+  commands and `check-further-callbacks` — the form this config uses (§ 8); the
+  older `[[on-window-detected]]` array-of-tables form "is still supported and
+  probably will remain supported forever"
   (release notes; guide § 'on-window-detected' callback). TOML 1.1 (newlines
   in inline tables) is what makes the new form readable.
 - `layout` with a single argument now exits 0 when already applied;
@@ -140,10 +141,10 @@ it is made visible — the machinery hinted at by
   `MacApp.refreshAllAndGetAliveWindowIds` garbage collection of closed
   windows) and `normalizeLayoutReason()` (native fullscreen / **minimized** /
   hidden detection). It is the cancellable task the light session cancels.
-- Consequence for this config: a burst of CLI pokes (retry-poke's 4 calls at
-  50 ms, plus reap-ghosts' 2–3 calls and raise-fullscreen's 1 on every focus
-  event) re-cancels the heavy session on each call; GC and minimize detection
-  run once the burst ends. Each poke does force the frame relayout — the
+- Consequence for this config: a burst of CLI pokes (retry-poke's 2 calls at 0
+  and 200 ms, plus reap-ghosts' 1 call — a second only when it floats a phantom
+  — and raise-fullscreen's 1 on every focus event) re-cancels the heavy
+  session on each call; GC and minimize detection run once the burst ends. Each poke does force the frame relayout — the
   "poke half" mechanism is real — but pokes cannot advance ghost removal or
   minimize detection, and a dense stream postpones them.
 

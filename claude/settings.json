@@ -5,6 +5,7 @@
     "DISABLE_AUTOUPDATER": "1",
     "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",
+    "HOMEBREW_NO_ANALYTICS": "1",
     "GIT_PAGER": "cat",
     "PAGER": "cat",
     "LESS": "FRX",
@@ -23,7 +24,6 @@
     "sessionUrl": false
   },
   "permissions": {
-    "allow": [],
     "deny": [
       "Bash(dd *)",
       "Bash(diskutil eraseDisk *)",
@@ -79,7 +79,6 @@
     "sonnet",
     "haiku"
   ],
-  "skillOverrides": {},
   "hooks": {
     "SessionStart": [
       {

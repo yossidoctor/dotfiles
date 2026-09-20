@@ -3,11 +3,18 @@
 # `typeset -U path` in zshenv drops the copies path_helper left behind.
 path=("$HOME/.local/bin" "$BREW_PREFIX/bin" "$BREW_PREFIX/sbin" $path)
 
-# Completion. -C trusts the existing dump instead of compaudit-ing every fpath
-# entry per shell (single-user machine; brew owns the dirs). Existence guards
-# throughout: on a fresh machine every new shell works before `brew bundle` has
-# installed the plugins/tools.
+# Completion. Homebrew's site-functions go on fpath first: the system zsh does
+# not look there, and it is where brew formulae ship their completions (gh,
+# eza, fd, rg, aerospace, uv, …). -C trusts the existing dump instead of
+# compaudit-ing every fpath entry per shell (single-user machine; brew owns the
+# dirs); a new fpath dir needs that dump rebuilt once: `rm ~/.zcompdump`.
+# Existence guards throughout: on a fresh machine every new shell works before
+# `brew bundle` has installed the plugins/tools.
+fpath=("$BREW_PREFIX/share/zsh/site-functions" $fpath)
 autoload -Uz compinit && compinit -C
+
+# fzf key bindings (Ctrl-R history, Ctrl-T files, Alt-C cd) and `**<Tab>` paths.
+command -v fzf >/dev/null && source <(fzf --zsh)
 
 # Prompt.
 command -v starship >/dev/null && eval "$(starship init zsh)"

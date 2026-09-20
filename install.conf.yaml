@@ -4,13 +4,7 @@
       force: true
 
 # A link whose source left this repo is otherwise left dangling in place.
-- clean:
-    ~/.claude/hooks:
-      force: true
-    ~/.local/bin:
-      force: true
-    ~/.config:
-      force: true
+- clean: [~/.claude/hooks, ~/.local/bin, ~/.config]
 
 - create:
     - ~/.claude/hooks
@@ -68,5 +62,5 @@
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
     - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
     - [bash mac/vlcrc-restore.sh vlc/vlcrc, Restore VLC settings]
-    - [command -v cswap >/dev/null || command -v uv >/dev/null && uv tool install --quiet claude-swap || true, Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
+    - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]

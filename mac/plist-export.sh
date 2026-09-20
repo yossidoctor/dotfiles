@@ -9,8 +9,12 @@
 # changing — are stripped so they never dirty the diff. The per-domain set is
 # the `case` below (SoT):
 #   pro.betterdisplay.BetterDisplay  per-display firstAdded/lastConnected/
-#                                    lastUnseen timestamps, the Paddle license
-#                                    hash, Finder save-panel chrome
+#                                    lastUnseen timestamps, the storedIdentifiers
+#                                    hardware fingerprints (monitor serials, EDID,
+#                                    display UUIDs — this repo is public, and they
+#                                    never match another Mac's displays anyway),
+#                                    the Paddle license hash, Finder save-panel
+#                                    chrome
 #   pro.bettercmdtab.BetterCmdTab    GitHubUpdater.* update-check markers,
 #                                    Switcher.recentlyClosed window history
 #
@@ -25,7 +29,7 @@ domain="$1" plist="$2"
 
 case "$domain" in
   pro.betterdisplay.BetterDisplay)
-    volatile='(firstAdded|lastConnected|lastUnseen)@[^ =]*|Paddle-BetterDisplay-[^ =]*|NSNavPanelExpandedSizeForSaveMode|NSOSPLastRootDirectory' ;;
+    volatile='(firstAdded|lastConnected|lastUnseen|storedIdentifiers)@[^ =]*|Paddle-BetterDisplay-[^ =]*|NSNavPanelExpandedSizeForSaveMode|NSOSPLastRootDirectory' ;;
   pro.bettercmdtab.BetterCmdTab)
     volatile='GitHubUpdater[^ =]*|Switcher\.recentlyClosed' ;;
   *)

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # statusline-lib.sh — palette and color ramp shared by statusline-command.sh and
-# subagent-statusline.sh; sourced, not run. Colors are Catppuccin Mocha roles,
-# a cache of the palette in starship/starship.toml (SoT).
+# subagent-statusline.sh; sourced, not run. Colors are Catppuccin Mocha shades:
+# c_ok, c_err, c_identity and c_muted are a cache of the palette in
+# starship/starship.toml (SoT); c_surface, c_active, c_track, c_dim and
+# c_darkest are the meter greys and exist only here.
 #
 #   ramp_color <pct> <warm> <bold> [muted] [alarm]
 #     muted-grey below <warm>; red deepening from <warm>, bold from <bold>;
