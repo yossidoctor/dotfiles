@@ -29,8 +29,8 @@ keybind = shift+left=goto_split:left
 keybind = shift+right=goto_split:right
 keybind = shift+up=goto_split:up
 keybind = shift+down=goto_split:down
-# Claude Code multiline: Shift+Enter inserts newline instead of submitting
-keybind = shift+enter=text:\n
+# No shift+enter override: Ghostty reports the chord through the kitty keyboard
+# protocol, and claude/keybindings.json binds it to chat:newline there.
 
 # ── Mouse ─────────────────────────────────────────────────────────────────────
 mouse-scroll-multiplier = 0.35
