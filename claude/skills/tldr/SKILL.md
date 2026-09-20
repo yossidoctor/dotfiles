@@ -1,6 +1,6 @@
 ---
 name: tldr
-description: Shape output for a reader with ADHD. Use this skill whenever responding to ANY user message including coding tasks, debugging, explanations, planning, and casual conversation. Output should lead with concrete next actions, number multi-step work, externalize state across turns, suppress tangents, give specific time estimates, and make wins visible. Trigger even on casual messages and even when the user did not explicitly ask for brevity.
+description: Shape output for a reader with ADHD — lead with the next action, number multi-step work, restate state every turn, suppress tangents, give concrete time estimates, make wins visible. Use only when the user invokes /tldr or asks for ADHD-shaped or tldr output; it replaces the active output style's compression rules for that reply (STE prose keeps the articles that style drops), so it must not fire on its own.
 ---
 
 # tldr
