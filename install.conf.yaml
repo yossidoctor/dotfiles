@@ -5,7 +5,6 @@
 
 - create:
     - ~/.claude/hooks
-    - ~/.claude/themes
     - ~/.local/bin
     - ~/.config/git/identities.d
     - ~/Library/Application Support/Code/User
@@ -39,19 +38,9 @@
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
     ~/.claude/hooks/notify-agent-idle.sh: claude/hooks/notify-agent-idle.sh
     # the test harness ships too: a project layer's hook tests exec it here
-    ~/.claude/hooks/tests:
-      path: claude/hooks/tests
-      relink: true
-      force: true
-    ~/.claude/themes/catppuccin-mocha.json: claude/themes/catppuccin-mocha.json
-    ~/.claude/skills:
-      path: claude/skills
-      relink: true
-      force: true
-    ~/.claude/output-styles:
-      path: claude/output-styles
-      relink: true
-      force: true
+    ~/.claude/hooks/tests: claude/hooks/tests
+    ~/.claude/skills: claude/skills
+    ~/.claude/output-styles: claude/output-styles
     "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
 
 - link:
