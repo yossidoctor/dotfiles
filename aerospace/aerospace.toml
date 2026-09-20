@@ -101,7 +101,7 @@ automatically-unhide-macos-hidden-apps = false
 on-focus-changed = [
     'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
-    'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
+    # 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
     # 'exec-and-forget sketchybar --trigger aerospace_window_change'
 ]
 
@@ -211,7 +211,7 @@ on-window-detected = [
     # now-fullscreen window can sit BEHIND tiled siblings that were raised
     # more recently. Same script also runs on-focus-changed (see above) to
     # restore the raise if Tahoe's WindowServer buries it later.
-    alt-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
+    # alt-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
 
     # Swallow the macOS "Hide application" shortcuts so an accidental cmd-h never
     # hides a window out of the tiling tree. Empty binding = key does nothing.
@@ -256,6 +256,21 @@ on-window-detected = [
     alt-minus = 'resize smart -50'
     alt-equal = 'resize smart +50'
 
+    # Cycle only workspaces that exist. AeroSpace destroys a workspace the
+    # moment it holds no windows and is not focused (persistent-workspaces is
+    # unset, so it falls back to []), so next/prev can never land on an empty
+    # one — whereas alt-N below summons workspace N into existence whether or
+    # not it has windows. --wrap-around makes the last/first edge continue
+    # instead of failing.
+    # Hyper (Caps Lock) + bracket: alt-left/right belongs to macOS word-wise
+    # cursor movement in every text field, and Hyper+arrow is already the
+    # cross-monitor focus binding below.
+    # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+    cmd-alt-ctrl-shift-leftSquareBracket =  'workspace --wrap-around prev'
+    cmd-alt-ctrl-shift-rightSquareBracket = 'workspace --wrap-around next'
+
+    # Direct summon, and the only way a new workspace is created. Kept for
+    # that: with cycling alone the set of workspaces could never grow.
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'
