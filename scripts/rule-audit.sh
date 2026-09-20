@@ -126,7 +126,15 @@ case "$verdict" in
         printf '%s %s\n' "$f" "$(git -C "$root" rev-parse ":$f" 2>/dev/null || echo missing)"
       done | shasum -a 256 | cut -d' ' -f1
     )
-    printf '%s' "$key" > "$root/.git/rule-audit-receipt"
+    # A clean pass pins the exact content. An advisory pass pins the file set
+    # instead, so fixing the style findings it just reported does not re-arm the
+    # gate against that very fix; the gate re-arms the moment a file outside the
+    # set is staged. Its shape is rule-audit-gate.sh's to read.
+    if [ "$verdict" = "AUDIT CLEAN" ]; then
+      printf '%s' "$key" > "$root/.git/rule-audit-receipt"
+    else
+      { echo advisory; printf '%s\n' "$staged"; } > "$root/.git/rule-audit-receipt"
+    fi
     echo
     if [ "$verdict" = "AUDIT CLEAN" ]; then
       echo "rule-audit: clean — receipt written. The commit will pass."

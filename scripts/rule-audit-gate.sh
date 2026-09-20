@@ -48,7 +48,18 @@ key=$(
 )
 
 receipt="$root/.git/rule-audit-receipt"
-[ -f "$receipt" ] && [ "$(cat "$receipt" 2>/dev/null)" = "$key" ] && exit 0
+[ -f "$receipt" ] && [ "$(head -1 "$receipt" 2>/dev/null)" = "$key" ] && exit 0
+
+# An advisory pass also clears later edits to the files it covered. Its findings
+# are style — a narrower falsifier, a duplicated paragraph — and fixing one is an
+# edit, which changes the content hash and re-arms this gate against the very
+# change the audit asked for. So an advisory receipt lists its file set: a commit
+# staging no file outside that set passes, and staging a new one does not.
+if [ -f "$receipt" ] && [ "$(head -1 "$receipt" 2>/dev/null)" = "advisory" ]; then
+  covered=$(tail -n +2 "$receipt" 2>/dev/null)
+  outside=$(printf '%s\n' "$staged" | grep -Fxv -f <(printf '%s\n' "$covered") 2>/dev/null || true)
+  [ -z "$outside" ] && exit 0
+fi
 
 count=$(printf '%s\n' "$staged" | grep -c . || true)
 {
