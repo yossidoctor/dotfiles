@@ -92,7 +92,7 @@ automatically-unhide-macos-hidden-apps = false
 # 'aerospace' CLI call forces the daemon's pending relayout, so the first entry
 # pokes it on every focus change. reap-ghosts.sh observes ghost nodes and floats
 # phantom tiles (its header is the SoT; it never closes a window);
-# raise-fullscreen.sh keeps a focused fake-fullscreen window on top (alt-f
+# raise-fullscreen.sh keeps a focused fake-fullscreen window on top (Hyper+f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
 #
@@ -101,7 +101,7 @@ automatically-unhide-macos-hidden-apps = false
 on-focus-changed = [
     'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
-    # 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
+    'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
     # 'exec-and-forget sketchybar --trigger aerospace_window_change'
 ]
 
@@ -211,7 +211,10 @@ on-window-detected = [
     # now-fullscreen window can sit BEHIND tiled siblings that were raised
     # more recently. Same script also runs on-focus-changed (see above) to
     # restore the raise if Tahoe's WindowServer buries it later.
-    # alt-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
+    # Hyper (Caps Lock) + f, home row: fn+f cannot carry this, since AeroSpace's
+    # hotkey parser accepts only cmd/alt/ctrl/shift and rejects 'fn-f' with
+    # "Can't parse modifiers".
+    cmd-alt-ctrl-shift-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
 
     # Swallow the macOS "Hide application" shortcuts so an accidental cmd-h never
     # hides a window out of the tiling tree. Empty binding = key does nothing.

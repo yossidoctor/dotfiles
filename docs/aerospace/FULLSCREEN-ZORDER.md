@@ -1,13 +1,13 @@
 # AeroSpace fake-fullscreen z-order
 
-**TL;DR.** AeroSpace's `fullscreen` command (bound to alt-f) is a frame
+**TL;DR.** AeroSpace's `fullscreen` command (bound to Hyper+f) is a frame
 resize, not real fullscreen — and AeroSpace does zero z-order management,
 so the fullscreened window can end up rendered BEHIND tiled siblings that
 macOS raised more recently. The fix is an explicit raise (AXRaise + app
 activate — the identical pair AeroSpace itself uses in its one and only
-raise path) right after the alt-f toggle and on every focus event that lands
+raise path) right after the Hyper+f toggle and on every focus event that lands
 on a fullscreen window. See `raise-fullscreen.sh`'s header for mechanics and
-`raise-window.swift` for the raise itself; wiring is the alt-f binding and
+`raise-window.swift` for the raise itself; wiring is the Hyper+f binding and
 the third `on-focus-changed` entry in `aerospace.toml`.
 
 ## Root cause, verified against AeroSpace source (0.21.3-Beta era, main)
