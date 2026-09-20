@@ -1,6 +1,6 @@
 # AeroSpace upstream — what changed May→Sep 2026, and what it means for this config
 
-Checked 2026-09-14 against primary sources only: GitHub release notes,
+Checked 2026-09-20 against primary sources only: GitHub release notes,
 `main` source at tag `v0.21.3-Beta`, the issue/discussion/PR trackers
 (`gh api repos/nikitabobko/AeroSpace/...`), the rendered docs' `.adoc`
 sources, and JankyBorders' source. Installed here: AeroSpace 0.21.3-Beta,
@@ -16,9 +16,10 @@ the command named beside it — this file is a snapshot.
 | v0.21.2-Beta | 2026-07-07 | crash `refreshSessionEvent is not initialized` (#2157); floating windows snapping to top-left on workspace switch (#2153) |
 | v0.21.3-Beta | 2026-07-16 | ignore windows with window id 0 (cmux, #2169); Wispr Flow popup detection (#2170) |
 
-Nothing since. `main` is 3 commits past the tag (2026-08-10 auto-label PRs,
-2026-08-10 `Monitor -> MonitorInfo` rename, 2026-09-05 brew cask generator) —
-`gh api repos/nikitabobko/AeroSpace/compare/v0.21.3-Beta...main`.
+v0.21.3-Beta is still the newest release. `main` is 10 commits past the tag —
+`gh api repos/nikitabobko/AeroSpace/compare/v0.21.3-Beta...main --jq .ahead_by`.
+The unreleased work is toolchain and CI: Swift 6.4, a periphery build from
+source, and **`Add macos-27` (2026-09-15)** — the OS this config runs on.
 
 **0.21.0 items that touch this config** (source: release body,
 `gh api repos/nikitabobko/AeroSpace/releases/tags/v0.21.0-Beta`):
@@ -71,10 +72,23 @@ Nothing since. `main` is 3 commits past the tag (2026-08-10 auto-label PRs,
   description; workflow `label-incoming-prs.yml`, commit ae2aa7aa). No PR has
   had the label removed since; none merged since 2026-05-01
   (`search/issues?q=…+is:pr+is:merged+merged:>=2026-05-01` → 0).
-- Maintainer commits 2026: 90 in June, 8 in July, 2 in August, 0 in
-  September (`gh api 'repos/nikitabobko/AeroSpace/commits?author=nikitabobko&since=2026-01-01T00:00:00Z'`).
+- Maintainer commits 2026, by month: 11 Jan, 47 Mar, 47 Apr, 14 May, 102 Jun,
+  9 Jul, 1 Aug, 7 Sep — re-derive with
+  `gh api --paginate 'repos/nikitabobko/AeroSpace/commits?author=nikitabobko&since=2026-01-01T00:00:00Z' --jq '.[].commit.author.date[0:7]' | sort | uniq -c`.
   Discussion replies continue at low volume — 2026-08-08 (#2219),
-  2026-08-18 (#2204), 2026-09-03 (#2250). Not abandoned; low velocity.
+  2026-08-18 (#2204), 2026-09-03 (#2250). Not abandoned; bursty, and the
+  September burst is toolchain work including macOS 27 support. A quiet month
+  is this project's normal rhythm, not a signal to fork: forking trades a
+  ~400-line workaround layer for 21k lines of Swift across 283 files
+  (`find Sources -name '*.swift' | wc -l`), and the two bugs that hurt most
+  here are macOS platform limits that survive a fork — `setAxFrame` dispatches
+  one async job per window because each window belongs to a different process
+  (`Sources/AppBundle/tree/MacApp.swift`), and the maintainer's own comment at
+  `Sources/AppBundle/GlobalObserver.swift` records that
+  `kAXUIElementDestroyedNotification` is unreliable, which
+  docs/aerospace/RETILE-DELAY.md § Rejected approaches confirmed independently.
+  To patch and test without owning a fork: `install-from-sources.sh` in the
+  upstream tree.
 - README § Project status still lists the "big refactoring" (#1215) as the
   prerequisite for fixing windows jumping to the focused workspace (#1216)
   and native tabs (#68) — both unchecked.
@@ -95,6 +109,25 @@ One data point against the retile bug being universal: dcarley (2026-07-10,
 not cover this setup.
 
 ## 4. Source-verified mechanics that bear on the patches (tag v0.21.3-Beta)
+
+**New-window placement flash.** A window opening into a tiled workspace is
+visible at its macOS birth position for 68–87 ms before AeroSpace moves it to
+its slot, measured on this machine at 5 ms resolution over four trials
+(x=0…116 near the left edge → its real slot at x=906…1502). The retile is not
+atomic and the new window is placed *last*: siblings resize one at a time
+first, so the new window is the one seen in the wrong place. Not caused by
+anything in this config — the trace is unchanged with
+`extract-fullscreen-pair.sh` disabled.
+
+Nothing here can fix it. `MacApp.setAxFrame` cancels any pending job for that
+window then dispatches a fresh async job per window, each hopping to its own
+app's AX thread, because every window belongs to a different process; macOS
+exposes no cross-process atomic move. `NSAutomaticWindowAnimationsEnabled` and
+`NSWindowResizeTime` are already minimised in `mac/defaults.sh`, and Ghostty's
+`window-position-x`/`-y` do not move the birth position (tested: windows still
+appeared at x=0 and x=29). Fixing it upstream means placing the window before
+it is made visible — the machinery hinted at by
+`runHeavyCompleteRefreshSession(…optimisticallyPreLayoutWorkspaces:)`.
 
 `Sources/AppBundle/layout/refresh.swift`:
 
