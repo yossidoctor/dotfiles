@@ -44,9 +44,14 @@ case "$SENDER" in
     # Hover expands the pill, and opens the source list only when there is a
     # second source to choose between — with one source the popup would just
     # repeat the pill.
+    # The label is NOT expanded here. Whether the title shows is decided by
+    # playback alone — playing shows it, paused hides it — so hovering a paused
+    # pill must not unwrap a title the paint deliberately collapsed.
+    # The popup opens only when there is a SECOND source to choose between. One
+    # source needs no menu: the pill already names it, and a one-row dropdown is
+    # just the pill again.
     : > "$HOVER_FILE"
-    sketchybar --animate sin 15 --set "$NAME" label.width=dynamic \
-      background.color="$HOVER_BG"
+    sketchybar --set "$NAME" background.color="$HOVER_BG"
     if [ "$(cat "$SOURCE_COUNT_FILE" 2>/dev/null || echo 0)" -gt 1 ]; then
       sketchybar --set "$NAME" popup.drawing=on
     fi
@@ -57,14 +62,10 @@ case "$SENDER" in
     # way INTO the popup, so closing here would make the rows unreachable.
     # plugins/media-row.sh owns the dismissal, from the rows' own exit.
     #
-    # A playing pill keeps its label — yanking the title away mid-track is the
-    # opposite of useful — so only a paused one re-collapses. Playing state is
-    # read from the file the paint writes, since the icon's color is now a
-    # per-app brand tint and no longer a single value to compare against.
+    # Only the fill is cleared. The label's width belongs to the paint, which
+    # sets it from playback state; touching it here is what made a paused pill
+    # unwrap on hover and snap shut on exit.
     rm -f "$HOVER_FILE"
-    if [ "$(cat "$PLAYING_FILE" 2>/dev/null || echo false)" != "true" ]; then
-      sketchybar --animate sin 15 --set "$NAME" label.width=0
-    fi
     sketchybar --set "$NAME" background.color=0x00000000
     exit 0
     ;;
@@ -321,12 +322,15 @@ fi
 printf '%s' "$sources" > "$SOURCE_COUNT_FILE"
 printf '%s' "$playing" > "$PLAYING_FILE"
 
-# A popup showing one row has nothing to choose between, so it closes — but not
-# on a repaint that a row's own click triggered, which would dismiss the menu
-# out from under the pointer as the reward for using it. That same repaint also
-# clears media-row.sh's pending-close stamp: clicking a row makes the pointer
-# leave it briefly, and the deferred close that fires from would otherwise shut
-# the popup a moment after the click landed.
+# A repaint triggered by a row's own click clears media-row.sh's pending-close
+# stamp: clicking a row makes the pointer leave it briefly, and the deferred
+# close that fires from would otherwise shut the popup a moment after the click
+# landed.
+#
+# A popup left open as its second source disappears would strand a menu with
+# nothing to choose in it, so it closes when the count drops to one — but never
+# on a click's own repaint, which would dismiss the menu as the reward for
+# using it.
 if [ "$SENDER" = "media_refresh" ]; then
   rm -f "${TMPDIR:-/tmp}/sketchybar-media-popup-leave"
 elif [ "$sources" -le 1 ]; then

@@ -52,6 +52,12 @@ HOVER_BG=0x26ffffff
 # The hairline between item groups. Faint enough to separate without becoming a
 # third thing the eye has to read.
 DIVIDER=0x40ffffff
+# The tile behind one monitor's run of workspace chips. Barely there on purpose:
+# it has to read as a container holding the chips, without competing with the
+# focused chip's white pill, which is the one thing in the bar that must stand
+# out. A border rather than a heavier fill keeps its edges legible at this alpha.
+GROUP_BG=0x14ffffff
+GROUP_BORDER=0x1fffffff
 # What text takes ON the focused chip's white fill: near-black, matching
 # labelColor in macOS's light appearance.
 ON_ACCENT=0xd8000000
@@ -121,6 +127,11 @@ ICON_VOL_HIGH=$'\xF4\x80\x8A\xA9'  # U+1002A9 speaker.wave.3
 ICON_VOL_MID=$'\xF4\x80\x8A\xA7'  # U+1002A7 speaker.wave.2
 ICON_VOL_LOW=$'\xF4\x80\x8A\xA5'  # U+1002A5 speaker.wave.1
 ICON_VOL_MUTE=$'\xF4\x80\x8A\xA3'  # U+1002A3 speaker.slash
+
+# Monitor group markers. The laptop glyph marks the built-in display's
+# workspaces; every other monitor takes the external one.
+ICON_DISPLAY_BUILTIN=$'\xF4\x80\x99\x97'  # U+100657 laptopcomputer
+ICON_DISPLAY_EXTERNAL=$'\xF4\x80\x9F\x9B'  # U+1007DB display
 
 ICON_MUSIC=$'\xF4\x80\x91\xAA'  # U+10046A music.note
 ICON_PREV=$'\xF4\x80\x8A\x8A'  # U+10028A backward.fill

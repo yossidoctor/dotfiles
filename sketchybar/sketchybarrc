@@ -81,9 +81,9 @@ sketchybar --bar \
   show_in_fullscreen=on \
   font_smoothing=on
 
-# No background on any item: text sits directly on the glass, so the shadow
-# below carries all of the legibility. The one exception is the focused
-# workspace chip, which turns its background on in plugins/aerospace.sh.
+# No background on any item: text sits directly on the bar, so the shadow below
+# carries the legibility. Two things do draw a fill — the focused workspace
+# chip, painted by plugins/aerospace.sh, and the per-monitor group tiles below.
 #
 # updates=when_shown keeps a hidden item from running its script at all, which is
 # what makes the hover-collapsed right side free at rest.
@@ -127,10 +127,52 @@ sketchybar --add event media_update
 # white and ON_ACCENT inverts the glyphs to near-black over it.
 # plugins/aerospace.sh swaps each chip's fill, and paints an empty workspace
 # fainter than an occupied one.
+# A marker glyph opens each monitor's run of chips, so the row reads as groups
+# rather than nine loose numbers. It is emitted when the display a workspace is
+# pinned to differs from the previous one, which means the markers follow
+# WS_DISPLAY_* automatically and a re-pinning needs no change here.
+#
+# `active` is a real group, not a fallthrough to skip: ws_display returns it
+# both for a workspace with no pin and for one pinned to a monitor that is not
+# attached, and either way those workspaces follow the focused screen. They get
+# the external glyph, since that is where a roaming workspace usually lands.
+#
+# The marker carries the SAME `display=` as the chips it heads. Without it the
+# marker draws on every screen while its chips draw only on theirs, so a group
+# whose chips live on another monitor leaves an orphaned glyph sitting against
+# the next group's marker — two display icons side by side with nothing between
+# them.
+prev_display=""
+group_members=""
 for sid in $WORKSPACES; do
+  this_display="$(ws_display "$sid")"
+  if [ "$this_display" != "$prev_display" ]; then
+    case "$this_display" in
+      2) marker_icon="$ICON_DISPLAY_BUILTIN" ;;
+      *) marker_icon="$ICON_DISPLAY_EXTERNAL" ;;
+    esac
+    sketchybar --add item "spaces.group.$sid" left \
+      --set "spaces.group.$sid" \
+        display="$this_display" \
+        icon="$marker_icon" \
+        icon.font="$FONT_TEXT:Regular:12.0" \
+        icon.color="$IDLE" \
+        icon.padding_left=0 \
+        icon.padding_right=0 \
+        label.drawing=off \
+        background.drawing=off \
+        padding_left=8 \
+        padding_right=4
+    prev_display="$this_display"
+    # Each group's bracket is added after the loop, once every member exists —
+    # a bracket only draws around items already on the bar.
+    group_members="$group_members|spaces.group.$sid"
+  fi
+  group_members="$group_members space.$sid"
+
   sketchybar --add item "space.$sid" left \
     --set "space.$sid" \
-      display="$(ws_display "$sid")" \
+      display="$this_display" \
       icon.font="$FONT_APP:Regular:14.0" \
       icon.color="$SUBTEXT" \
       icon.highlight_color="$ON_ACCENT" \
@@ -148,6 +190,31 @@ for sid in $WORKSPACES; do
       click_script="aerospace workspace $sid" \
     --subscribe "space.$sid" mouse.entered mouse.exited
 done
+
+# One bracket per monitor group, drawn as a faint tile behind that monitor's
+# marker and chips. Added here rather than inside the loop because a bracket
+# only wraps items that already exist on the bar.
+#
+# group_members is one "|"-separated record per group, each holding the marker
+# id followed by its chips; splitting on "|" and dropping the empty leading
+# field yields exactly the member list each bracket needs.
+IFS='|'
+for record in $group_members; do
+  [ -z "$record" ] && continue
+  unset IFS
+  set -- $record
+  head="$1"
+  sketchybar --add bracket "${head}.tile" $record \
+    --set "${head}.tile" \
+      background.drawing=on \
+      background.color="$GROUP_BG" \
+      background.border_color="$GROUP_BORDER" \
+      background.border_width=1 \
+      background.corner_radius=13 \
+      background.height=26
+  IFS='|'
+done
+unset IFS
 
 # One painter for all nine chips, driven by an item that draws nothing: the
 # chips carry no script of their own, so a single event fires a single
