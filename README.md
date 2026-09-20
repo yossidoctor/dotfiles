@@ -21,8 +21,7 @@ installs after this, with its own `install`.
 
 1. Copy the file into its topic directory (`zsh/`, `git/`, `claude/`, etc.).
 2. Declare it in `install.conf.yaml`:
-   - Single file: `~/.target: topic/source` under `link:`.
-   - Whole directory: a `path:` block with `relink: true, force: true` (see the `claude/skills`, `claude/output-styles` entries).
+   - Single file or whole directory: `~/.target: topic/source` under `link:` (the `defaults:` block already sets `relink` and `force` for every link).
    - Shell action (compile, import, run script): under the `shell:` section.
 3. Run `./install` — creates the symlink and reruns any shell actions.
 4. Commit the topic file + the `install.conf.yaml` change together.
@@ -68,7 +67,16 @@ Each script's header comment is the SoT for its exact behavior and rationale —
 
 ### Permissions
 
-`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually.
+`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names as having no hook (`checkout --`, `clean`, `stash drop|clear`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk.
+
+### Bash-tool environment
+
+Every key under `env` in `claude/settings.json` is exported into each Bash-tool subprocess, so the object carries values only; the reasons live here.
+
+- `PATH` duplicates `zsh/zshenv` (the SoT) because the harness's `env.PATH` overrides the shell PATH for Bash-tool calls, which never source zshenv. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which Bash-tool calls don't run.
+- `DISABLE_AUTOUPDATER`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable.
+- `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
+- `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.
 
 ### Statusline (`claude/statusline-command.sh`)
 
