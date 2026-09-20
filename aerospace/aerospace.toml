@@ -182,17 +182,37 @@ on-window-detected = [
 # two neighbours need inner = 2 × width for their borders to meet without
 # overlapping, and outer = width puts the border flush with the screen edge.
 #
-# outer.top stays 6 like every other edge: AeroSpace measures its outer gaps
-# from the visible frame, and macOS already excludes the menu bar area that
-# sketchybar occupies, so the bar's 40pt is accounted for before this gap
-# applies. Setting it to bar height + 6 stacks the two and leaves a 40pt band of
-# wallpaper under the bar (measured: window top edge at 81pt instead of 46pt).
+# outer.top is per-monitor because the reserved top band is. AeroSpace measures
+# outer gaps from the VISIBLE frame, and what macOS excludes from that frame is
+# the NOTCH — not the menu bar, and not whichever display is main. Measured here
+# with the Dell as the main display: it still reserves 0 while the non-main
+# built-in reserves 38, exactly matching safeAreaInsets.top on each:
+#
+#   swift -e 'import AppKit
+#   for s in NSScreen.screens { let f = s.frame, v = s.visibleFrame
+#   print(s.localizedName, s.safeAreaInsets.top,
+#         (f.origin.y + f.height) - (v.origin.y + v.height)) }'
+#
+# That makes the split stable: it follows the hardware, so changing the primary
+# display or auto-hiding the menu bar does not move it.
+#
+# On the notched built-in the bar's 38pt is already excluded and this gap stays
+# 6 like every other edge; adding the bar height there stacks the two and leaves
+# a band of wallpaper under the bar (measured: window top at 81pt, not 46pt).
+# Every other monitor reserves nothing, so windows tile to the physical top edge
+# and sketchybar covers them — those carry the bar height themselves, 38 + 6,
+# which must move with sketchybarrc's BAR_HEIGHT.
+#
+# The bare trailing number is the fallback for any monitor the patterns miss,
+# and the clearance is deliberately the DEFAULT rather than the exception: a
+# newly connected display is notchless far more often than not, so an unknown
+# monitor should get the gap without needing a new entry here.
 [gaps]
     inner.horizontal = 12
     inner.vertical =   12
     outer.left =       6
     outer.bottom =     6
-    outer.top =        6
+    outer.top =        [{ monitor.'built-in retina display' = 6 }, 44]
     outer.right =      6
 
 [mode.main.binding]

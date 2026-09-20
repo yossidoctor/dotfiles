@@ -40,10 +40,17 @@ It is 38.0 on the built-in display and equals `safeAreaInsets.top`. A taller bar
 leaves its bottom border visible below that reserved band; a shorter one sits
 above its lower edge. Both read as "one pixel off".
 
-**`gaps.outer.top` in `aerospace.toml` stays 6, like every other edge.** AeroSpace
-measures outer gaps from the *visible frame*, which already excludes the bar's
-area. Setting it to bar height + 6 stacks the two and leaves a 40pt band of
-wallpaper under the bar.
+**`gaps.outer.top` in `aerospace.toml` is per-monitor, and only the notched
+display gets the small value.** AeroSpace measures outer gaps from the *visible
+frame*, and what macOS excludes from that frame is the **notch** — not the menu
+bar, and not whichever display is main (verified with an external set as the
+primary display: it still reserved 0 while the non-main built-in reserved 38).
+
+So the built-in stays 6 like every other edge, since the bar's height is already
+excluded there; setting it to bar height + 6 stacks the two and leaves a band of
+wallpaper under the bar. Every other monitor reserves nothing, tiles windows to
+the physical top edge and has them covered by the bar, so it carries
+`BAR_HEIGHT + 6` itself. That value must move with `BAR_HEIGHT`.
 
 **The bar is full-bleed, not an island.** No `margin`, no `corner_radius`, no
 bar-level border — the native menu bar's shape. `margin` additionally insets the
