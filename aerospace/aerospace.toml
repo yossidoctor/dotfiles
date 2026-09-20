@@ -48,16 +48,12 @@ config-version = 2
 # state at the system level (e.g. yabai) — not applicable here, so force it
 # off to keep the faster non-AX path.
 #
-# sketchybar is DISABLED. Its config stays tracked in sketchybar/, but nothing
-# starts it: the native menu bar draws at window layer 24 and raises itself
-# above sketchybar's layer 25 when activated, so the bar could not reliably
+# No status bar: the native menu bar draws at window layer 24 and raises itself
+# above a layer-25 bar when activated, so a third-party bar cannot reliably
 # cover it, and on an external display the menu bar kept taking clicks through
-# it. Re-enabling means restoring the exec-and-forget here, the --trigger calls
-# further down, the media-stream install step in install.conf.yaml, and
-# `brew services start sketchybar`.
+# one.
 after-startup-command = [
     'exec-and-forget borders active_color=0xffff8000 inactive_color=0xff48484a width=6.0 style=round hidpi=on ax_focus=off',
-    # 'exec-and-forget sketchybar',
 ]
 
 start-at-login = true
@@ -95,21 +91,15 @@ automatically-unhide-macos-hidden-apps = false
 # raise-fullscreen.sh keeps a focused fake-fullscreen window on top (Hyper+f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
-#
-# The sketchybar trigger that rode this callback went with the bar itself; see
-# after-startup-command above.
 on-focus-changed = [
     'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
     'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
-    # 'exec-and-forget sketchybar --trigger aerospace_window_change'
 ]
 
 # Backgrounded with `&` so a workspace switch never waits on reap-ghosts.sh.
 exec-on-workspace-change = ['/bin/bash', '-c',
     '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &'
-    # with sketchybar enabled, the trigger rides this same line after the `&`:
-    #   '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 & sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
 ]
 
 # Per-app layout rules applied when a window first appears. Ordered list:
@@ -118,20 +108,6 @@ exec-on-workspace-change = ['/bin/bash', '-c',
 # above the first [table] header in this file.
 # See: https://nikitabobko.github.io/AeroSpace/guide#on-window-detected-callback
 on-window-detected = [
-    # Repaint the bar's chips whenever a window appears. It sits first and
-    # carries check-further-callbacks = true so the layout rules below still get
-    # their turn — without that flag this entry would match everything and end
-    # the list, and no app would ever be floated again.
-    # This is the only window-lifecycle event AeroSpace emits: there is no
-    # window-closed and no window-minimized (docs/aerospace/UPSTREAM-2026-09.md
-    # § 1), so a window's disappearance reaches the bar through the same
-    # indirect signals that drive the retile — on-focus-changed above, and the
-    # retile-on-quit-watcher LaunchAgent for the last window on the system,
-    # which leaves no survivor to take focus. A polling timer stays rejected:
-    # it would keep cancelling the daemon's heavy refresh session (same doc,
-    # § 4) that the retile patches depend on.
-    # { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
-
     # A window opening while another is fullscreen: move the pair to a free
     # workspace, side by side, and leave the rest of the original workspace
     # tiled as it was. check-further-callbacks keeps the layout rules below
@@ -186,22 +162,8 @@ on-window-detected = [
 # entirely OUTSIDE the window frame, `width` points thick on every side, so
 # two neighbours need inner = 2 × width for their borders to meet without
 # overlapping, and outer = width puts the border flush with the screen edge.
-#
-# outer.top is 6 like every other edge. It was per-monitor while sketchybar ran,
-# since the bar occupied the top band on displays where macOS reserved nothing
-# for it; with the bar disabled, macOS's own reservation is the only thing up
-# there and AeroSpace already measures outer gaps from the visible frame that
-# excludes it. Re-enabling the bar means making this per-monitor again:
-#
-#   swift -e 'import AppKit
-#   for s in NSScreen.screens { let f = s.frame, v = s.visibleFrame
-#   print(s.localizedName, (f.origin.y + f.height) - (v.origin.y + v.height)) }'
-#
-# prints what each display reserves, and a display reserving less than the bar's
-# height needs the shortfall added here or the bar covers its window tops. The
-# last value in use, for a 38pt bar against an external reserving 31:
-#
-#   outer.top = [{ monitor.'built-in retina display' = 6 }, 13]
+# outer.top is 6 like every other edge: AeroSpace measures outer gaps from the
+# visible frame, which already excludes the menu bar's reservation.
 [gaps]
     inner.horizontal = 12
     inner.vertical =   12
