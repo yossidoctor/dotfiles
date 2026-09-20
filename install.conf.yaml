@@ -72,5 +72,6 @@
     # - [bash sketchybar/media-stream-agent.sh, Install/refresh the sketchybar now-playing stream LaunchAgent]
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
     - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
+    - [bash mac/vlcrc-restore.sh vlc/vlcrc, Restore VLC settings]
     - [command -v uv >/dev/null && uv tool install --upgrade --quiet claude-swap || true, Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]

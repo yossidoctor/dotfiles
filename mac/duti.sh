@@ -48,14 +48,23 @@ for ext in command tool; do
   bind "$GHOSTTY" ".$ext" shell
 done
 
-# ── VLC: video (viewer role = plays, doesn't save) ──
+# ── VLC: video ──
+# `all` claims both roles: LaunchServices resolves LSHandlerRoleAll ahead of
+# LSHandlerRoleViewer, so a viewer-only binding loses to any app holding RoleAll
+# on the UTI — including an uninstalled one, whose claim outlives it.
+#
+# duti cannot evict such a claim: `duti -s` exits 0 while lsd serves the old
+# handler from memory and rewrites the plist from its own cache. Clearing one
+# means editing LSHandlers in
+# ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist
+# then `killall lsd` to force a reload.
 for ext in mp4 mkv mov avi webm flv wmv; do
-  bind "$VLC" ".$ext" viewer
+  bind "$VLC" ".$ext" all
 done
 
 # ── VLC: audio ──
 for ext in mp3 flac wav ogg m4a opus; do
-  bind "$VLC" ".$ext" viewer
+  bind "$VLC" ".$ext" all
 done
 
 echo "duti bindings applied."
