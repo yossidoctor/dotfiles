@@ -2,8 +2,9 @@
 # Idempotent LaunchAgent install — re-runnable on every ./install.
 # Keeps `cswap auto` alive so account rotation survives logout/reboot rather
 # than living in whatever terminal happened to start it. Skips entirely when
-# claude-swap isn't installed yet, since the uv tool install runs later in the
-# same ./install pass on a fresh machine.
+# claude-swap isn't installed: the uv tool install is the manifest step right
+# before this one, so on a fresh machine it is present by the time this runs
+# unless uv itself was missing.
 # The plist is generated here from $HOME; `--model all` is the SoT for the
 # rotation arguments (per-model weekly windows count alongside the account-wide
 # 5h/7d ones). Per-tick stdout goes to /dev/null because cswap already writes
@@ -52,6 +53,13 @@ if [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plist_new" ]; then
 fi
 
 mkdir -p "$HOME/Library/LaunchAgents"
-launchctl unload "$plist_dst" >/dev/null 2>&1 || true
+launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1 || true
 printf '%s\n' "$plist_new" > "$plist_dst"
-launchctl load "$plist_dst"
+# bootout returns before launchd has torn the job down, and a bootstrap that
+# lands inside that window fails with "Input/output error"; a second try a
+# moment later succeeds.
+for _ in 1 2 3 4 5; do
+  launchctl bootstrap "gui/$(id -u)" "$plist_dst" 2>/dev/null && exit 0
+  sleep 1
+done
+launchctl bootstrap "gui/$(id -u)" "$plist_dst"

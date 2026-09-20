@@ -3,10 +3,10 @@
 # LaunchServices stores these in an opaque backgrounditems.btm; the supported
 # editing surface is System Events' login-item AppleScript, so each app is added
 # only if not already present (name match against the existing login-item list).
+# AeroSpace is not here: aerospace.toml's start-at-login registers it itself.
 set -uo pipefail
 
 apps=(
-  /Applications/AeroSpace.app
   /Applications/BetterCmdTab.app
   /Applications/noTunes.app
 )
