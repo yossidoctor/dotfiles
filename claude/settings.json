@@ -16,6 +16,7 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
+    "_comment_todo_tools": "Since v2.1.268 the task tools ship only on Claude 3.x, Opus 4.0-4.7, Sonnet 4.0-4.6 and Haiku 4.5, so on anything newer this flag is what makes TaskCreate exist at all. Without it they are absent rather than refused, and a caller writes prose instead with no error.",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
     "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1"
   },
@@ -208,10 +209,10 @@
   },
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:catppuccin-mocha",
+  "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
-  "preferredNotifChannel": "ghostty",
+  "preferredNotifChannel": "notifications_disabled",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,
   "autoContinueAtUsageLimit": false,
@@ -220,5 +221,6 @@
   "crossSessionInbound": "accept",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "timeFormat": "24-hour"
 }
