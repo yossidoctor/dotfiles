@@ -2,16 +2,14 @@
 # Stop hook: block a stop while a rule file this turn edited carries a citation
 # that no longer resolves. Scope is behavioural text — CLAUDE.md, a skill, an
 # agent definition, a reference file a skill ships — since those bind every
-# later session; `behavioral` (hook-lib.sh) is the predicate.
+# later session; `behavioral` (hook_lib.py) is the predicate.
 #
-# This checks references and nothing else. It used to hand back the turn's
-# cumulative diff for a full audit, and that is measured to be the wrong tool:
-# a second review in the same context scores WORSE than reviewing once (F1 21.7
-# vs 24.6), and a model reviewing its own output misses 64.5% of errors it
-# catches in someone else's. Both numbers, and the fresh-context design that
-# replaces this, are in dotfiles/docs/claude/instructing-claude.md § 7. The
-# judgment-bearing audit belongs to a separate session at commit time; what is
-# left here is the part a script decides outright.
+# This checks references and nothing else: a second review in the same context
+# scores worse than reviewing once, and a model reviewing its own output misses
+# most of what it catches in someone else's (dotfiles/docs/claude/
+# instructing-claude.md § 7). The judgment-bearing audit is rule-audit.sh at
+# commit time, in a session that did not write the files; what is here is the
+# part a script decides outright.
 #
 # Stop is the right event for it: it fires exactly when the claim of done is
 # made, and a dangling `§` cite is free to fix in that turn and expensive to

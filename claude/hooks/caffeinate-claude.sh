@@ -6,8 +6,7 @@
 #                                (e.g. a remote response from the Claude app).
 #
 # caffeinate is bound to the Claude PID via -w, so it dies the moment that session
-# exits (clean quit, ⌘Q, crash — all the same); -t is the upper bound. The statusline
-# reads the per-session statefile to show the ⏻ badge.
+# exits (clean quit, ⌘Q, crash — all the same); -t is the upper bound.
 #
 # Scope: lid-open only. Closing the lid sleeps regardless — clamshell sleep is a
 # separate path no caffeinate assertion covers, and -s is AC-only per caffeinate(8),
@@ -24,7 +23,6 @@ case "$mode" in active|linger) ;; *) exit 0 ;; esac
 hook_read_input
 session="${HOOK_SESSION_ID:-default}"
 pidfile="/tmp/claude-caffeinate-${session}.pid"
-statefile="/tmp/claude-caffeinate-${session}.state"
 
 # Find this hook's Claude parent by walking up the process tree. Empty -> -w is
 # omitted and caffeinate relies on -t alone.
@@ -53,9 +51,9 @@ if [ -f "$pidfile" ]; then
 fi
 
 if [ "$mode" = "active" ]; then
-  timeout=3600; state='active'
+  timeout=3600
 else
-  timeout=1800; state="linger:$(($(date +%s) + 1800))"
+  timeout=1800
 fi
 
 # -i prevent idle sleep, -s prevent sleep on AC, -w exit when Claude exits, -t bound.
@@ -64,6 +62,5 @@ if [ -n "$claude_pid" ]; then
 else
   nohup caffeinate -is -t "$timeout" </dev/null >/dev/null 2>&1 &
 fi
-printf '%s' "$state" > "$statefile"
 echo $! > "$pidfile"
 disown 2>/dev/null || true

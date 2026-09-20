@@ -14,6 +14,10 @@ deny	git add -Av	/Users/yossidoctor/dotfiles
 
 # --- denied: directory-wide operands ---
 deny	git add .	/Users/yossidoctor/dotfiles
+deny	git add ./	/Users/yossidoctor/dotfiles
+deny	git add ..	/Users/yossidoctor/dotfiles
+deny	git add ../	/Users/yossidoctor/dotfiles
+deny	git add -v .	/Users/yossidoctor/dotfiles
 deny	git add :/	/Users/yossidoctor/dotfiles
 deny	git add :(top)	/Users/yossidoctor/dotfiles
 
@@ -35,6 +39,9 @@ allow	git add claude/CLAUDE.md claude/settings.json	/Users/yossidoctor/dotfiles
 allow	git add docs/claude/instructing-claude.md	/Users/yossidoctor/dotfiles
 allow	git -C ~/otherrepo add some/nested/file.md	/Users/yossidoctor
 allow	git add path/with.a.dot/file.md	/Users/yossidoctor/dotfiles
+allow	git add .gitignore .editorconfig	/Users/yossidoctor/dotfiles
+allow	git add ./README.md ../other/file.md	/Users/yossidoctor/dotfiles
+allow	git add src/	/Users/yossidoctor/dotfiles
 
 # --- allowed: hunk-wise and intent-to-add are ownership by construction ---
 allow	git add -p	/Users/yossidoctor/dotfiles

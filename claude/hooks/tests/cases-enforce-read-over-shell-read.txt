@@ -21,6 +21,9 @@ allow	sed -n '1,60p' /Users/yossidoctor/.claude/projects/x/t.jsonl	/Users/yossid
 allow	cat /private/tmp/claude-501/-Users-yossidoctor/4cc7b3b3/tasks/b7w09.output	/Users/yossidoctor
 allow	cat /tmp/scratch.json	/Users/yossidoctor
 allow	sed -n '1,20p' /private/tmp/claude-501/x/scratchpad/out.txt	/Users/yossidoctor
+# a project directory merely named tasks/ or scratch/ is source, not throwaway
+deny	cat /Users/yossidoctor/proj/src/tasks/runner.py	/Users/yossidoctor
+deny	cat /Users/yossidoctor/proj/scratch/notes.md	/Users/yossidoctor
 
 # --- allowed: cat that is NOT a single-file read ---
 allow	cat <<'EOF' > /Users/yossidoctor/proj/x/y.py\nprint(1)\nEOF	/Users/yossidoctor
