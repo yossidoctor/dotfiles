@@ -281,9 +281,14 @@ sketchybar --add item front_app left \
 # font.features=tnum holds the digits on a fixed advance, so the minute ticking
 # over cannot shift the clock's width and nudge everything left of it.
 #
-# label.padding_right is 0 so the time's ink ends the same distance from the
-# screen edge as the leftmost chip's pill begins from its own: the bar's
-# padding_right of 12 plus the item's inherited 5.
+# The right edge is split between label.padding_right and the item's own
+# padding_right, and the two must sum to the 5 the leftmost chip inherits, so
+# the time's ink ends the same distance from the screen edge as that chip's
+# pill begins from its own.
+#
+# The label keeps the larger share because a glyph needs room for its right
+# side bearing: at label.padding_right=0 the final digit was clipped mid-stroke,
+# and a `9` lost its bowl.
 sketchybar --add item clock right \
   --set clock \
     background.height="$ITEM_HEIGHT" \
@@ -296,7 +301,8 @@ sketchybar --add item clock right \
     label.font="$FONT_NUM:Semibold:12.0" \
     label.font.features=tnum \
     label.color="$TEXT" \
-    label.padding_right=0 \
+    label.padding_right=4 \
+    padding_right=1 \
     background.corner_radius=11 \
     background.drawing=on \
     background.color=0x00000000 \
