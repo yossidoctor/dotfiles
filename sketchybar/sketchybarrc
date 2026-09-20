@@ -226,6 +226,9 @@ sketchybar --add item spaces.painter left \
     script="$PLUGINS/aerospace.sh" \
   --subscribe spaces.painter aerospace_workspace_change aerospace_window_change
 
+# DISABLED with sketchybar. The divider and the focused-window tile,
+# kept verbatim so re-enabling is an uncomment:
+#
 # A hairline between the workspace chips and the focused-window tile, drawn as a
 # glyph rather than as a 1px background: a background that thin has no room to
 # paint once the item's own padding is applied, and renders as nothing at all.
@@ -236,42 +239,42 @@ sketchybar --add item spaces.painter left \
 # padding of its own, while the chip on the left ends with its inherited
 # GROUP_PADDING of 5 — so the left value is the right one minus that 5, and both
 # visible gaps come to 11.
-sketchybar --add item divider.apps left \
-  --set divider.apps \
-    icon="│" \
-    icon.font="$FONT_TEXT:Regular:15.0" \
-    icon.color="$DIVIDER" \
-    icon.padding_left=0 \
-    icon.padding_right=0 \
-    icon.shadow.drawing=off \
-    label.drawing=off \
-    background.drawing=off \
-    padding_left=6 \
-    padding_right=11
+# sketchybar --add item divider.apps left \
+#   --set divider.apps \
+#     icon="│" \
+#     icon.font="$FONT_TEXT:Regular:15.0" \
+#     icon.color="$DIVIDER" \
+#     icon.padding_left=0 \
+#     icon.padding_right=0 \
+#     icon.shadow.drawing=off \
+#     label.drawing=off \
+#     background.drawing=off \
+#     padding_left=6 \
+#     padding_right=11
 
 # The focused window, on the left after the workspace chips. NOT center_left:
 # that anchors to the left edge of the notch and the tile is long enough to run
 # back underneath the camera housing, which hides the start of the title. The
 # left side flows rightward from the chips and simply stops short of the notch.
-sketchybar --add item front_app left \
-  --set front_app \
-    icon.font="$FONT_APP:Regular:14.0" \
-    icon.color="$TEXT" \
-    icon.padding_left=10 \
-    icon.padding_right=7 \
-    label.font="$FONT_TEXT:Medium:12.0" \
-    label.color="$SUBTEXT" \
-    label.padding_right=12 \
-    padding_left=0 \
-    padding_right=0 \
-    background.corner_radius=11 \
-    background.height=22 \
-    background.drawing=on \
-    background.color=0x00000000 \
-    updates=on \
-    script="$PLUGINS/front-app.sh" \
-  --subscribe front_app front_app_switched aerospace_window_change \
-    aerospace_workspace_change mouse.entered mouse.exited
+# sketchybar --add item front_app left \
+#   --set front_app \
+#     icon.font="$FONT_APP:Regular:14.0" \
+#     icon.color="$TEXT" \
+#     icon.padding_left=10 \
+#     icon.padding_right=7 \
+#     label.font="$FONT_TEXT:Medium:12.0" \
+#     label.color="$SUBTEXT" \
+#     label.padding_right=12 \
+#     padding_left=0 \
+#     padding_right=0 \
+#     background.corner_radius=11 \
+#     background.height=22 \
+#     background.drawing=on \
+#     background.color=0x00000000 \
+#     updates=on \
+#     script="$PLUGINS/front-app.sh" \
+#   --subscribe front_app front_app_switched aerospace_window_change \
+#     aerospace_workspace_change mouse.entered mouse.exited
 
 # Right side is laid out right-to-left: the clock is added first so it sits
 # outermost. It is deliberately NOT in the hover GROUP — a time you have to hover
@@ -289,12 +292,16 @@ sketchybar --add item front_app left \
 # The label keeps the larger share because a glyph needs room for its right
 # side bearing: at label.padding_right=0 the final digit was clipped mid-stroke,
 # and a `9` lost its bowl.
-# The clock is the time alone — no date. It carries no background either: a
-# pill drawn around a two-part run centres the run in the pill, not the pill on
-# the text, which read as both being off-centre.
+# Date in the icon slot, time in the label. No background: a pill drawn around
+# a two-part icon+label run centres the RUN inside the pill rather than the pill
+# on the text, so both read as off-centre.
 sketchybar --add item clock right \
   --set clock \
-    icon.drawing=off \
+    icon="$(date '+%a %d %b')" \
+    icon.font="$FONT_TEXT:Medium:12.0" \
+    icon.color="$SUBTEXT" \
+    icon.padding_left=0 \
+    icon.padding_right=7 \
     label.font="$FONT_NUM:Semibold:12.0" \
     label.font.features=tnum \
     label.color="$TEXT" \
@@ -322,15 +329,11 @@ for item in battery volume; do
       background.drawing=off
 done
 
-# media keeps its hover: the pill IS a label, and its popup is the only way to
-# reach a second source.
+# No hover on media either: the pill shows its title whenever something plays,
+# so there is nothing a hover would reveal. The popup is reached by CLICK.
 sketchybar --add item media right \
-  --set media label.width=0 \
-    background.drawing=on \
-    background.color=0x00000000 \
-    background.corner_radius=11 \
-    background.height=22 \
-  --subscribe media mouse.entered mouse.exited
+  --set media \
+    background.drawing=off
 
 sketchybar --set battery \
   update_freq=180 \
@@ -435,8 +438,9 @@ sketchybar --set media.row.vlc \
 # Build pointer-y if it is missing or older than its source. Kept quiet and
 # non-fatal: without it the media popup falls back to closing on a row's own
 # exit, which is worse but not broken.
-if [ ! -x "$CONFIG_DIR/pointer-y" ] || \
-   [ "$CONFIG_DIR/pointer-y.c" -nt "$CONFIG_DIR/pointer-y" ]; then
+if [ ! -x "$CONFIG_DIR/pointer-y" ] || [ ! -x "$CONFIG_DIR/volume-level" ] || \
+   [ "$CONFIG_DIR/pointer-y.c" -nt "$CONFIG_DIR/pointer-y" ] || \
+   [ "$CONFIG_DIR/volume-level.c" -nt "$CONFIG_DIR/volume-level" ]; then
   (cd "$CONFIG_DIR" && make >/dev/null 2>&1) || true
 fi
 

@@ -48,14 +48,16 @@ config-version = 2
 # state at the system level (e.g. yabai) — not applicable here, so force it
 # off to keep the faster non-AX path.
 #
-# sketchybar is safe to start from here, unlike borders above: its second
-# instance takes an fcntl lock on a pid file, fails to get it, and exits, so an
-# AeroSpace restart cannot produce two bars fighting over the surface. It reads
-# ~/.config/sketchybar/sketchybarrc, whose BAR_HEIGHT and [gaps] outer.top below
-# are one measurement split across two files.
+# sketchybar is DISABLED. Its config stays tracked in sketchybar/, but nothing
+# starts it: the native menu bar draws at window layer 24 and raises itself
+# above sketchybar's layer 25 when activated, so the bar could not reliably
+# cover it, and on an external display the menu bar kept taking clicks through
+# it. Re-enabling means restoring the exec-and-forget here, the --trigger calls
+# further down, the media-stream install step in install.conf.yaml, and
+# `brew services start sketchybar`.
 after-startup-command = [
     'exec-and-forget borders active_color=0xffff8000 inactive_color=0xff48484a width=6.0 style=round hidpi=on ax_focus=off',
-    'exec-and-forget sketchybar',
+    # 'exec-and-forget sketchybar',
 ]
 
 start-at-login = true
@@ -94,24 +96,20 @@ automatically-unhide-macos-hidden-apps = false
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
 #
-# The sketchybar trigger last: closing a window reassigns focus to the
-# survivor, so this callback is the fastest close signal the bar can get
-# (40-90ms, Cmd+W and Cmd+Q alike) and the only one that covers a window
-# closed without terminating its app. It is a sketchybar call, not an
-# `aerospace` one, so it forces no refresh session of its own.
+# The sketchybar trigger that rode this callback went with the bar itself; see
+# after-startup-command above.
 on-focus-changed = [
     'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
     'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
-    'exec-and-forget sketchybar --trigger aerospace_window_change'
+    # 'exec-and-forget sketchybar --trigger aerospace_window_change'
 ]
 
-# The sketchybar trigger rides the same callback as the reaper, after the `&`
-# that backgrounds it, so the bar repaints without waiting on reap-ghosts.sh.
-# $AEROSPACE_FOCUSED_WORKSPACE is exported by AeroSpace for this callback only;
-# the chips read it back from the CLI on every other event.
+# Backgrounded with `&` so a workspace switch never waits on reap-ghosts.sh.
 exec-on-workspace-change = ['/bin/bash', '-c',
-    '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 & sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
+    '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &'
+    # with sketchybar enabled, the trigger rides this same line after the `&`:
+    #   '~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 & sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
 ]
 
 # Per-app layout rules applied when a window first appears. Ordered list:
@@ -132,7 +130,7 @@ on-window-detected = [
     # which leaves no survivor to take focus. A polling timer stays rejected:
     # it would keep cancelling the daemon's heavy refresh session (same doc,
     # § 4) that the retile patches depend on.
-    { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
+    # { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
 
     # AeroSpace floats any window it reads as a dialog — including windows
     # without a fullscreen button. Safari was observed floating instead of
@@ -182,37 +180,27 @@ on-window-detected = [
 # two neighbours need inner = 2 × width for their borders to meet without
 # overlapping, and outer = width puts the border flush with the screen edge.
 #
-# outer.top is per-monitor because the reserved top band is. AeroSpace measures
-# outer gaps from the VISIBLE frame, and what macOS excludes from that frame is
-# the NOTCH — not the menu bar, and not whichever display is main. Measured here
-# with the Dell as the main display: it still reserves 0 while the non-main
-# built-in reserves 38, exactly matching safeAreaInsets.top on each:
+# outer.top is 6 like every other edge. It was per-monitor while sketchybar ran,
+# since the bar occupied the top band on displays where macOS reserved nothing
+# for it; with the bar disabled, macOS's own reservation is the only thing up
+# there and AeroSpace already measures outer gaps from the visible frame that
+# excludes it. Re-enabling the bar means making this per-monitor again:
 #
 #   swift -e 'import AppKit
 #   for s in NSScreen.screens { let f = s.frame, v = s.visibleFrame
-#   print(s.localizedName, s.safeAreaInsets.top,
-#         (f.origin.y + f.height) - (v.origin.y + v.height)) }'
+#   print(s.localizedName, (f.origin.y + f.height) - (v.origin.y + v.height)) }'
 #
-# That makes the split stable: it follows the hardware, so changing the primary
-# display or auto-hiding the menu bar does not move it.
+# prints what each display reserves, and a display reserving less than the bar's
+# height needs the shortfall added here or the bar covers its window tops. The
+# last value in use, for a 38pt bar against an external reserving 31:
 #
-# On the notched built-in the bar's 38pt is already excluded and this gap stays
-# 6 like every other edge; adding the bar height there stacks the two and leaves
-# a band of wallpaper under the bar (measured: window top at 81pt, not 46pt).
-# Every other monitor reserves nothing, so windows tile to the physical top edge
-# and sketchybar covers them — those carry the bar height themselves, 38 + 6,
-# which must move with sketchybarrc's BAR_HEIGHT.
-#
-# The bare trailing number is the fallback for any monitor the patterns miss,
-# and the clearance is deliberately the DEFAULT rather than the exception: a
-# newly connected display is notchless far more often than not, so an unknown
-# monitor should get the gap without needing a new entry here.
+#   outer.top = [{ monitor.'built-in retina display' = 6 }, 13]
 [gaps]
     inner.horizontal = 12
     inner.vertical =   12
     outer.left =       6
     outer.bottom =     6
-    outer.top =        [{ monitor.'built-in retina display' = 6 }, 44]
+    outer.top =        6
     outer.right =      6
 
 [mode.main.binding]

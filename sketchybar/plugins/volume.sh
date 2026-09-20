@@ -38,24 +38,25 @@ case "$SENDER" in
     ;;
 esac
 
-vol="${INFO:-}"
-# A forced update carries no $INFO, so the current level is read back instead.
-if [ -z "$vol" ]; then
-  vol="$(osascript -e 'output volume of (get volume settings)' 2>/dev/null)"
+# volume-level answers both questions AppleScript cannot: whether the output
+# device has a software volume at all, and what it is. A DisplayPort monitor has
+# none — macOS greys out its own slider — and AppleScript reports that case as
+# the literal string `missing value`, which is indistinguishable from an error
+# and once reached the bar as a label reading "missing value%".
+#
+# No controllable level means the item DRAWS NOTHING. A speaker glyph there
+# would claim a level the system cannot read, and a muted one would claim
+# silence while the monitor plays audio at its own hardware volume.
+reading="$("$HOME/.config/sketchybar/volume-level" 2>/dev/null || echo none)"
+if [ "$reading" = none ]; then
+  sketchybar --set "$NAME" drawing=off
+  exit 0
 fi
 
-# macOS answers `missing value` — not a number, not an error — whenever the
-# output device cannot report a level, which some Bluetooth and AirPlay devices
-# never can. Anything non-numeric means "no reading available", and the item
-# shows the muted glyph rather than printing the words at the user.
-case "$vol" in
-  ''|*[!0-9]*)
-    sketchybar --set "$NAME" icon="$ICON_VOL_MUTE" icon.color="$OVERLAY"
-    exit 0
-    ;;
-esac
+vol="${reading%% *}"
+muted="${reading##* }"
 
-if [ "$vol" -eq 0 ]; then
+if [ "$muted" = 1 ] || [ "$vol" -eq 0 ]; then
   icon="$ICON_VOL_MUTE"
   color="$OVERLAY"
 elif [ "$vol" -lt 15 ]; then
@@ -72,4 +73,4 @@ else
   color="$SKY"
 fi
 
-sketchybar --set "$NAME" icon="$icon" icon.color="$color"
+sketchybar --set "$NAME" drawing=on icon="$icon" icon.color="$color"

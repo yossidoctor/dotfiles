@@ -18,3 +18,4 @@ karabiner/assets/
 # on startup when a binary is missing or stale. The sources are tracked; the
 # machine-local build products are not.
 /sketchybar/pointer-y
+/sketchybar/volume-level
