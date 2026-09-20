@@ -28,8 +28,11 @@
 #                     HOOK_DESCRIPTION (.tool_input.description), HOOK_FILE_PATH
 #                     (.tool_input.file_path, then .tool_input.notebook_path —
 #                     NotebookEdit's own path field — then .tool_response.filePath),
-#                     HOOK_TOOL_NAME (.tool_name), HOOK_MATCHER (.matcher),
-#                     HOOK_MESSAGE (.message), HOOK_SESSION_ID (.session_id),
+#                     HOOK_TOOL_NAME (.tool_name), HOOK_NOTIFICATION_TYPE
+#                     (.notification_type — the Notification payload carries
+#                     the type here; the settings.json matcher is never echoed
+#                     back into the input), HOOK_MESSAGE (.message),
+#                     HOOK_SESSION_ID (.session_id),
 #                     HOOK_CWD (.cwd), HOOK_TRANSCRIPT (.transcript_path),
 #                     HOOK_RUN_IN_BACKGROUND (.tool_input.run_in_background, "true"/"false")
 #   hook_command_shape [sep]
@@ -51,7 +54,9 @@
 #                     double quotes honor backslash escapes, and a backslash outside
 #                     quotes escapes the next character. Backticks and $(...) are
 #                     deliberately kept — their contents execute, so a command inside
-#                     one is a real command.
+#                     one is a real command. Runs under LC_ALL=C: every character it
+#                     tests is ASCII, and bash 3.2 indexes a UTF-8 string by walking
+#                     it from the start on every ${s:$i:1}, four times the cost.
 #   hook_abspath <path>
 #                     absolutize against HOOK_CWD (leading ~ expanded)
 #   hook_rule_roots   the repositories the deployed rule files live in, one per
@@ -61,6 +66,11 @@
 #                     emit the PreToolUse decision JSON and exit 0
 #   additional_context <event-name> <msg>
 #                     emit an additionalContext JSON for the given hook event and exit 0
+#
+# PYTHONDONTWRITEBYTECODE: the python blocks import hook_lib.py through the
+# deployed link, so a compiled cache would land inside the repository.
+
+export PYTHONDONTWRITEBYTECODE=1
 
 hook_read_raw() {
   HOOK_INPUT=$(cat)
@@ -79,14 +89,14 @@ var("HOOK_CMD"; .tool_input.command),
 var("HOOK_DESCRIPTION"; .tool_input.description),
 var("HOOK_FILE_PATH"; .tool_input.file_path // .tool_input.notebook_path // .tool_response.filePath),
 var("HOOK_TOOL_NAME"; .tool_name),
-var("HOOK_MATCHER"; .matcher),
+var("HOOK_NOTIFICATION_TYPE"; .notification_type),
 var("HOOK_MESSAGE"; .message),
 var("HOOK_SESSION_ID"; .session_id),
 var("HOOK_CWD"; .cwd),
 var("HOOK_TRANSCRIPT"; .transcript_path),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_TOOL_NAME=}" "${HOOK_MATCHER=}"
+  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_TOOL_NAME=}" "${HOOK_NOTIFICATION_TYPE=}"
   : "${HOOK_MESSAGE=}" "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
 }
@@ -120,7 +130,7 @@ sys.stdout.write("".join(out))
 }
 
 hook_strip_quotes() {
-  local s out='' i=0 ch j n
+  local s out='' i=0 ch j n LC_ALL=C
   s=$(cat)
   n=${#s}
   while [ "$i" -lt "$n" ]; do

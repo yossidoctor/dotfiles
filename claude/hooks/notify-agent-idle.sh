@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
 # Notification hook: macOS banner when Claude needs input or a background
-# subagent finishes — both are easy to miss once you've alt-tabbed away,
-# unlike the ghostty in-terminal channel (preferredNotifChannel) which only
-# reaches you while that terminal is visible.
+# subagent finishes — both are easy to miss once you've alt-tabbed away, and
+# preferredNotifChannel is notifications_disabled so this is the only channel.
 #
-# Matchers: agent_completed (a backgrounded Agent call finished) and
-# idle_prompt (Claude is waiting on you). Other Notification matchers pass
-# through silently — not every notification warrants an OS banner.
+# The payload names the kind in `notification_type`; the settings.json matcher
+# is a filter on the harness side and is never echoed into the input. Handled:
+# agent_completed (a backgrounded Agent call finished) and idle_prompt (Claude
+# is waiting on you). Every other type passes through silently — not every
+# notification warrants an OS banner.
 
 set -u
 
 . "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
 
-hook_read_input
-matcher="$HOOK_MATCHER"
+hook_read_raw
+case "$HOOK_INPUT" in
+  *agent_completed*|*idle_prompt*) ;;
+  *) exit 0 ;;
+esac
+hook_parse_input
 message="${HOOK_MESSAGE:-Claude Code}"
 
-case "$matcher" in
+case "$HOOK_NOTIFICATION_TYPE" in
   agent_completed) title="Claude — subagent done" ;;
   idle_prompt) title="Claude — needs input" ;;
   *) exit 0 ;;
