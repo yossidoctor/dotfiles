@@ -59,7 +59,6 @@
     ~/.config/gh: gh
     ~/.config/ghostty: ghostty
     ~/.config/karabiner: karabiner
-    ~/.config/sketchybar: sketchybar
     ~/.config/starship.toml: starship/starship.toml
 
 - shell:
@@ -68,8 +67,6 @@
     - [bash mac/duti.sh, Apply duti file-type bindings]
     - [bash mac/login-items.sh || true, Register Open-at-Login items (needs System Events automation permission; retried next run if denied)]
     - [bash aerospace/retile-on-quit-watcher.sh, Install/refresh the retile-on-quit LaunchAgent]
-    # sketchybar is disabled; re-enable this with its callbacks in aerospace.toml:
-    # - [bash sketchybar/media-stream-agent.sh, Install/refresh the sketchybar now-playing stream LaunchAgent]
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
     - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
     - [bash mac/vlcrc-restore.sh vlc/vlcrc, Restore VLC settings]

@@ -2,12 +2,6 @@
 # Poke AeroSpace twice (now and at 200ms) after a Cmd+W/Cmd+Q keystroke, then
 # run the ghost/phantom watchdog.
 #
-# The sketchybar trigger is commented out at the bottom with the bar itself.
-# It sat after the SECOND poke on purpose: the chips rebuild from a live
-# `list-windows`, so a repaint racing the daemon's teardown redraws the closed
-# window back onto the chip. The 200ms poke is the ordering that has the window
-# already gone.
-#
 # Every aerospace CLI call is a light refresh session in the daemon: it
 # forces the pending frame relayout (the stale-layout half of
 # docs/aerospace/RETILE-DELAY.md) and CANCELS the in-flight heavy refresh — the
@@ -27,5 +21,4 @@ AS=/opt/homebrew/bin/aerospace
 "$AS" list-windows --all >/dev/null 2>&1
 sleep 0.2
 "$AS" list-windows --all >/dev/null 2>&1
-# /opt/homebrew/bin/sketchybar --trigger aerospace_window_change >/dev/null 2>&1
 "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/reap-ghosts.sh" >/dev/null 2>&1 || true
