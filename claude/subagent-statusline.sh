@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# The right column is padded on ${#…}, which counts bytes under a C locale;
+# `↓` and `·` are multibyte, so the row would land three columns short.
+export LC_ALL=en_US.UTF-8
 input=$(cat)
 
 . "$(dirname "$0")/statusline-lib.sh"

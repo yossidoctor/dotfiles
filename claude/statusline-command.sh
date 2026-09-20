@@ -13,9 +13,10 @@ def s(v): (v // "") | if type == "string" then . else tostring end;
 ' 2>/dev/null)"
 : "${model=}" "${effort=}" "${used_pct=}" "${permission_mode=}" "${session_id=}"
 model=${model/ context)/)}
+now=$(date +%s)
 
 countdown() {
-  local left=$(( $1 - $(date +%s) ))
+  local left=$(( $1 - now ))
   [ "$left" -lt 0 ] && left=0
   if [ "$left" -ge 86400 ]; then
     printf '%02dd %02dh' "$(( left / 86400 ))" "$(( left % 86400 / 3600 ))"
@@ -98,47 +99,32 @@ cswap_lines=()
 any_stale=0
 usage_cache="$HOME/.claude-swap-backup/cache/usage.json"
 if [ -f "$usage_cache" ]; then
-  cswap_rows=$(python3 -c '
-import json, sys, datetime
-# The active account number comes from the sequence file rather than a second
-# interpreter start: the statusline redraws on every turn, and each start costs
-# more than everything this block computes.
-def load(path):
-    try:
-        return json.load(open(path))
-    except Exception:
-        return {}
-active = load(sys.argv[2]).get("activeAccountNumber")
-active = int(active) if active is not None else 0
-d = json.load(open(sys.argv[1]))
-def epoch(v):
-    if not v:
-        return 0
-    try:
-        return int(datetime.datetime.strptime(v[:19] + "Z", "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc).timestamp())
-    except Exception:
-        return 0
-def num(v, dflt):
-    try:
-        return int(float(v))
-    except (TypeError, ValueError):
-        return dflt
-for k in sorted(d.get("accounts") or {}, key=int):
-    a = d["accounts"][k] or {}
-    lg = a.get("lastGood") or {}
-    fh = lg.get("five_hour") or {}
-    sd = lg.get("seven_day") or {}
-    sc = lg.get("scoped") or [{}]
-    s0 = sc[0] or {}
-    print("\t".join([k, (a.get("email") or "").split("@")[0],
-        "true" if int(k) == active else "false",
-        str(num(a.get("fetchedAt"), 0)),
-        str(num(fh.get("pct"), -1)), str(epoch(fh.get("resets_at"))),
-        str(num(sd.get("pct"), -1)), str(epoch(sd.get("resets_at"))),
-        s0.get("name") or "", str(num(s0.get("pct"), -1))]))
-' "$usage_cache" "$cswap_state" 2>/dev/null)
+  # One jq over both files (slurped: .[0] usage, .[1] sequence); an absent
+  # sequence file reads as /dev/null so the active number falls back to 0.
+  state_in="$cswap_state"
+  [ -f "$state_in" ] || state_in=/dev/null
+  cswap_rows=$(jq -r -s '
+    def num(v; d): if (v | type) == "number" then (v | floor)
+                   elif (v | type) == "string" then (((v | tonumber?) // d) | floor)
+                   else d end;
+    def epoch(v): if (v | type) == "string" and (v | length) >= 19
+                  then ((v[:19] + "Z") | fromdateiso8601? // 0) else 0 end;
+    (.[1].activeAccountNumber // 0) as $active
+    | (.[0].accounts // {}) as $acc
+    | ($acc | keys | map(tonumber) | sort | map(tostring))[] as $k
+    | ($acc[$k] // {}) as $a
+    | ($a.lastGood // {}) as $lg
+    | ($lg.five_hour // {}) as $fh
+    | ($lg.seven_day // {}) as $sd
+    | (($lg.scoped // [{}])[0] // {}) as $s0
+    | [ $k, (($a.email // "") | split("@")[0]),
+        (if ($k | tonumber) == $active then "true" else "false" end),
+        (num($a.fetchedAt; 0) | tostring),
+        (num($fh.pct; -1) | tostring), (epoch($fh.resets_at) | tostring),
+        (num($sd.pct; -1) | tostring), (epoch($sd.resets_at) | tostring),
+        ($s0.name // ""), (num($s0.pct; -1) | tostring) ]
+    | @tsv' "$usage_cache" "$state_in" 2>/dev/null)
 
-  now=$(date +%s)
   while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
@@ -184,7 +170,7 @@ for k in sorted(d.get("accounts") or {}, key=int):
   done <<< "$cswap_rows"
 fi
 if [ ${#cswap_lines[@]} -eq 0 ] && [ -f "$cswap_state" ]; then
-  cswap_lines+=("  ${c_muted}cswap: stale${c_off}")
+  cswap_lines+=("${c_off}  ${c_muted}cswap: stale${c_off}")
   any_stale=1
 fi
 
@@ -193,8 +179,8 @@ kick_stamp="$HOME/.claude-swap-backup/cache/.statusline-kick"
 if [ "$any_stale" = 1 ] && [ -x "$cswap_bin" ]; then
   last_kick=0
   [ -f "$kick_stamp" ] && last_kick=$(cat "$kick_stamp" 2>/dev/null || echo 0)
-  if [ $(( $(date +%s) - last_kick )) -ge 120 ]; then
-    date +%s > "$kick_stamp"
+  if [ $(( now - last_kick )) -ge 120 ]; then
+    printf '%s\n' "$now" > "$kick_stamp"
     ( "$cswap_bin" auto --once --dry-run >/dev/null 2>&1 & ) &
     disown 2>/dev/null || true
   fi
