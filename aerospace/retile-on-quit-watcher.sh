@@ -57,6 +57,13 @@ if [ "$rebuilt" = 0 ] && [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plis
 fi
 
 mkdir -p "$HOME/Library/LaunchAgents"
-launchctl unload "$plist_dst" >/dev/null 2>&1 || true
+launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1 || true
 printf '%s\n' "$plist_new" > "$plist_dst"
-launchctl load "$plist_dst"
+# bootout returns before launchd has torn the job down, and a bootstrap that
+# lands inside that window fails with "Input/output error"; a second try a
+# moment later succeeds.
+for _ in 1 2 3 4 5; do
+  launchctl bootstrap "gui/$(id -u)" "$plist_dst" 2>/dev/null && exit 0
+  sleep 1
+done
+launchctl bootstrap "gui/$(id -u)" "$plist_dst"
