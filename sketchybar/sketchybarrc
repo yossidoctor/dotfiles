@@ -353,6 +353,12 @@ sketchybar --set media \
 # it — a play/pause you have to reopen the menu to undo is a worse control than
 # the one it replaced. media.sh is re-run so the row's glyph flips to match.
 ROW_LABEL_WIDTH=300
+# A click_script runs with a minimal PATH carrying /usr/bin but NOT Homebrew's
+# prefix, so a bare `media-control` is not found and the click silently does
+# nothing — no error reaches the bar. Anything from Homebrew is therefore named
+# by absolute path; the osascript rows below need no such treatment, since
+# /usr/bin is already on that PATH.
+BREW_BIN="/opt/homebrew/bin"
 MEDIA_REPAINT="rm -f \"\${TMPDIR:-/tmp}/sketchybar-media-popup-leave\"; sleep 0.35; NAME=media SENDER=media_refresh $PLUGINS/media.sh"
 
 for row in system spotify vlc; do
@@ -381,7 +387,7 @@ for row in system spotify vlc; do
 done
 
 sketchybar --set media.row.system \
-  click_script="media-control toggle-play-pause; $MEDIA_REPAINT"
+  click_script="$BREW_BIN/media-control toggle-play-pause; $MEDIA_REPAINT"
 sketchybar --set media.row.spotify \
   click_script="osascript -e 'tell application \"Spotify\" to playpause'; $MEDIA_REPAINT"
 sketchybar --set media.row.vlc \
