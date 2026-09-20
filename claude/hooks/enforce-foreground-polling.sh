@@ -26,9 +26,12 @@ set -u
 
 . "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
 
+# Literals with the trailing space where a bare word is a common substring: `gh`
+# is in "light" and "through", `tail` in "detail", and the payload carries the
+# cwd, the description and the session id alongside the command.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sleep*|*tail*|*watch*|*kubectl*|*journalctl*|*gh*) ;;
+  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*journalctl*|*'gh run'*|*'gh pr'*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input

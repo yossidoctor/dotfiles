@@ -149,8 +149,8 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
   fi
 }
 
-for settings in "$HOOKS_DIR/../settings.json"; do
-  [ -f "$settings" ] || continue
+settings="$HOOKS_DIR/../settings.json"
+if [ -f "$settings" ]; then
   while IFS= read -r target; do
     src="$HOOKS_DIR/$(basename "$target")"
     [ -f "$src" ] || { echo "WIRED-BUT-MISSING [$target] no such file: $src" >&2; fail=$((fail + 1)); }
@@ -163,7 +163,7 @@ for settings in "$HOOKS_DIR/../settings.json"; do
     total=$((total + 3))
   done < <(jq -r '(.hooks // {})[] | .[]? | (.hooks // [])[] | .command // empty' "$settings" \
     | grep -o '[^/]*\.sh' | sort -u)
-done
+fi
 
 for cases in "$TESTS_DIR"/cases-*.txt; do
   hook="$(basename "$cases" .txt)"

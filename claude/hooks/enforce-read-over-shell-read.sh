@@ -14,9 +14,10 @@
 #           - `cat <<EOF` heredocs and `cat a b` concatenation — those write and
 #             combine, they do not read one file
 #           - `sed -i`, substitutions, pattern prints — mutations and filters
-#           - targets under /tmp, /private/tmp, a scratchpad, ~/.claude, or a
-#             task-output dir — throwaway and harness files, where Read's
-#             registration buys nothing and the file may be enormous
+#           - targets under /tmp, /private/tmp, a scratchpad dir, or ~/.claude
+#             — throwaway and harness files (transcripts and task outputs live
+#             there), where Read's registration buys nothing and the file may
+#             be enormous
 #           - a path in a variable or glob — the operand is unknowable here
 #
 # The deny names the exact Read call, so the retry is one turn.
@@ -27,7 +28,7 @@ set -u
 
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sed*|*cat*|*rg*) ;;
+  *'sed '*|*'cat '*|*'rg '*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
@@ -94,7 +95,7 @@ abs=$(hook_abspath "$file")
 # Throwaway and harness-internal trees: Read buys nothing there, and a transcript
 # or task-output file is large enough that a bounded shell range is the better tool.
 case "$abs" in
-  /tmp/*|/private/tmp/*|"$HOME"/.claude/*|*/scratchpad/*|*/scratch/*|*/tasks/*) exit 0 ;;
+  /tmp/*|/private/tmp/*|"$HOME"/.claude/*|*/scratchpad/*) exit 0 ;;
 esac
 
 if [ -n "$limit" ]; then
