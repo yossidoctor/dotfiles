@@ -123,9 +123,13 @@ ICON_BATT_25=$'\xF4\x80\x9B\xA9'  # U+1006E9 battery.25
 ICON_BATT_EMPTY=$'\xF4\x80\x9B\xAA'  # U+1006EA battery.0
 ICON_BATT_CHARGING=$'\xF4\x80\xA2\x8B'  # U+10088B battery.100.bolt
 
+# Five levels, not four: the wave count IS the reading, since these items carry
+# no percentage label. speaker with no waves covers "on, but barely", which
+# speaker.wave.1 would otherwise have to share with a third of the range.
 ICON_VOL_HIGH=$'\xF4\x80\x8A\xA9'  # U+1002A9 speaker.wave.3
 ICON_VOL_MID=$'\xF4\x80\x8A\xA7'  # U+1002A7 speaker.wave.2
 ICON_VOL_LOW=$'\xF4\x80\x8A\xA5'  # U+1002A5 speaker.wave.1
+ICON_VOL_MIN=$'\xF4\x80\x8A\xA1'  # U+1002A1 speaker
 ICON_VOL_MUTE=$'\xF4\x80\x8A\xA3'  # U+1002A3 speaker.slash
 
 # Monitor group markers. The laptop glyph marks the built-in display's

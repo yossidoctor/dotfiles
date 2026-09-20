@@ -289,90 +289,59 @@ sketchybar --add item front_app left \
 # The label keeps the larger share because a glyph needs room for its right
 # side bearing: at label.padding_right=0 the final digit was clipped mid-stroke,
 # and a `9` lost its bowl.
+# The clock is the time alone — no date. It carries no background either: a
+# pill drawn around a two-part run centres the run in the pill, not the pill on
+# the text, which read as both being off-centre.
 sketchybar --add item clock right \
   --set clock \
-    background.height="$ITEM_HEIGHT" \
-    icon="$(date '+%a %d %b')" \
-    icon.font="$FONT_TEXT:Medium:12.0" \
-    icon.color="$SUBTEXT" \
-    icon.padding_left=10 \
-    icon.padding_right=6 \
-    label.padding_left=4 \
+    icon.drawing=off \
     label.font="$FONT_NUM:Semibold:12.0" \
     label.font.features=tnum \
     label.color="$TEXT" \
+    label.padding_left=0 \
     label.padding_right=4 \
     padding_right=1 \
-    background.corner_radius=11 \
-    background.drawing=on \
-    background.color=0x00000000 \
+    background.drawing=off \
     update_freq=30 \
     script="$PLUGINS/clock.sh" \
     click_script="open -a Calendar" \
-  --subscribe clock system_woke mouse.entered mouse.exited
+  --subscribe clock system_woke
 
-# The hover group: collapsed to a bare icon, label revealed on mouse.entered.
-# label.width=0 is the collapsed state; the plugin animates it to dynamic.
-# background.corner_radius here is what makes the HOVER fill a pill rather than
-# a sharp rectangle: these items draw no background at rest (the color is
-# transparent) and each plugin swaps in HOVER_BG on mouse.entered, so the radius
-# is only ever visible under the pointer.
-for item in battery volume media; do
+# Volume and battery are ICON ONLY and take no pointer interaction at all: no
+# hover fill, no reveal, no popup. The glyphs are chosen so the icon alone gives
+# the ballpark — SF Symbols draws batteries at fill levels and speakers with a
+# wave count — which is what a status icon is for. A reading you have to hover
+# to get is worse than one you can read at a glance.
+for item in battery volume; do
   sketchybar --add item "$item" right \
-    --set "$item" label.width=0 \
-      background.drawing=on \
-      background.color=0x00000000 \
-      background.corner_radius=11 \
-      background.height=22 \
-    --subscribe "$item" mouse.entered mouse.exited
+    --set "$item" \
+      label.drawing=off \
+      icon.font="$FONT_TEXT:Regular:15.0" \
+      icon.padding_left=8 \
+      icon.padding_right=8 \
+      background.drawing=off
 done
 
-sketchybar --set battery \
-  icon.font="$FONT_TEXT:Regular:14.0" \
-  icon.padding_left=7 \
-  icon.padding_right=6 \
-  label.font="$FONT_NUM:Medium:12.0" \
-  label.font.features=tnum \
-  update_freq=180 \
-  script="$PLUGINS/battery.sh" \
-  click_script="sketchybar --set battery popup.drawing=toggle" \
-  popup.background.color="$POPUP_BG" \
-  popup.background.corner_radius=10 \
-  popup.background.shadow.drawing=on \
-  popup.blur_radius=25 \
-  popup.y_offset=4 \
-  popup.align=right
+# media keeps its hover: the pill IS a label, and its popup is the only way to
+# reach a second source.
+sketchybar --add item media right \
+  --set media label.width=0 \
+    background.drawing=on \
+    background.color=0x00000000 \
+    background.corner_radius=11 \
+    background.height=22 \
+  --subscribe media mouse.entered mouse.exited
 
-# Popup rows sit on the popup's own blurred panel, so their text needs no
-# shadow — the panel already supplies the contrast the bar's glass does not.
-sketchybar --add item battery.remaining popup.battery \
-  --set battery.remaining \
-    icon="remaining" \
-    icon.font="$FONT_TEXT:Regular:12.0" \
-    icon.color="$SUBTEXT" \
-    icon.shadow.drawing=off \
-    label.font="$FONT_NUM:Medium:12.0" \
-    label.color="$TEXT" \
-    label.shadow.drawing=off \
-    background.drawing=off \
-    width=150
+sketchybar --set battery \
+  update_freq=180 \
+  script="$PLUGINS/battery.sh"
 
 sketchybar --subscribe battery power_source_change system_woke
 
+# Scroll and right-click still work on the volume icon; only the hover fill and
+# the percentage label are gone.
 sketchybar --set volume \
-  icon.font="$FONT_TEXT:Regular:14.0" \
-  icon.padding_left=7 \
-  icon.padding_right=6 \
-  label.font="$FONT_NUM:Medium:12.0" \
-  label.font.features=tnum \
   script="$PLUGINS/volume.sh" \
-  click_script="$PLUGINS/volume.sh" \
-  popup.background.color="$POPUP_BG" \
-  popup.background.corner_radius=10 \
-  popup.background.shadow.drawing=on \
-  popup.blur_radius=25 \
-  popup.y_offset=4 \
-  popup.align=right \
   --subscribe volume volume_change mouse.scrolled mouse.clicked
 
 # Media reads whatever owns the system now-playing session — macOS exposes only

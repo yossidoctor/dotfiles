@@ -30,11 +30,11 @@
 config-version = 2
 
 # Run after AeroSpace startup. Launches JankyBorders to outline windows:
-# focused = macOS systemOrange, the same value as PEACH in sketchybar/theme.sh,
-# at alpha d0: at full opacity a 6pt edge dominates the screen, and dropping the
-# alpha rather than the width keeps the [gaps] arithmetic below untouched.
-# Unfocused = a dim neutral, present enough to outline an unfocused window
-# without competing with the focused one.
+# focused = a saturated orange at FULL opacity. systemOrange at reduced alpha
+# washes out against a light window, which is where the focus ring matters most;
+# alpha is the wrong dial here, and the width stays 6 either way so the [gaps]
+# arithmetic below is untouched. Unfocused = a dim neutral, present enough to
+# outline an unfocused window without competing with the focused one.
 # JankyBorders is managed ONLY here, not via `brew services` — the brew-generated
 # launchd plist (homebrew.mxcl.borders) runs a bare `borders` with no color args and
 # has KeepAlive=true, so if it's ever started it respawns and fights this process for
@@ -54,7 +54,7 @@ config-version = 2
 # ~/.config/sketchybar/sketchybarrc, whose BAR_HEIGHT and [gaps] outer.top below
 # are one measurement split across two files.
 after-startup-command = [
-    'exec-and-forget borders active_color=0xd0ff9230 inactive_color=0xff48484a width=6.0 style=round hidpi=on ax_focus=off',
+    'exec-and-forget borders active_color=0xffff8000 inactive_color=0xff48484a width=6.0 style=round hidpi=on ax_focus=off',
     'exec-and-forget sketchybar',
 ]
 

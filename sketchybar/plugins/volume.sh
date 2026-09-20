@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-# volume.sh — volume icon, percentage label, hover reveal, and scroll-to-set.
+# volume.sh — the volume icon, and scroll-to-set.
+#
+# The item is icon-only: the glyph's wave count IS the reading, so there is no
+# percentage label and no hover to reveal one. Five levels rather than four —
+# speaker with no waves covers "on, but barely", which speaker.wave.1 would
+# otherwise share with a third of the range.
 #
 # The reading arrives in $INFO on volume_change, so the steady state costs no
-# subprocess at all: no poll, no osascript, nothing until the volume actually
-# moves. Only the scroll branch spends anything.
+# subprocess at all: no poll, no osascript, nothing until the volume moves.
+# Only the scroll branch and the fallback read spend anything.
 #
 # Scroll steps are deliberately coarse: $SCROLL_DELTA is ~1 per notch, which
 # would make a full sweep a wrist exercise, so it is scaled by 5 unless ctrl is
@@ -13,16 +18,6 @@ set -uo pipefail
 source "$HOME/.config/sketchybar/theme.sh"
 
 case "$SENDER" in
-  mouse.entered)
-    sketchybar --animate sin 12 --set "$NAME" label.width=dynamic \
-      background.color="$HOVER_BG"
-    exit 0
-    ;;
-  mouse.exited)
-    sketchybar --animate sin 12 --set "$NAME" label.width=0 \
-      background.color=0x00000000
-    exit 0
-    ;;
   mouse.clicked)
     # Left-click must not open the Sound pane: giving another app focus changes
     # the focused workspace, so every chip repaints as unfocused and the bar
@@ -38,7 +33,7 @@ case "$SENDER" in
       ctrl) ;;
       *) step=$((step * 5)) ;;
     esac
-    osascript -e "set volume output volume (output volume of (get volume settings) + ($step))"
+    osascript -e "set volume output volume (output volume of (get volume settings) + ($step))" 2>/dev/null
     exit 0
     ;;
 esac
@@ -48,15 +43,28 @@ vol="${INFO:-}"
 if [ -z "$vol" ]; then
   vol="$(osascript -e 'output volume of (get volume settings)' 2>/dev/null)"
 fi
-[ -z "$vol" ] && exit 0
+
+# macOS answers `missing value` — not a number, not an error — whenever the
+# output device cannot report a level, which some Bluetooth and AirPlay devices
+# never can. Anything non-numeric means "no reading available", and the item
+# shows the muted glyph rather than printing the words at the user.
+case "$vol" in
+  ''|*[!0-9]*)
+    sketchybar --set "$NAME" icon="$ICON_VOL_MUTE" icon.color="$OVERLAY"
+    exit 0
+    ;;
+esac
 
 if [ "$vol" -eq 0 ]; then
   icon="$ICON_VOL_MUTE"
   color="$OVERLAY"
-elif [ "$vol" -lt 34 ]; then
+elif [ "$vol" -lt 15 ]; then
+  icon="$ICON_VOL_MIN"
+  color="$SKY"
+elif [ "$vol" -lt 40 ]; then
   icon="$ICON_VOL_LOW"
   color="$SKY"
-elif [ "$vol" -lt 67 ]; then
+elif [ "$vol" -lt 70 ]; then
   icon="$ICON_VOL_MID"
   color="$SKY"
 else
@@ -64,7 +72,4 @@ else
   color="$SKY"
 fi
 
-sketchybar --set "$NAME" \
-  icon="$icon" \
-  icon.color="$color" \
-  label="${vol}%"
+sketchybar --set "$NAME" icon="$icon" icon.color="$color"

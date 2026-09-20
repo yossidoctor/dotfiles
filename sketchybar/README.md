@@ -3,7 +3,7 @@
 A status bar for the AeroSpace setup, styled to read as macOS's own: an opaque
 full-bleed strip in SF Pro with SF Symbols, a chip per workspace
 carrying its app icons and names, the focused window, and a right side with
-now-playing, volume, battery and a clock. It covers the native menu bar rather
+now-playing, icon-only volume and battery, and a clock. It covers the native menu bar rather
 than replacing it — see § The native menu bar, and why BAR_BG is opaque.
 
 Each script's header comment is the SoT for its own behavior; this file holds
@@ -77,10 +77,10 @@ config carries none.
 
 **Centring is a padding problem, not an offset problem.** The default
 `icon.padding_left=8` / `icon.padding_right=4` exists so an icon sits tight
-against the label beside it. An item whose label is hidden (the hover group
-while collapsed) or empty (a workspace with no apps) has nothing to balance the
-wider left pad, so its glyph sits ~1.6-3pt right of centre. Give those items
-symmetric padding.
+against the label beside it. An item whose label is hidden (the media pill
+while collapsed, or the icon-only volume and battery) or empty (a workspace
+with no apps) has nothing to balance the wider left pad, so its glyph sits
+~1.6-3pt right of centre. Give those items symmetric padding.
 
 **Padding is integer while glyph advance widths are odd.** `8/4` sits right,
 `6/6` sits left by the same half point, `7/6` lands inside a device pixel at 2x.

@@ -1,37 +1,29 @@
 #!/usr/bin/env bash
-# battery.sh — battery icon, percentage label, and the hover reveal.
+# battery.sh — the battery icon.
 #
-# One `pmset -g batt` serves the percentage, the charging state and the popup's
-# time-remaining, so the 180s poll and every hover share a single subprocess.
+# The item is icon-only: SF Symbols' battery glyphs are drawn at fill levels, so
+# the glyph itself carries the ballpark and there is no percentage label, no
+# hover to reveal one, and no popup.
 #
-# $SENDER tells the three jobs apart: mouse.entered/exited animate the label
-# open and shut, everything else (routine, power_source_change, system_woke,
-# forced) repaints the reading.
+# One `pmset -g batt` serves both the level and the charging state, so the 180s
+# poll is a single subprocess.
 set -uo pipefail
 
 source "$HOME/.config/sketchybar/theme.sh"
 
-case "$SENDER" in
-  mouse.entered)
-    sketchybar --animate sin 12 --set "$NAME" label.width=dynamic \
-      background.color="$HOVER_BG"
-    exit 0
-    ;;
-  mouse.exited)
-    sketchybar --animate sin 12 --set "$NAME" label.width=0 \
-      background.color=0x00000000
-    exit 0
-    ;;
-esac
-
 batt="$(pmset -g batt)"
 pct="${batt#*	}"
 pct="${pct%%%*}"
-[ -z "$pct" ] && exit 0
+case "$pct" in
+  ''|*[!0-9]*) exit 0 ;;
+esac
 
 charging=off
 case "$batt" in *"AC Power"*) charging=on ;; esac
 
+# Charging is its own glyph rather than a tint on the level glyph: a charging
+# battery at 20% should not read as the same warning state as one draining at
+# 20%, and the bolt says so at a glance.
 if [ "$charging" = on ]; then
   icon="$ICON_BATT_CHARGING"
   color="$GREEN"
@@ -52,17 +44,4 @@ else
   color="$RED"
 fi
 
-sketchybar --set "$NAME" \
-  icon="$icon" \
-  icon.color="$color" \
-  label="${pct}%"
-
-# pmset prints a remaining estimate only once it has one; while it is still
-# computing, the field reads (no estimate) and the popup says so rather than
-# showing a stale duration.
-remaining="$(printf '%s' "$batt" | sed -n 's/.*[;] *\([0-9][0-9]*:[0-9][0-9]\) remaining.*/\1/p')"
-if [ -n "$remaining" ]; then
-  sketchybar --set battery.remaining label="${remaining}h"
-else
-  sketchybar --set battery.remaining label="no estimate"
-fi
+sketchybar --set "$NAME" icon="$icon" icon.color="$color"
