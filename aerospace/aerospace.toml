@@ -132,6 +132,13 @@ on-window-detected = [
     # § 4) that the retile patches depend on.
     # { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
 
+    # A window opening while another is fullscreen: move the pair to a free
+    # workspace, side by side, and leave the rest of the original workspace
+    # tiled as it was. check-further-callbacks keeps the layout rules below
+    # in play. The script rides a ~100ms race and exits silently whenever it
+    # loses — its header is the SoT.
+    { run = 'exec-and-forget ~/.config/aerospace/extract-fullscreen-pair.sh >/dev/null 2>&1 &', check-further-callbacks = true },
+
     # AeroSpace floats any window it reads as a dialog — including windows
     # without a fullscreen button. Safari was observed floating instead of
     # tiling, so force tiling on detect to keep it in the layout.
