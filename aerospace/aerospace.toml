@@ -92,7 +92,7 @@ automatically-unhide-macos-hidden-apps = false
 # 'aerospace' CLI call forces the daemon's pending relayout, so the first entry
 # pokes it on every focus change. reap-ghosts.sh observes ghost nodes and floats
 # phantom tiles (its header is the SoT; it never closes a window);
-# raise-fullscreen.sh keeps a focused fake-fullscreen window on top (alt-f
+# raise-fullscreen.sh keeps a focused fake-fullscreen window on top (Hyper+f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
 #
@@ -131,6 +131,13 @@ on-window-detected = [
     # it would keep cancelling the daemon's heavy refresh session (same doc,
     # § 4) that the retile patches depend on.
     # { run = 'exec-and-forget sketchybar --trigger aerospace_window_change', check-further-callbacks = true },
+
+    # A window opening while another is fullscreen: move the pair to a free
+    # workspace, side by side, and leave the rest of the original workspace
+    # tiled as it was. check-further-callbacks keeps the layout rules below
+    # in play. The script rides a ~100ms race and exits silently whenever it
+    # loses — its header is the SoT.
+    { run = 'exec-and-forget ~/.config/aerospace/extract-fullscreen-pair.sh >/dev/null 2>&1 &', check-further-callbacks = true },
 
     # AeroSpace floats any window it reads as a dialog — including windows
     # without a fullscreen button. Safari was observed floating instead of
@@ -211,7 +218,10 @@ on-window-detected = [
     # now-fullscreen window can sit BEHIND tiled siblings that were raised
     # more recently. Same script also runs on-focus-changed (see above) to
     # restore the raise if Tahoe's WindowServer buries it later.
-    alt-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
+    # Hyper (Caps Lock) + f, home row: fn+f cannot carry this, since AeroSpace's
+    # hotkey parser accepts only cmd/alt/ctrl/shift and rejects 'fn-f' with
+    # "Can't parse modifiers".
+    cmd-alt-ctrl-shift-f = ['fullscreen', 'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &']
 
     # Swallow the macOS "Hide application" shortcuts so an accidental cmd-h never
     # hides a window out of the tiling tree. Empty binding = key does nothing.
@@ -256,6 +266,21 @@ on-window-detected = [
     alt-minus = 'resize smart -50'
     alt-equal = 'resize smart +50'
 
+    # Cycle only workspaces that exist. AeroSpace destroys a workspace the
+    # moment it holds no windows and is not focused (persistent-workspaces is
+    # unset, so it falls back to []), so next/prev can never land on an empty
+    # one — whereas alt-N below summons workspace N into existence whether or
+    # not it has windows. --wrap-around makes the last/first edge continue
+    # instead of failing.
+    # Hyper (Caps Lock) + bracket: alt-left/right belongs to macOS word-wise
+    # cursor movement in every text field, and Hyper+arrow is already the
+    # cross-monitor focus binding below.
+    # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+    cmd-alt-ctrl-shift-leftSquareBracket =  'workspace --wrap-around prev'
+    cmd-alt-ctrl-shift-rightSquareBracket = 'workspace --wrap-around next'
+
+    # Direct summon, and the only way a new workspace is created. Kept for
+    # that: with cycling alone the set of workspaces could never grow.
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'

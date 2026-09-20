@@ -7,7 +7,7 @@
 # Tahoe's WindowServer does unrequested reorders — stays buried and the
 # tiled windows render in front of it. This script re-asserts the natural
 # invariant: if the FOCUSED window is fullscreen, it belongs on top. Wired
-# to (1) the alt-f binding in aerospace.toml, right after the `fullscreen`
+# to (1) the Hyper+f binding in aerospace.toml, right after the `fullscreen`
 # toggle, and (2) on-focus-changed, so any focus event while a fullscreen
 # window is focused restores it. No-op whenever the focused window isn't
 # fullscreen — focusing a floating window over a still-fullscreen one stays
