@@ -166,7 +166,7 @@
                                     "key_code": "v",
                                     "modifiers": { "mandatory": ["right_shift", "right_command", "left_control", "right_option"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Visual Studio Code' \"$HOME/Library/Application Support/Code/User/global.code-workspace\"" }],
+                                "to": [{ "shell_command": "w=\"$HOME/Library/Application Support/Code/User/global.code-workspace\"; if [ -e \"$w\" ]; then open -a 'Visual Studio Code' \"$w\"; else open -a 'Visual Studio Code'; fi" }],
                                 "type": "basic"
                             },
                             {
