@@ -48,8 +48,9 @@ tree" and "window already torn down", and more is worse.
 ## Mechanisms in place
 
 **`on-focus-changed` (`aerospace.toml`).** Closing a window reassigns macOS
-focus to the survivor, which fires this callback; it pokes `list-windows`,
-runs `reap-ghosts.sh`, and runs `raise-fullscreen.sh`. Measured against a
+focus to the survivor, which fires this callback; it runs `reap-ghosts.sh`,
+whose `list-windows --all` snapshot is the poke, and `raise-fullscreen.sh`.
+Measured against a
 50ms poll of the tree: a `didDeactivate`/`didActivate` pair lands 40-90ms
 after the window leaves the tree in every trial, on Cmd+W and Cmd+Q alike,
 including apps that stay resident with zero windows (Slack). Syntax gotcha:

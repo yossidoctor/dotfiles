@@ -79,6 +79,12 @@ ensure_bin() {
 
 ensure_bin window-oracle || exit 0
 
+# The log grows a line per candidate run for years; past 1MB keep the last
+# 2000 lines, which is weeks of fingerprint at the observed rate.
+if [ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG")" -gt 1048576 ]; then
+  /usr/bin/tail -n 2000 "$LOG" > "$LOG.tmp" && /bin/mv -f "$LOG.tmp" "$LOG"
+fi
+
 t0=$(/usr/bin/perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
 snapshot=$("$AS" list-windows --all \
            --format '%{window-id} %{window-layout} %{workspace-is-visible}' 2>/dev/null)

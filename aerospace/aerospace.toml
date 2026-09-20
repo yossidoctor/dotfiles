@@ -85,14 +85,15 @@ default-root-container-orientation = 'horizontal'
 automatically-unhide-macos-hidden-apps = false
 
 # Workaround for https://github.com/nikitabobko/AeroSpace/issues/1615: any
-# 'aerospace' CLI call forces the daemon's pending relayout, so the first entry
-# pokes it on every focus change. reap-ghosts.sh observes ghost nodes and floats
-# phantom tiles (its header is the SoT; it never closes a window);
+# 'aerospace' CLI call forces the daemon's pending relayout, and reap-ghosts.sh's
+# own `list-windows --all` snapshot is that poke on every focus change — a
+# separate bare call would only cancel the daemon's heavy refresh a second time
+# (docs/aerospace/UPSTREAM-2026-09.md § 4). reap-ghosts.sh observes ghost nodes
+# and floats phantom tiles (its header is the SoT; it never closes a window);
 # raise-fullscreen.sh keeps a focused fake-fullscreen window on top (Hyper+f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
 # LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
 on-focus-changed = [
-    'exec-and-forget aerospace list-windows --all',
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
     'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
 ]
