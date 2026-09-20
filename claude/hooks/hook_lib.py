@@ -2,7 +2,9 @@
 # Imported with sys.path pointed at this directory; not a hook itself.
 #
 #   behavioral(path)   True for text that prescribes behaviour: a CLAUDE.md, or a
-#                      skill / agent file and the references it ships. A session doc
+#                      skill / agent file and the references it ships, under a
+#                      claude/ or .claude/ tree (a repo's deploy dir, or a project's
+#                      own .claude/skills and .claude/agents). A session doc
 #                      (testsuite, RCA, ADR, handoff) records what happened and is out.
 #   skill_file(name)   the SKILL.md a bare skill name resolves to — the project's
 #                      .claude/skills first, then the global ~/.claude/skills — or None.
@@ -19,7 +21,7 @@ SKILL_TREES = (
 def behavioral(path):
     r = os.path.realpath(path)
     return (os.path.basename(r) == "CLAUDE.md"
-            or f"{os.sep}claude{os.sep}" in r and (
+            or (f"{os.sep}claude{os.sep}" in r or f"{os.sep}.claude{os.sep}" in r) and (
                 f"{os.sep}skills{os.sep}" in r or f"{os.sep}agents{os.sep}" in r))
 
 

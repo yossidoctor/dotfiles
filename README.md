@@ -42,7 +42,7 @@ This repo is the base: shell, terminal, Homebrew, macOS defaults, and the global
 
 ### Script conventions
 
-Hooks and `install.conf.yaml` `shell:` steps run under macOS `/bin/bash` 3.2, so scripts start `#!/usr/bin/env bash` (Homebrew bash when on PATH, `#!/bin/sh` only where POSIX is meant) and use no bash-4 syntax (`${var,,}`, `declare -A`, `printf '%(…)T'`, `mapfile`) without a `BASH_VERSINFO` gate; a script that never runs under a hook or `./install` may use bash 4+. A `shell:` step re-runs on every `./install` under `set -e`, so it no-ops when its state already holds and carries `|| true` when it needs sudo or a TTY. Every regex-gating hook has a `cases-<hook>.txt` under `tests/`, run by that dir's `run-tests.sh` after any pattern change; a banner or nudge hook with no allow/deny logic needs none. A layer repo's hooks and install steps follow the same conventions.
+Hooks and `install.conf.yaml` `shell:` steps run under macOS `/bin/bash` 3.2, so scripts start `#!/usr/bin/env bash` (`#!/bin/sh` only where POSIX is meant) and use no bash-4 syntax (`${var,,}`, `declare -A`, `printf '%(…)T'`, `mapfile`) without a `BASH_VERSINFO` gate; a script that never runs under a hook or `./install` may use bash 4+. A `shell:` step re-runs on every `./install` under `set -e`, so it no-ops when its state already holds and carries `|| true` when it needs sudo or a TTY. Every regex-gating hook has a `cases-<hook>.txt` under `tests/`, run by that dir's `run-tests.sh` after any pattern change; a banner or nudge hook with no allow/deny logic needs none. A layer repo's hooks and install steps follow the same conventions.
 
 ### Claude Code hooks
 
@@ -74,6 +74,7 @@ Each script's header comment is the SoT for its exact behavior and rationale —
 Every key under `env` in `claude/settings.json` is exported into each Bash-tool subprocess, so the object carries values only; the reasons live here.
 
 - `PATH` duplicates `zsh/zshenv` (the SoT) because the harness's `env.PATH` overrides the shell PATH for Bash-tool calls, which never source zshenv. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which Bash-tool calls don't run.
+- `HOMEBREW_NO_ANALYTICS` mirrors `brew/env.sh`, which only an interactive zsh and `brew-maintenance` source; a Bash-tool `brew` call reads neither.
 - `DISABLE_AUTOUPDATER`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable.
 - `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
 - `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.

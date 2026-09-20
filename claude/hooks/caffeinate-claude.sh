@@ -24,17 +24,16 @@ hook_read_input
 session="${HOOK_SESSION_ID:-default}"
 pidfile="/tmp/claude-caffeinate-${session}.pid"
 
-# Find this hook's Claude parent by walking up the process tree. Empty -> -w is
+# Find this hook's Claude parent by walking up the process tree: one ps of every
+# process, walked in awk, instead of two ps forks per level. Empty -> -w is
 # omitted and caffeinate relies on -t alone.
-claude_pid=""
-pid=$$
-for _ in 1 2 3 4 5 6; do
-  pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-  case "$pid" in ""|0|1) break ;; esac
-  cmd=$(ps -o command= -p "$pid" 2>/dev/null)
-  binary=${cmd%% *}
-  [ "${binary##*/}" = "claude" ] && { claude_pid="$pid"; break; }
-done
+claude_pid=$(ps -axo pid=,ppid=,comm= | awk -v start="$$" '
+  { pid = $1; ppid = $2; $1 = ""; $2 = ""; c = $0; sub(/^ +/, "", c); sub(/.*\//, "", c)
+    parent[pid] = ppid; name[pid] = c }
+  END { p = start
+        for (i = 0; i < 6; i++) {
+          p = parent[p]; if (p == "" || p == 0 || p == 1) exit
+          if (name[p] == "claude") { print p; exit } } }')
 
 # Replace any prior caffeinate for this session. The pidfile can outlive its
 # process and the OS reuses PIDs, so only kill a PID that still runs caffeinate.

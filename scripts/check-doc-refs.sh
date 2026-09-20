@@ -90,14 +90,14 @@ grep -rnoE '`[a-z0-9_-]+\.(sh|md)`' "${SKILL_TREES[@]}" 2>/dev/null \
   | while IFS=$'\t' read -r loc ref; do
       case "$ref" in
         script.sh|example.sh|foo.sh|bar.sh|name.sh|"<name>".sh) continue ;;
-        notes.md|sandboxes.json|hosts.yml|context.json|CONTEXT.md) continue ;;
+        notes.md|CONTEXT.md) continue ;;
       esac
       file_exists "$ref" || echo "  BROKEN  $loc  ->  $ref  (no such file in tree)"
     done > "$TMP/rep_files"
 if [ -s "$TMP/rep_files" ]; then cat "$TMP/rep_files"; fail=1; else echo "  ok — all file refs resolve"; fi
 
 echo "== skill paths (directory-aware) =="
-{ printf '%s\n' "$ROOT"/claude "$ROOT"/scripts "$ROOT"/docs/knowledgebase; git -C "$ROOT" ls-files -- 'CLAUDE.md' '*/CLAUDE.md' 2>/dev/null | sed "s|^|$ROOT/|"; } \
+{ printf '%s\n' "$ROOT"/claude "$ROOT"/scripts "$ROOT"/docs; git -C "$ROOT" ls-files -- 'CLAUDE.md' '*/CLAUDE.md' 2>/dev/null | sed "s|^|$ROOT/|"; } \
   | while IFS= read -r p; do [ -e "$p" ] && printf '%s\n' "$p"; done \
   | xargs grep -rhoE --exclude-dir=tests 'skills/[a-z0-9_-]+/[A-Za-z0-9_/.-]+\.(sh|md)' 2>/dev/null \
   | sed -E 's|.*(skills/)|\1|' | sort -u \

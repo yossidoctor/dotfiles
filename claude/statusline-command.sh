@@ -56,8 +56,7 @@ claude_section=""
 cswap_state="$HOME/.claude-swap-backup/sequence.json"
 
 if [ -n "$model" ]; then
-  model_str="${c_identity}${model}${c_off}"
-  [ -n "$claude_section" ] && claude_section="${claude_section} ${model_str}" || claude_section="${model_str}"
+  claude_section+="${claude_section:+ }${c_identity}${model}${c_off}"
 fi
 
 if [ -n "$used_pct" ]; then
@@ -78,7 +77,7 @@ if [ -n "$used_pct" ]; then
   else
     ctx_str="${ctx_color}${used_pct}%${c_off}"
   fi
-  [ -n "$claude_section" ] && claude_section="${claude_section} ${ctx_str}" || claude_section="${ctx_str}"
+  claude_section+="${claude_section:+ }${ctx_str}"
 fi
 
 if [ -n "$effort" ]; then
@@ -90,8 +89,7 @@ if [ -n "$effort" ]; then
     max)    effort_label="Max" ;;
     *)      effort_label="$effort" ;;
   esac
-  effort_str="${c_muted}(effort: ${effort_label})${c_off}"
-  [ -n "$claude_section" ] && claude_section="${claude_section} ${effort_str}" || claude_section="${effort_str}"
+  claude_section+="${claude_section:+ }${c_muted}(effort: ${effort_label})${c_off}"
 fi
 
 # ── cswap accounts (from watch cache) ────────────────────────
@@ -125,6 +123,24 @@ if [ -f "$usage_cache" ]; then
         ($s0.name // ""), (num($s0.pct; -1) | tostring) ]
     | @tsv' "$usage_cache" "$state_in" 2>/dev/null)
 
+  add_meter() {
+    local name="$1" pct="$2" resets="$3" timed="$4"
+    [ "$pct" -lt 0 ] && return
+    local color; color=$(ramp_color "$pct" 40 70 muted)
+    if [ "$is_active" = true ]; then
+      [ "$color" = "$c_muted" ] && color="$c_active"
+    else
+      color=$(fade "$color")
+    fi
+    local seg="${label}${name}${c_off} $(bar "$pct" "$track" "$empty") ${color}$(printf '%3d%%' "$pct")${c_off}"
+    if [ "$resets" -gt 0 ]; then
+      seg="${seg} $(fade "$label" 70)($(countdown "$resets"))${c_off}"
+    elif [ "$timed" = timed ]; then
+      seg="${seg} $(printf '%9s' '')"
+    fi
+    meters="${meters}   ${seg}"
+  }
+
   while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
@@ -142,23 +158,6 @@ if [ -f "$usage_cache" ]; then
     fi
 
     meters=""
-    add_meter() {
-      local name="$1" pct="$2" resets="$3" timed="$4"
-      [ "$pct" -lt 0 ] && return
-      local color; color=$(ramp_color "$pct" 40 70 muted)
-      if [ "$is_active" = true ]; then
-        [ "$color" = "$c_muted" ] && color="$c_active"
-      else
-        color=$(fade "$color")
-      fi
-      local seg="${label}${name}${c_off} $(bar "$pct" "$track" "$empty") ${color}$(printf '%3d%%' "$pct")${c_off}"
-      if [ "$resets" -gt 0 ]; then
-        seg="${seg} $(fade "$label" 70)($(countdown "$resets"))${c_off}"
-      elif [ "$timed" = timed ]; then
-        seg="${seg} $(printf '%9s' '')"
-      fi
-      meters="${meters}   ${seg}"
-    }
     add_meter 5h "$p5" "$r5" timed
     add_meter 7d "$p7" "$r7" timed
     [ -n "$sname" ] && add_meter "$sname" "$spct" 0
@@ -181,31 +180,17 @@ if [ "$any_stale" = 1 ] && [ -x "$cswap_bin" ]; then
   [ -f "$kick_stamp" ] && last_kick=$(cat "$kick_stamp" 2>/dev/null || echo 0)
   if [ $(( now - last_kick )) -ge 120 ]; then
     printf '%s\n' "$now" > "$kick_stamp"
-    ( "$cswap_bin" auto --once --dry-run >/dev/null 2>&1 & ) &
-    disown 2>/dev/null || true
+    ( "$cswap_bin" auto --once --dry-run >/dev/null 2>&1 & )
   fi
 fi
 
 # ── permission mode badge ────────────────────────────────────
-perm_str=""
 case "$permission_mode" in
-  bypassPermissions) perm_str="${c_err}bypass${c_off}" ;;
+  bypassPermissions) claude_section+="${claude_section:+ }${c_err}bypass${c_off}" ;;
 esac
-if [ -n "$perm_str" ]; then
-  [ -n "$claude_section" ] && claude_section="${claude_section} ${perm_str}" || claude_section="${perm_str}"
-fi
 
 # ── assemble ─────────────────────────────────────────────────
-sep="${c_surface}│${c_off}"
-
-segments=()
-[ -n "$claude_section" ] && segments+=("$claude_section")
-
-out=""
-for seg in "${segments[@]}"; do
-  [ -n "$out" ] && out="${out} ${sep} "
-  out="${out}${seg}"
-done
+out="$claude_section"
 for line in "${cswap_lines[@]}"; do
   out="${out}\n${line}"
 done
