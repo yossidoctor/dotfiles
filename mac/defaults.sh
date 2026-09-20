@@ -26,8 +26,8 @@ trap 'failures=$((failures + 1))' ERR
 # ─────────────────────────────────────────────────────────────────────────────
 # Dock
 # ─────────────────────────────────────────────────────────────────────────────
-defaults write com.apple.dock tilesize -int 36                      # icon size (px)
-defaults write com.apple.dock autohide -bool true                   # hide Dock until pointer hits the edge
+# defaults write com.apple.dock tilesize -int 36                      # icon size (px)
+# defaults write com.apple.dock autohide -bool true                   # hide Dock until pointer hits the edge
 defaults write com.apple.dock autohide-delay -float 0               # no delay before the Dock hides
 defaults write com.apple.dock autohide-time-modifier -float 0.4     # show/hide animation duration (s)
 defaults write com.apple.dock show-recents -bool false              # no recent-apps section
@@ -75,8 +75,8 @@ shk_domain="$HOME/Library/Preferences/com.apple.symbolichotkeys.plist"
 # ─────────────────────────────────────────────────────────────────────────────
 # Accessibility — motion & transparency
 # ─────────────────────────────────────────────────────────────────────────────
-defaults write com.apple.universalaccess reduceMotion -bool true        # no zoom/slide window+Space animations
-defaults write com.apple.universalaccess reduceTransparency -bool true  # opaque menus/sidebars/Dock, no blur
+# defaults write com.apple.universalaccess reduceMotion -bool true        # no zoom/slide window+Space animations
+# defaults write com.apple.universalaccess reduceTransparency -bool true  # opaque menus/sidebars/Dock, no blur
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Trackpad
