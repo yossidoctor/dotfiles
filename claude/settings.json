@@ -185,7 +185,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/notify-agent-idle.sh",
+            "command": "\"$HOME\"/.claude/hooks/notify-subagent-done.sh",
             "async": true
           }
         ]
@@ -253,12 +253,13 @@
     "enabled": true,
     "mode": "tap"
   },
+  "timeFormat": "24-hour",
   "autoMemoryEnabled": false,
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
-  "preferredNotifChannel": "notifications_disabled",
+  "preferredNotifChannel": "ghostty",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,
   "autoContinueAtUsageLimit": false,
@@ -267,6 +268,5 @@
   "crossSessionInbound": "hold",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "timeFormat": "24-hour"
+  "skipAutoPermissionPrompt": true
 }

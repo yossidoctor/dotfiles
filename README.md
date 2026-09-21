@@ -70,7 +70,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 | `PreToolUse: Write`/`Edit` | `warn-existing-occurrence.sh` — on a rule file, hands back the lines already carrying the backticked tokens the edit adds and the first line of every `§` section it cites; context only, never a decision. |
 | `UserPromptSubmit` | `caffeinate-claude.sh` — keeps macOS awake while Claude works. |
 | `Stop` | `caffeinate-claude.sh` — 30-min post-turn linger. `audit-docs-on-stop.sh` — on a turn that edited rule text (CLAUDE.md, skills, agent defs, skill references — not session docs), blocks the stop while the project's `scripts/check-doc-refs.sh` reports a citation that no longer resolves, naming each in the block reason; at most one block per turn. It checks references only: a judgment-bearing audit belongs to a fresh context, per `docs/claude/instructing-claude.md` § 7. |
-| `Notification` | `notify-agent-idle.sh` — macOS banner (via `terminal-notifier`, which macOS can grant) when Claude needs input or a background subagent finishes. |
+| `Notification` | `notify-subagent-done.sh` — macOS banner (via `terminal-notifier`, which macOS can grant) when a background subagent finishes. "Waiting for input" and turn-complete banners are Claude Code's own, through `preferredNotifChannel: ghostty`, which carries the session title. |
 
 ### Permissions
 

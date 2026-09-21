@@ -1,12 +1,14 @@
 #!/bin/bash
-# Notification hook: macOS banner when Claude needs input or a background
-# subagent finishes — both are easy to miss once you've alt-tabbed away.
+# Notification hook: macOS banner when a background subagent finishes — easy
+# to miss once you've alt-tabbed away, and the one event Claude Code's own
+# notifier does not cover. "Waiting for input" and turn-complete banners are
+# Claude Code's own, through preferredNotifChannel in settings.json, and carry
+# the session title; a second banner from here would only double them.
 #
 # The payload names the kind in `notification_type`; the settings.json matcher
 # is a filter on the harness side and is never echoed into the input. Handled:
-# agent_completed (a backgrounded Agent call finished) and idle_prompt (Claude
-# is waiting on you). Every other type passes through silently — not every
-# notification warrants an OS banner.
+# agent_completed (a backgrounded Agent call finished). Every other type passes
+# through silently.
 #
 # The banner goes through terminal-notifier (brew/Brewfile): it ships as its
 # own app bundle, so it appears in System Settings › Notifications and can be
@@ -20,17 +22,13 @@ set -u
 
 hook_read_raw
 case "$HOOK_INPUT" in
-  *agent_completed*|*idle_prompt*) ;;
+  *agent_completed*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
+[ "$HOOK_NOTIFICATION_TYPE" = agent_completed ] || exit 0
 message="${HOOK_MESSAGE:-Claude Code}"
-
-case "$HOOK_NOTIFICATION_TYPE" in
-  agent_completed) title="Claude — subagent done" ;;
-  idle_prompt) title="Claude — needs input" ;;
-  *) exit 0 ;;
-esac
+title="Claude — subagent done"
 
 if command -v terminal-notifier >/dev/null; then
   terminal-notifier -title "$title" -message "$message" -group "claude-${HOOK_SESSION_ID:-default}" >/dev/null 2>&1
