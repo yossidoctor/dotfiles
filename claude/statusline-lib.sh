@@ -13,10 +13,22 @@
 #     as less urgent once the channels bottom out.
 #   alarm_rgb <pct> <alarm>
 #     the pill ground as "r g b", shared by the badge body and its end-caps.
+#   glyph_for_pct <pct>
+#     one Block Elements cell, ▁ through █ in eight 12.5% steps.
 
 # Marks the account cswap is currently on. Single-column, so it occupies the same
-# width as the blank the inactive rows carry there.
+# width as the blank the inactive rows carry there; g_stale replaces either when
+# the usage cache is older than 15 minutes.
 g_active='●'
+g_stale='◌'
+
+meter_glyphs=('▁' '▂' '▃' '▄' '▅' '▆' '▇' '█')
+glyph_for_pct() {
+  local i=$(( $1 * 8 / 100 ))
+  [ "$i" -gt 7 ] && i=7
+  [ "$i" -lt 0 ] && i=0
+  printf '%s' "${meter_glyphs[i]}"
+}
 
 # Prefixes a color rather than replacing it, so the attribute rides whatever
 # role follows it.
