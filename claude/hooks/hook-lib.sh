@@ -60,9 +60,6 @@
 #                     it from the start on every ${s:$i:1}, four times the cost.
 #   hook_abspath <path>
 #                     absolutize against HOOK_CWD (leading ~ expanded)
-#   hook_rule_roots   the repositories the deployed rule files live in, one per
-#                     line: the one behind ~/.claude/CLAUDE.md and the one behind
-#                     the project's CLAUDE.md ($CLAUDE_PROJECT_DIR, else HOOK_CWD)
 #   decide <verdict> <reason> / deny <reason> / ask <reason>
 #                     emit the PreToolUse decision JSON and exit 0
 #   additional_context <event-name> <msg>
@@ -178,15 +175,6 @@ hook_abspath() {
     "~"|"~/"*) printf '%s' "${1/#\~/$HOME}" ;;
     *) printf '%s' "${HOOK_CWD:-$PWD}/$1" ;;
   esac
-}
-
-hook_rule_roots() {
-  local f real
-  for f in "$HOME/.claude/CLAUDE.md" "${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}/CLAUDE.md"; do
-    [ -e "$f" ] || continue
-    real=$(readlink -f "$f" 2>/dev/null) || continue
-    git -C "$(dirname "$real")" rev-parse --show-toplevel 2>/dev/null
-  done | sort -u
 }
 
 decide() {  # $1=allow|ask|deny  $2=reason

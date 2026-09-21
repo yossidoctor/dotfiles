@@ -15,6 +15,13 @@
 #     the pill ground as "r g b", shared by the badge body and its end-caps.
 #   glyph_for_pct <pct>
 #     one Block Elements cell, ▁ through █ in eight 12.5% steps.
+#   ctx_warm_default / ctx_bold_default
+#     the context-percentage ramp's warm and bold rungs for every model but
+#     Sonnet, read by both statusline scripts; Sonnet's wider window has its own
+#     rungs in statusline-command.sh.
+
+ctx_warm_default=25
+ctx_bold_default=40
 
 # Marks the account cswap is currently on. Single-column, so it occupies the same
 # width as the blank the inactive rows carry there; g_stale replaces either when

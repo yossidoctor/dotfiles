@@ -76,7 +76,7 @@ fi
 if [ -n "$used_pct" ]; then
   case "$model" in
     *Sonnet*|*sonnet*) warm_start=45; bold_start=65; alarm=80 ;;
-    *)                 warm_start=25; bold_start=40; alarm=50 ;;
+    *)                 warm_start=$ctx_warm_default; bold_start=$ctx_bold_default; alarm=50 ;;
   esac
   ctx_color=$(ramp_color "$used_pct" "$warm_start" "$bold_start" "" "$alarm")
   if [ "$used_pct" -ge "$alarm" ]; then

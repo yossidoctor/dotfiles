@@ -106,7 +106,7 @@ EOF
 checker="${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}/scripts/check-doc-refs.sh"
 [ -x "$checker" ] || exit 0
 
-refs=$("$checker" 2>/dev/null | grep -E '^  (BROKEN|WARN|MISFILED|LINENO|NOSYM|NOFILE) ')
+refs=$("$checker" 2>/dev/null | grep -E '^  [A-Z]+  ')
 [ -n "$refs" ] || exit 0
 
 fp_file="/tmp/claude-docs-audited-${HOOK_SESSION_ID:-default}.fp"
