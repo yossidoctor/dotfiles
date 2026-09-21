@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Homebrew Maintenance Script
 #
@@ -13,6 +13,12 @@
 # Continues on per-step failure and reports at the end. `brew update` failure
 # is special: it doesn't abort, but flags the run STALE because all later
 # steps would be operating on out-of-date tap metadata.
+#
+# The drift check reads every Brewfile under ~/.config/homebrew/Brewfile.d/ as
+# one set (each layer links its own there; this repo's is 00-base), because a
+# formula one layer declares is drift against the other layer's file alone.
+# `bundle cleanup` runs without --force and with stdin closed, so it lists what
+# no Brewfile declares and removes nothing.
 
 . "$HOME/dotfiles/brew/env.sh"
 
@@ -66,13 +72,28 @@ DOCTOR_EXIT=$?
 [ "$DOCTOR_EXIT" -ne 0 ] && WARNINGS+=("brew doctor reported issues (exit $DOCTOR_EXIT)")
 echo
 
-echo "→ Brewfile drift check (informational)..."
-if [ -f "$HOMEBREW_BUNDLE_FILE" ]; then
-    if ! brew bundle check --verbose; then
-        WARNINGS+=("Brewfile drift vs $HOMEBREW_BUNDLE_FILE")
+echo "→ Known vulnerabilities in installed formulae..."
+if ! brew vulns; then
+    WARNINGS+=("brew vulns reported advisories or failed")
+fi
+echo
+
+echo "→ Brewfile drift, every layer's Brewfile as one set (informational)..."
+brewfiles=("$HOME"/.config/homebrew/Brewfile.d/*)
+if [ -e "${brewfiles[0]}" ]; then
+    union=$(mktemp)
+    cat "${brewfiles[@]}" > "$union"
+    if ! brew bundle check --verbose --file "$union"; then
+        WARNINGS+=("declared in a Brewfile but not installed")
     fi
+    cleanup_report=$(brew bundle cleanup --file "$union" </dev/null 2>&1)
+    case "$cleanup_report" in
+        *"Would "*) printf '%s\n' "$cleanup_report"; WARNINGS+=("installed but declared in no Brewfile") ;;
+        *) echo "  (nothing installed outside the Brewfiles)" ;;
+    esac
+    rm -f "$union"
 else
-    echo "  (Brewfile not found at $HOMEBREW_BUNDLE_FILE)"
+    echo "  (no Brewfiles under ~/.config/homebrew/Brewfile.d — run ./install)"
 fi
 echo
 
