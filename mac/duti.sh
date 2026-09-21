@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Default app bindings via LaunchServices. Idempotent — safe to re-run.
 # No `set -e`: a single unknown UTI shouldn't abort the rest of the bindings.
 
@@ -18,7 +18,17 @@ VLC="org.videolan.vlc"
 # LaunchServices cross-promote that app into the http(s) slot, taking the default
 # browser with it. Unbound, HTML opens in the system browser and is edited via
 # Open-With — never add it to the VS Code lists below.
-bind() { duti -s "$1" "$2" "${3:-editor}" || echo "  skip: $2 (no LaunchServices entry)"; }
+#
+# macOS 27 may answer a scripted default-app change with a prompt and keep the
+# previous handler when it is dismissed, while `duti -s` still exits 0, so the
+# binding is read back and a mismatch is reported instead of trusted.
+bind() {
+  duti -s "$1" "$2" "${3:-editor}" || { echo "  skip: $2 (no LaunchServices entry)"; return; }
+  case "$2" in
+    .*) [ "$(duti -x "${2#.}" 2>/dev/null | sed -n '3p')" = "$1" ] \
+          || echo "  kept: $2 still opens with $(duti -x "${2#.}" 2>/dev/null | sed -n '3p') — accept the macOS prompt and re-run" ;;
+  esac
+}
 
 # ── VS Code: code ──
 for ext in py js ts tsx jsx go rs rb lua zsh sh; do
