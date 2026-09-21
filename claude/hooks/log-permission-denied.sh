@@ -15,6 +15,9 @@ set -u
 
 . "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
 
+hook_read_raw
+[ -n "$HOOK_INPUT" ] || exit 0
+
 log="${XDG_CACHE_HOME:-$HOME/.cache}/claude/permission-denied.jsonl"
 mkdir -p "${log%/*}"
 
@@ -22,7 +25,6 @@ if [ -f "$log" ] && [ "$(/usr/bin/stat -f%z "$log")" -gt 1048576 ]; then
   /usr/bin/tail -n 2000 "$log" > "$log.tmp" && /bin/mv -f "$log.tmp" "$log"
 fi
 
-hook_read_raw
 printf '%s' "$HOOK_INPUT" | jq -c '{
   at: (now | todate),
   session: (.session_id // ""),
