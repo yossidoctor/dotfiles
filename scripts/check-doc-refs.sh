@@ -14,7 +14,9 @@
 #      deployed global skills (~/.claude/skills) or the deployed hooks (~/.claude/hooks)
 #   1b a `skills/<dir>/<file>` path cited by live config resolves as a path under
 #      some skill tree, so a moved file with a surviving basename still surfaces;
-#      hook tests/ are excluded because their fixtures cite absent paths on purpose
+#      hook tests/ are excluded because their fixtures cite absent paths on
+#      purpose, and dated session docs (`YYYY-MM-DD-*.md`) because they are
+#      snapshots of the tree at their date and a path that moved since is history
 #   1c a bare `references/<file>` cite resolves inside the citing skill; a line
 #      naming a different skill on the roster is citing outward and is skipped
 #   2  every install.conf.yaml `link:` source exists (scalar `~/dest: src`, mapped
@@ -99,7 +101,7 @@ if [ -s "$TMP/rep_files" ]; then cat "$TMP/rep_files"; fail=1; else echo "  ok â
 echo "== skill paths (directory-aware) =="
 { printf '%s\n' "$ROOT"/claude "$ROOT"/scripts "$ROOT"/docs; git -C "$ROOT" ls-files -- 'CLAUDE.md' '*/CLAUDE.md' 2>/dev/null | sed "s|^|$ROOT/|"; } \
   | while IFS= read -r p; do [ -e "$p" ] && printf '%s\n' "$p"; done \
-  | xargs grep -rhoE --exclude-dir=tests 'skills/[a-z0-9_-]+/[A-Za-z0-9_/.-]+\.(sh|md)' 2>/dev/null \
+  | xargs grep -rhoE --exclude-dir=tests --exclude='20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md' 'skills/[a-z0-9_-]+/[A-Za-z0-9_/.-]+\.(sh|md)' 2>/dev/null \
   | sed -E 's|.*(skills/)|\1|' | sort -u \
   | while IFS= read -r p; do
       path_exists "$p" || echo "  BROKEN  $p  (no such path under any skills tree)"
