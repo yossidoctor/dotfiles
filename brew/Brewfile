@@ -1,6 +1,9 @@
 # ── taps ──────────────────────────────────────────────────────────
-tap "felixkratz/formulae"           # tap for borders
-tap "nikitabobko/tap"               # tap for aerospace
+# `trusted:` names the one item taken from each tap; `brew bundle cleanup` resets
+# the global trust store to what a Brewfile declares, so trust granted only from
+# a shell would not survive it.
+tap "felixkratz/formulae", trusted: { formula: "borders" }
+tap "nikitabobko/tap", trusted: { cask: "aerospace" }
 
 # ── shell & prompt ─────────────────────────────────────────────────
 brew "fzf"                          # backs fzf-tab and Ctrl-R/Ctrl-T bindings
@@ -25,11 +28,18 @@ brew "dotbot"                       # dotfiles symlink bootstrapper
 brew "gh"                           # GitHub CLI
 brew "git"                          # version control
 brew "git-delta"                    # syntax-highlighted, side-by-side git diff pager
+brew "git-absorb"                   # routes staged fixup hunks into the commits that introduced the lines
 brew "git-filter-repo"              # history rewriting — path/blob removal across all commits
+brew "gitleaks"                     # secret scan over the staged diff — git/hooks/pre-commit runs it
 brew "hyperfine"                    # benchmarking with warmup + deviation; SoT for any timing claim
 brew "jq"                           # JSON query/build — the hook-path JSON tool
+brew "mergiraf"                     # syntax-aware git merge driver — git/config [merge "mergiraf"], git/attributes
 brew "shellcheck"                   # static analysis for the repo's bash scripts
 brew "tlrc"                         # crowd-sourced example-first command help
+
+# ── data & http ────────────────────────────────────────────────────
+brew "duckdb"                       # SQL over CSV/JSON/NDJSON files in place — log and export analysis
+brew "hurl"                         # HTTP requests + assertions as plain-text files, CI exit codes
 
 # ── languages & runtime ────────────────────────────────────────────
 brew "fnm"                          # Fast Node Manager — per-dir Node via .nvmrc (zshrc auto-switch)
@@ -45,6 +55,10 @@ cask "appcleaner"                   # uninstaller that also removes app support 
 brew "duti"                         # set macOS default apps per file type / URL scheme
 cask "karabiner-elements"           # low-level keyboard remapping
 cask "notunes"                      # blocks Apple Music from auto-launching
+brew "terminal-notifier"            # notification banners from scripts; ships as an app bundle macOS can grant, which osascript from a terminal cannot be
+# Raycast runs from its Beta channel ("Raycast Beta.app", installed from raycast.com);
+# no cask ships that channel and `cask "raycast"` would add a second, stable copy.
+# It owns ⌘Space: mac/defaults.sh unbinds Spotlight, mac/disable-spotlight.sh stops the indexer.
 cask "vorssaint"                    # menu bar toolkit
 
 # ── window management ──────────────────────────────────────────────
@@ -54,6 +68,7 @@ cask "betterdisplay"
 brew "borders"                      # JankyBorders — colored outline on the AeroSpace-focused window
 
 # ── gui apps ───────────────────────────────────────────────────────
+cask "affinity"                     # Affinity photo/design suite
 cask "claude-code@latest"
 cask "expressvpn"
 cask "font-jetbrains-mono-nerd-font" # JetBrains Mono + Nerd Font glyphs
@@ -61,6 +76,7 @@ cask "ghostty"                      # GPU-accelerated terminal emulator
 cask "linear"
 cask "slack"
 cask "spotify"
+cask "stremio"                      # media streaming client
 cask "transmission"                 # BitTorrent client
 cask "visual-studio-code"
 cask "vlc"
