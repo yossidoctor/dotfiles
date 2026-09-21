@@ -82,18 +82,31 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 ### Statusline (`claude/statusline-command.sh`)
 
 ```
-model  ctx%  (effort: High)  [bypass]
-● <email local-part>   5h ▰▰▱▱▱  26% (03h 21m)   7d ▰▰▰▱▱  65% (06h 41m)   <scoped> ▰▰▰▰▰  92%
-  <email local-part>   5h …                                                        stale
+model  [∘]ctx%  ·High  [bypass]
+● <email local-part>  5h ▰▰▱▱▱  26% 3h21m   7d ▰▰▰▱▱  65% 6h41m   <scoped> ▰▰▰▰▰  92%
+  <email local-part>  5h ▱▱▱▱▱   0%        7d ▱▱▱▱▱   0% 6d18h   <scoped> ▱▱▱▱▱   0%
 ```
 
-Header line, then one row per claude-swap account. Colors are the Catppuccin roles in `starship/starship.toml`, cached in `claude/statusline-lib.sh` together with the shared color ramp. No cwd, scope, or git state — the line is workspace-agnostic.
+Header line, then one row per claude-swap account, always. Colors are the Catppuccin roles in `starship/starship.toml`, cached in `claude/statusline-lib.sh` together with the shared color ramp. No cwd, scope, or git state — the line is workspace-agnostic.
 
-Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active number from `sequence.json`), parsed by one `jq` pass: `●` on the active account, the email's local-part padded to 6, then a 5h meter, a 7d meter, and the scoped per-model meter when present — each a 5-cell bar, percentage, and reset countdown. Inactive rows are faded. `stale` marks a cache older than 15 minutes, and a stale cache kicks `cswap auto --once --dry-run` in the background at most once per 2 minutes. The rows are absent when claude-swap isn't installed or has no cache; run `cswap list` for the registered accounts and their quotas.
+Claude Code sets `COLUMNS` before running the script, and the width picks how every account row draws its meters (the line count never changes):
+
+```
+FORM    COLUMNS   ROW                                                    WIDTH
+-----   -------   ----------------------------------------------------   -----
+BARS    ≥ 70      5h ▰▱▱▱▱  20% 3h18m   7d ▰▱▱▱▱  10% 6d08h   Fable ▰▱▱▱▱  15%   70
+GLYPH   ≥ 50      5h ▂20% 3h18m  7d ▁10% 6d08h  Fable ▂15%                 50
+BARE    ≥ 38      ▂20% 3h18m  ▁10% 6d08h  ▂15%                             38
+TIGHT   < 38      ▂20% ▁10% ▂15%                                           24
+```
+
+`COLUMNS` unset means BARS. The one-cell meter is `glyph_for_pct` in the lib: `▁` through `█` in eight 12.5% steps. Countdowns read `3h18m` below a day and `6d08h` above, left-justified in a 6-column slot so the meters align across rows; the scoped meter carries none (in the cache it equals the 7d reset). Percentages never drop.
+
+Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active number from `sequence.json`), parsed by one `jq` pass: `●` on the active account, the email's local-part padded to 6, then a 5h meter, a 7d meter, and the scoped per-model meter when present. The active row's 5h and 7d numbers are overridden by the payload's `rate_limits`, which refresh on every API response; the cache still supplies the scoped meter and every inactive account. Inactive rows are faded. `◌` replaces the marker when the cache is older than 15 minutes, and a stale cache kicks `cswap auto --once --dry-run` in the background at most once per 2 minutes. Without claude-swap the single row is the payload's own `rate_limits`, unmarked; with neither, the header stands alone. Run `cswap list` for the registered accounts and their quotas.
 
 What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent (generated from `$HOME` and installed idempotently by `claude/cswap-auto.sh`, a `./install` shell step): it runs `cswap auto --model all` (the script is the SoT for the arguments; per-model weekly windows count alongside the account-wide 5h/7d ones), kept alive across logout and reboot, rotating to the account with the most quota left once the active one hits `cswap`'s default 90% threshold. Actual switches land in `cswap`'s own 1MB-rotated `~/.claude-swap-backup/claude-swap.log`; the per-minute "no switch, below threshold" ticks go to `/dev/null` rather than an unrotated file that grows a line a minute forever. The agent's stderr is kept in `auto-stderr.log` beside the rotated log, so a crash-loop leaves evidence. `launchctl list | grep cswap` shows whether it's running. Registering an account is manual and interactive (`cswap add`) — it never runs from `./install`.
 
-Context pct rides `ramp_color`: muted grey below the warm threshold, red deepening to bold, and from the alarm threshold a filled white-on-red pill (a deeper foreground red stops reading as more urgent once the channels bottom out). Thresholds warm/bold/alarm: 25/40/50 by default, 45/65/80 for Sonnet. Account meters use the muted ramp at 40/70 (softer red, no bold, no pill). `(effort: Low|Mid|High|XHi|Max)` (muted) shows the current reasoning-effort level; unmapped values pass through raw; absent when the model doesn't support the effort parameter. `bypass` badge (red) shows only in bypass-permissions mode. Render cost, `hyperfine -N` 20 runs with two accounts: 31.0 ± 0.5 ms.
+Context pct rides `ramp_color`: muted grey below the warm threshold, red deepening to bold, and from the alarm threshold a filled white-on-red pill (a deeper foreground red stops reading as more urgent once the channels bottom out). Thresholds warm/bold/alarm: 25/40/50 by default, 45/65/80 for Sonnet. Account meters use the muted ramp at 40/70 (softer red, no bold, no pill). A muted `∘` precedes ctx% when the payload's `prompt_cache.warm` is false, so the next turn pays a rebuild. `·Low|Mid|High|XHi|Max` (muted) shows the current reasoning-effort level; unmapped values pass through raw; absent when the model doesn't support the effort parameter. `bypass` badge (red) shows only in bypass-permissions mode. Render cost, `hyperfine -N` 20 runs with two accounts: 30.4 ± 0.4 ms.
 
 ### Subagent statusline (`claude/subagent-statusline.sh`)
 
