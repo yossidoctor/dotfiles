@@ -44,7 +44,7 @@
     ~/.claude/hooks/audit-docs-on-stop.sh: claude/hooks/audit-docs-on-stop.sh
     ~/.claude/hooks/ask-matt-banner.sh: claude/hooks/ask-matt-banner.sh
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
-    ~/.claude/hooks/notify-agent-idle.sh: claude/hooks/notify-agent-idle.sh
+    ~/.claude/hooks/notify-subagent-done.sh: claude/hooks/notify-subagent-done.sh
     # the test harness ships too: a project layer's hook tests exec it here
     ~/.claude/hooks/tests: claude/hooks/tests
     ~/.claude/skills: claude/skills
