@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # PreToolUse Edit|Write hook: when the target is a rule file, hand back the lines
 # where the tokens the edit adds already live, and the first line of every section
 # the edit cites. Context only — never a decision.
@@ -8,8 +8,8 @@
 # are properties of the whole file, and neither is visible in the Edit that adds the
 # second copy — the other occurrence is out of view when the sentence is written.
 # Putting that occurrence in view at the moment of the Edit is the whole mechanism;
-# CLAUDE.md § Strict single SoT and § Every behavioral rule carries three roles say
-# what to do with it.
+# CLAUDE.md § Strict single SoT and ~/.claude/rules/instructional-text.md § Every
+# behavioral rule carries three roles say what to do with it.
 #
 # Tokens are the backticked spans of new_string that old_string does not already
 # carry, grepped against the file on disk with old_string's own lines excluded. A
@@ -45,7 +45,7 @@ real=$(realpath "$HOOK_FILE_PATH" 2>/dev/null) || real="$HOOK_FILE_PATH"
 case "$real" in
   */CLAUDE.md) ;;
   */claude/*|*/.claude/*)
-    case "$real" in */skills/*|*/agents/*) ;; *) exit 0 ;; esac ;;
+    case "$real" in */skills/*|*/agents/*|*/rules/*) ;; *) exit 0 ;; esac ;;
   *) exit 0 ;;
 esac
 

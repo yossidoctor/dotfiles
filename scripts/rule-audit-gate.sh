@@ -1,10 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Commit gate: a staged rule file needs an audit receipt naming its exact
 # content, or the commit stops. Shared by every rule repo's pre-commit hook —
 # it takes the repo root and knows nothing else.
 #
 # Rule files are behavioural text: CLAUDE.md, a skill, an agent definition, a
-# reference a skill ships. They bind every later session, and a defect in one
+# rules file, a reference a skill ships. They bind every later session, and a defect in one
 # is read as intent by every session after it. Session docs, READMEs and code
 # are out of scope.
 #
@@ -35,7 +35,7 @@ root="${1:?usage: rule-audit-gate.sh <repo-root>}"
 # Staged rule files. A skill's own scripts count: a skill and the script it
 # names are one instruction.
 staged=$(git -C "$root" diff --cached --name-only --diff-filter=ACMR \
-  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|output-styles)/.*\.(md|sh)$' \
+  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|rules|output-styles)/.*\.(md|sh)$' \
   || true)
 [ -n "$staged" ] || exit 0
 
@@ -57,7 +57,11 @@ receipt="$root/.git/rule-audit-receipt"
 # staging no file outside that set passes, and staging a new one does not.
 if [ -f "$receipt" ] && [ "$(head -1 "$receipt" 2>/dev/null)" = "advisory" ]; then
   covered=$(tail -n +2 "$receipt" 2>/dev/null)
-  outside=$(printf '%s\n' "$staged" | grep -Fxv -f <(printf '%s\n' "$covered") 2>/dev/null || true)
+  nl=$'\n'
+  outside=$(printf '%s\n' "$staged" | while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [[ "$nl$covered$nl" == *"$nl$f$nl"* ]] || printf '%s\n' "$f"
+  done)
   [ -z "$outside" ] && exit 0
 fi
 

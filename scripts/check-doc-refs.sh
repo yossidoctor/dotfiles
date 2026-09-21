@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # check-doc-refs — do the things a config repo's docs point at exist?
 #
 # Usage:  check-doc-refs [--strict] [<root>]
@@ -21,8 +21,8 @@
 #      `path: src`, `glob:` parent dir); `~`-prefixed and absolute sources resolve
 #      as written
 #   3  a `§ Section` cite prefix-matches a heading or a `- **Bold lead**` in the rule
-#      text: the root's CLAUDE.mds, skills, agents and output-styles, plus the
-#      deployed ~/.claude/CLAUDE.md, skills and output-styles
+#      text: the root's CLAUDE.mds, skills, agents, rules and output-styles, plus
+#      the deployed ~/.claude/CLAUDE.md, skills, rules and output-styles
 #
 # The skill trees are every claude/*/skills and claude/skills directory under the
 # root plus ~/.claude/skills, deduplicated by physical path, so the global layer's
@@ -59,7 +59,7 @@ for d in "$ROOT"/claude/skills "$ROOT"/claude/*/skills "$HOME/.claude/skills"; d
 RULE_TEXT=()
 add_rule() { local t; t=$(readlink -f "$1" 2>/dev/null) || return 0; [ -e "$t" ] || return 0; case " ${RULE_TEXT[*]:-} " in *" $t "*) ;; *) RULE_TEXT+=("$t") ;; esac; }
 while IFS= read -r f; do add_rule "$ROOT/$f"; done < <(git -C "$ROOT" ls-files -- 'CLAUDE.md' '*/CLAUDE.md' 2>/dev/null)
-for d in "${SKILL_TREES[@]}" "$ROOT"/claude/agents "$ROOT"/claude/*/agents "$ROOT"/claude/output-styles "$ROOT"/claude/*/output-styles "$HOME/.claude/output-styles" "$HOME/.claude/CLAUDE.md"; do add_rule "$d"; done
+for d in "${SKILL_TREES[@]}" "$ROOT"/claude/agents "$ROOT"/claude/*/agents "$ROOT"/claude/rules "$ROOT"/claude/*/rules "$ROOT"/claude/output-styles "$ROOT"/claude/*/output-styles "$HOME/.claude/rules" "$HOME/.claude/output-styles" "$HOME/.claude/CLAUDE.md"; do add_rule "$d"; done
 
 fail=0
 warn=0

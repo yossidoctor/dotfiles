@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Audit the staged rule files in a repo, in a Claude session that did not write
 # them, and record a receipt on a clean pass.
 #
@@ -9,11 +9,10 @@
 # `claude -p`, which starts clean: no memory of the edits, no reasoning that
 # produced them, nothing to defend.
 #
-# It reads whole files, never a diff. Two of the defect classes that motivated
-# this gate are invisible in a diff: a line the turn did not touch but whose
-# meaning the change broke, and a file the change never edited at all but whose
-# claims it falsified. So the input is every staged rule file, plus the closure
-# — every rule file they cite, and every rule file that cites them.
+# It reads whole files, never a diff; the prompt below says why. The input is
+# every staged rule file plus its closure: every tracked file they cite, and
+# every tracked file that cites them — a README row or a hook header that
+# describes a staged rule is where a falsified claim sits.
 #
 # Usage:  rule-audit.sh <repo-root>
 # Exit:   0 clean, receipt written · 1 findings printed, no receipt · 2 usage
@@ -21,6 +20,12 @@
 # The receipt keys on staged content (rule-audit-gate.sh owns its shape), so
 # editing anything afterwards re-arms the gate. There is no way to assert a
 # pass this script did not produce.
+#
+# The audit session runs RUN-the-script checks, so it needs a working Bash
+# tool. Launched from inside a sandboxed Claude Code session, its own sandbox
+# cannot bind its socket, and the global failIfUnavailable would leave it
+# with no shell at all; the --settings override lets that one session fall
+# back to unsandboxed Bash with the usual warning instead.
 
 set -uo pipefail
 
@@ -28,7 +33,7 @@ root="${1:?usage: rule-audit.sh <repo-root>}"
 command -v claude >/dev/null || { echo "rule-audit: claude not on PATH" >&2; exit 2; }
 
 staged=$(git -C "$root" diff --cached --name-only --diff-filter=ACMR \
-  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|output-styles)/.*\.(md|sh)$' \
+  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|rules|output-styles)/.*\.(md|sh)$' \
   || true)
 [ -n "$staged" ] || { echo "rule-audit: nothing staged in scope."; exit 0; }
 
@@ -45,15 +50,19 @@ closure=$(
   done | sed "s|^$root/||" | sort -u
 )
 
-# Keep only real rule files in this repo, minus the staged ones themselves.
+# Keep the files that exist in this repo, minus the staged ones themselves.
+# Membership is a pattern match over the staged list: a process substitution
+# or a temp file is closed to the sandboxed Bash-tool call this script runs
+# from, and bash 3.2 cannot parse a `case` pattern's `)` inside `$( )`.
+nl=$'\n'
 related=$(
   printf '%s\n' "$closure" | while IFS= read -r c; do
     [ -n "$c" ] || continue
     c=${c#./}
     [ -f "$root/$c" ] || continue
+    [[ "$nl$staged$nl" == *"$nl$c$nl"* ]] && continue
     printf '%s\n' "$c"
-  done | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|output-styles)/.*\.(md|sh)$' \
-    | sort -u | comm -23 - <(printf '%s\n' "$staged" | sort -u) || true
+  done | sort -u
 )
 
 prompt=$(cat <<EOF
@@ -72,8 +81,9 @@ RELATED (cite the staged files, or are cited by them — read these too, and
 check that every claim they make about a staged file still holds):
 $(printf '%s\n' "$related" | sed "s|^|  $root/|" | head -40)
 
-Judge each staged file against $HOME/.claude/CLAUDE.md § Hard rules — open it
-and work through the rules rather than recalling them. Then, specifically:
+Judge each staged file against $HOME/.claude/CLAUDE.md § Hard rules and the
+surface-scoped rules in $HOME/.claude/rules/ — open them and work through the
+rules rather than recalling them. Then, specifically:
 
 1. Any statement about how a script behaves: RUN that script and check. Two
    false claims of exactly this kind shipped in one session because nobody
@@ -108,7 +118,7 @@ EOF
 
 n_staged=$(printf '%s\n' "$staged" | grep -c . || true)
 echo "rule-audit: auditing $n_staged staged rule files in a fresh session..."
-out=$(claude -p "$prompt" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
+out=$(claude -p "$prompt" --settings '{"sandbox":{"failIfUnavailable":false}}' 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
 printf '%s\n' "$out"
 
 # A style finding does not withhold the receipt. The bar "zero findings" is
