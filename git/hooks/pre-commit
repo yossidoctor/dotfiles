@@ -34,7 +34,12 @@ fi
 
 case "$root" in "$HOME/dotfiles") ;; *) exit 0 ;; esac
 
-if hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@dono\.ai|donofiles' -- . ':!git/hooks/pre-commit' 2>/dev/null) && [ -n "$hits" ]; then
+hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@dono\.ai|donofiles' -- . ':!git/hooks/pre-commit') && rc=0 || rc=$?
+if [ "$rc" -gt 1 ]; then
+  echo "pre-commit: the private-term scan itself failed (git grep exit $rc) — a scan that did not run is not a clean scan." >&2
+  exit 1
+fi
+if [ -n "$hits" ]; then
   printf '%s\n' "$hits" >&2
   echo "pre-commit: the staged tree names a private layer or an employer term (above) — this repo is public." >&2
   exit 1

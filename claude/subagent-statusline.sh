@@ -2,6 +2,7 @@
 # The right column is padded on ${#…}, which counts bytes under a C locale;
 # `↓` and `·` are multibyte, so the row would land three columns short.
 export LC_ALL=en_US.UTF-8
+set -u
 input=$(cat)
 
 . "$(dirname "$0")/statusline-lib.sh"
@@ -28,7 +29,7 @@ us=$'\x1f'
   while IFS=$'\x1f' read -r id desc model tokens window start_ms; do
 
     pct=$(( tokens * 100 / window ))
-    color=$(ramp_color "$pct" 25 40)
+    color=$(ramp_color "$pct" "$ctx_warm_default" "$ctx_bold_default")
 
     mdl=""; [ -n "$model" ] && mdl="$(short_model "$model") "
     ela=""; [ "$start_ms" -gt 0 ] && ela="$(fmt_elapsed $(( (now_ms - start_ms) / 1000 ))) · "
