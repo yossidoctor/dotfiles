@@ -264,7 +264,7 @@
   "autoContinueAtUsageLimit": false,
   "autoScrollEnabled": false,
   "remoteControlAtStartup": true,
-  "crossSessionInbound": "notice",
+  "crossSessionInbound": "hold",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
