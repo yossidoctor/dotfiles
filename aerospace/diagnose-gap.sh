@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Evidence capture for a visible tiling gap (empty half-screen / sliced
 # layout). Run it THE MOMENT a gap is on screen — it separates the three
 # #1615 failure modes documented in docs/aerospace/RETILE-DELAY.md:

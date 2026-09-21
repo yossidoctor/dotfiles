@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 input=$(cat)
 
 . "$(dirname "$0")/statusline-lib.sh"

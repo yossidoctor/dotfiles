@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # PreToolUse Read|Edit|Write hook: deny when file_path is a symlink, or traverses
 # a symlinked directory whose physical home is inside a git repository, and name
 # the real path to retry with. Backstop for the global CLAUDE.md rule (§ Workspace

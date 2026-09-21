@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Idempotent LaunchAgent install — re-runnable on every ./install.
 # Keeps `cswap auto` alive so account rotation survives logout/reboot rather
 # than living in whatever terminal happened to start it. Skips entirely when

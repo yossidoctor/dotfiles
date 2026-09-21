@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Keep macOS awake while Claude is working.
 #
 # UserPromptSubmit -> `active`: caffeinate while Claude generates (1h bound).

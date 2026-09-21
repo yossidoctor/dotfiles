@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # PreToolUse Bash hook: block reading a file through the shell when the Read tool
 # is the right instrument — `sed -n '<a>,<b>p' <file>` and `cat <file>`. Read takes
 # offset/limit natively, registers the file so a follow-up Edit can target it, and

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Restore an app's preferences from a tracked plist — re-runnable on every ./install.
 #
 # Usage: plist-restore.sh <ProcessName> <defaults-domain> <plist>

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # PreToolUse Bash hook: block a `git add` that stages by sweep rather than by
 # path — `-A`, `--all`, `-u`, and the tree-wide operands `.`, `./`, `..`,
 # `../`, `:/`, `:(top)`.

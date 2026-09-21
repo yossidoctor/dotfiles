@@ -1,0 +1,8 @@
+# Every script here targets macOS /bin/bash 3.2 (README § Script conventions).
+shell=bash
+# Optional checks worth having on a tree this size. check-unassigned-uppercase is
+# not among them: the hooks read HOOK_* variables a sourced prologue assigns, and
+# the check cannot see across that boundary.
+enable=deprecate-which,avoid-nullary-conditions,check-set-e-suppressed
+# hook-lib.sh and statusline-lib.sh are sourced by a path computed at runtime.
+external-sources=true
