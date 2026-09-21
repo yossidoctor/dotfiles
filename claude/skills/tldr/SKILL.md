@@ -1,6 +1,7 @@
 ---
 name: tldr
-description: Shape output for a reader with ADHD — lead with the next action, number multi-step work, restate state every turn, suppress tangents, give concrete time estimates, make wins visible. Use only when the user invokes /tldr or asks for ADHD-shaped or tldr output; it replaces the active output style's compression rules for that reply (STE prose keeps the articles that style drops), so it must not fire on its own.
+description: Shape output for a reader with ADHD — lead with the next action, number multi-step work, restate state every turn, suppress tangents, give concrete time estimates, make wins visible. Invoked as /tldr; it replaces the active output style's compression rules for that reply (STE prose keeps the articles that style drops).
+disable-model-invocation: true
 ---
 
 # tldr
@@ -139,8 +140,6 @@ Before sending, delete:
 2. The last sentence if it asks "anything else?" or recaps what just happened.
 3. Any "by the way" sidebar.
 4. Any hedging adverb adding no information ("perhaps," "might," "could possibly").
-5. Any sentence that breaks STE (rule 10): passive voice, a contraction, or more than 20 words — rewrite it.
-6. Any instruction that depends on repo/git/file state you did not verify THIS turn (rule 12) — verify it or mark it unverified.
 
 Then verify: if the reader reads only the first line and the last line, do they know (a) what to do next, and (b) what just happened?
 
