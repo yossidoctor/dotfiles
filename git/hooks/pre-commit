@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-# Commit gate for ~/dotfiles, three checks.
+#!/bin/bash
+# Commit gate for ~/dotfiles, four checks.
 #
 # First, in every rule repo: scripts/rule-audit-gate.sh refuses a staged rule
 # file that has no audit receipt for its current content. Commit is the right
@@ -14,7 +14,10 @@
 # Then, ~/dotfiles only. This is a public repo, so the staged tree may name no
 # private layer and nothing from the employer's world: the denylist below is
 # the gate, a hit blocks the commit and prints the line, and this file is the
-# one path excluded from its own scan. Last, scripts/check-doc-refs.sh
+# one path excluded from its own scan. gitleaks scans the same staged diff for
+# secret-shaped strings (tokens, keys) — the class GitHub's push protection
+# pattern list misses, and cheaper to stop here than to rotate after a push.
+# Last, scripts/check-doc-refs.sh
 # (deployed as check-doc-refs) fails the commit when a skill cites a file or a
 # `skills/…` path that does not exist, or an install.conf.yaml `link:` names an
 # absent source — the classes that break a fresh clone; § citations only warn.
@@ -34,6 +37,12 @@ case "$root" in "$HOME/dotfiles") ;; *) exit 0 ;; esac
 if hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@dono\.ai|donofiles' -- . ':!git/hooks/pre-commit' 2>/dev/null) && [ -n "$hits" ]; then
   printf '%s\n' "$hits" >&2
   echo "pre-commit: the staged tree names a private layer or an employer term (above) — this repo is public." >&2
+  exit 1
+fi
+
+if command -v gitleaks >/dev/null && ! report=$(gitleaks git --pre-commit --staged --no-banner --redact 2>&1); then
+  printf '%s\n' "$report" >&2
+  echo "gitleaks: the staged diff carries a secret-shaped string (above) — this repo is public." >&2
   exit 1
 fi
 
