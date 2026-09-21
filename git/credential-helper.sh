@@ -17,6 +17,10 @@
 #
 # Git invokes this with verb `get` (creds out) or `store`/`erase` (no-op; gh owns
 # the token store, so those return before reading a single identity file).
+#
+# gh is resolved with a Homebrew fallback because git maintenance's launchd
+# jobs run with launchd's own PATH, which has no /opt/homebrew/bin; without it
+# every hourly prefetch of a private repo fails on "gh auth token".
 
 [ "$1" = "get" ] || exit 0
 
@@ -57,7 +61,8 @@ if [ -z "$L" ]; then
   exit 1
 fi
 
-token=$(gh auth token --user "$L" 2>/dev/null)
+gh_bin=$(command -v gh 2>/dev/null || echo /opt/homebrew/bin/gh)
+token=$("$gh_bin" auth token --user "$L" 2>/dev/null)
 if [ -z "$token" ]; then
   echo "gh auth token failed for user '$L' — run: gh auth login --user $L" >&2
   exit 1
