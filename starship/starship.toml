@@ -79,8 +79,11 @@ disabled = true
 # committing. Compares against the personal email read from its SoT, so no
 # address is mirrored here; anything else is a work identity. `when` defaults
 # to false for a custom module, so it is set; `require_repo` is Starship's own
-# repo test, so no shell is spawned outside one.
+# repo test, so no shell is spawned outside one. `shell` is set because
+# Starship otherwise resolves one itself, at many times the command's own cost
+# (`starship timings` shows the module's share); /bin/sh starts in ~2ms.
 [custom.git_identity]
+shell = ["/bin/sh"]
 command = """
 case "$(git config user.email)" in
   "") echo "?" ;;

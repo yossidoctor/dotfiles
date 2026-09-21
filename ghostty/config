@@ -42,3 +42,8 @@ notify-on-command-finish = unfocused
 
 # ── Performance ───────────────────────────────────────────────────────────────
 scrollback-limit = 40000
+
+# ── Session ───────────────────────────────────────────────────────────────────
+# Restore windows, tabs and splits (geometry and cwd, not the processes) on
+# every relaunch, not only after a forced quit.
+window-save-state = always
