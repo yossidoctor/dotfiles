@@ -1,10 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # hook-lib.sh — shared prologue for the hooks in this directory.
 # Sourced by the sibling hooks; not a hook itself (the test harness discovers
 # only cases-<hook>.txt, so this file needs no case file).
 #
-# Interpreter startup is the dominant cost of the hook layer (global CLAUDE.md
-# § A script on a hot path spends nothing before it knows it has work), so a hook
+# Interpreter startup is the dominant cost of the hook layer (~/.claude/rules/
+# hot-path-scripts.md § A script on a hot path spends nothing before it knows it
+# has work), so a hook
 # reads the raw payload first, gates on a literal `case` over it, and parses only
 # past the gate; the python3 blocks that remain do parsing work the shell cannot.
 # The payload is parsed by jq only: hand-extracting a JSON string with parameter

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Table-driven tests for PreToolUse hooks. Runs the case files in TESTS_DIR
 # (default: this dir) against the hooks in TESTS_DIR's parent; a project-scope
 # runner delegates here through the deployed copy, ~/.claude/hooks/tests/run-tests.sh,
@@ -42,7 +42,7 @@ TESTS_DIR="${TESTS_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)}"
 HOOKS_DIR="$(dirname "$TESTS_DIR")"
 fail=0 total=0
 
-# JSON in and out goes through `jq` (global CLAUDE.md § A script on a hot path):
+# JSON in and out goes through `jq` (~/.claude/rules/hot-path-scripts.md § A script on a hot path):
 # this harness builds a payload and reads a verdict for every one of hundreds of
 # cases, so interpreter startup is the run's dominant cost.
 hook_json() {  # $1=jq filter, remaining args bound as $a1, $a2 -> prints JSON
