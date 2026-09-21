@@ -59,7 +59,6 @@ brew "terminal-notifier"            # notification banners from scripts; ships a
 # Raycast runs from its Beta channel ("Raycast Beta.app", installed from raycast.com);
 # no cask ships that channel and `cask "raycast"` would add a second, stable copy.
 # It owns ⌘Space: mac/defaults.sh unbinds Spotlight, mac/disable-spotlight.sh stops the indexer.
-cask "vorssaint"                    # menu bar toolkit
 
 # ── window management ──────────────────────────────────────────────
 cask "aerospace"                    # i3-style tiling window manager
