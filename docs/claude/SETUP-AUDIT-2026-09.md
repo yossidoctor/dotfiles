@@ -23,7 +23,7 @@ mergiraf merge driver                              git/config, git/attributes
 gitleaks in the commit gate                        git/hooks/pre-commit
 Brewfile tap trust per item                        brew/Brewfile
 brew vulns + union drift over Brewfile.d           brew/brew-maintenance.sh, install.conf.yaml
-duti read-back, terminal-notifier banners          mac/duti.sh, claude/hooks/notify-agent-idle.sh
+duti read-back, subagent-done banner               mac/duti.sh, claude/hooks/notify-subagent-done.sh
 Ghostty window-save-state, Starship module shell   ghostty/config, starship/starship.toml
 #!/bin/bash pinned everywhere, .shellcheckrc       README § Script conventions
 Touch ID sudo, firewall + stealth                  machine state: /etc/pam.d/sudo_local, socketfilterfw
