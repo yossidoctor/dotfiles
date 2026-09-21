@@ -4,12 +4,13 @@
       force: true
 
 # A link whose source left this repo is otherwise left dangling in place.
-- clean: [~/.claude/hooks, ~/.local/bin, ~/.config]
+- clean: [~/.claude/hooks, ~/.local/bin, ~/.config, ~/.config/homebrew/Brewfile.d]
 
 - create:
     - ~/.claude/hooks
     - ~/.local/bin
     - ~/.config/git/identities.d
+    - ~/.config/homebrew/Brewfile.d
     - ~/Library/Application Support/Code/User
 
 - link:
@@ -17,7 +18,10 @@
     ~/.zshrc: zsh/zshrc
     ~/.gitconfig: git/config
     ~/.gitignore_global: git/ignore
+    ~/.gitattributes_global: git/attributes
     ~/.config/git/identities.d/personal.sh: identities.sh
+    # every layer drops its Brewfile here; brew-maintenance reads the union
+    ~/.config/homebrew/Brewfile.d/00-base: brew/Brewfile
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/brew-maintenance: brew/brew-maintenance.sh
     ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
@@ -35,7 +39,8 @@
     ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
     ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/hooks/enforce-read-over-shell-read.sh
-    ~/.claude/hooks/force-background-agents.sh: claude/hooks/force-background-agents.sh
+    ~/.claude/hooks/fill-subagent-model.sh: claude/hooks/fill-subagent-model.sh
+    ~/.claude/hooks/log-permission-denied.sh: claude/hooks/log-permission-denied.sh
     ~/.claude/hooks/audit-docs-on-stop.sh: claude/hooks/audit-docs-on-stop.sh
     ~/.claude/hooks/ask-matt-banner.sh: claude/hooks/ask-matt-banner.sh
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
@@ -43,6 +48,7 @@
     # the test harness ships too: a project layer's hook tests exec it here
     ~/.claude/hooks/tests: claude/hooks/tests
     ~/.claude/skills: claude/skills
+    ~/.claude/rules: claude/rules
     ~/.claude/output-styles: claude/output-styles
     "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
 
@@ -54,6 +60,8 @@
     ~/.config/starship.toml: starship/starship.toml
 
 - shell:
+    - ['mkdir -p ~/.config/git/signing && { [ -f ~/.config/git/signing/personal ] || ssh-keygen -q -t ed25519 -N "" -C "git signing (personal)" -f ~/.config/git/signing/personal; }', Generate the personal git signing key (machine-local; add the .pub to GitHub as a Signing key)]
+    - ['k=~/.config/git/signing/personal.pub; f=~/.config/git/allowed_signers; grep -qsF "$(cut -d" " -f2 "$k")" "$f" || printf "%s %s\n" "$(git config -f git/identity user.email)" "$(cut -d" " -f1,2 "$k")" >> "$f"', Register the personal signing key in the machine-local allowed_signers]
     - [bash mac/defaults.sh || true, Apply macOS system defaults (a TCC-refused write is reported and retried next run)]
     - [bash mac/disable-spotlight.sh || true, Disable Spotlight indexing (needs sudo; skipped if it fails)]
     - [bash mac/duti.sh, Apply duti file-type bindings]
