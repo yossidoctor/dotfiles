@@ -3,6 +3,14 @@
 # `typeset -U path` in zshenv drops the copies path_helper left behind.
 path=("$HOME/.local/bin" "$BREW_PREFIX/bin" "$BREW_PREFIX/sbin" $path)
 
+# History. /etc/zshrc sets SAVEHIST=1000, which drops everything older on every
+# exit. EXTENDED_HISTORY records start time and duration per command;
+# SHARE_HISTORY merges the parallel terminals as they run; a leading space
+# keeps a command out.
+HISTSIZE=100000
+SAVEHIST=100000
+setopt EXTENDED_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS
+
 # Completion. Homebrew's site-functions go on fpath first: the system zsh does
 # not look there, and it is where brew formulae ship their completions (gh,
 # eza, fd, rg, aerospace, uv, …). -C trusts the existing dump instead of
@@ -48,7 +56,7 @@ command -v zoxide >/dev/null && eval "$(zoxide init zsh)"   # adds `z` / `zi`; l
 claude() {
   local rules="$HOME/.claude/CLAUDE.md"
   if [[ -r "$rules" ]]; then
-    command claude --append-system-prompt "$(<"$rules")" "$@"
+    command claude --append-system-prompt-file "$rules" "$@"
   else
     command claude "$@"
   fi
