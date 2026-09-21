@@ -16,7 +16,10 @@
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1"
+    "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1",
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "core.fsmonitor",
+    "GIT_CONFIG_VALUE_0": "false"
   },
   "attribution": {
     "commit": "",
@@ -106,7 +109,8 @@
           },
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/enforce-git-add-paths.sh"
+            "command": "\"$HOME\"/.claude/hooks/enforce-git-add-paths.sh",
+            "if": "Bash(git *)"
           }
         ]
       },
@@ -115,7 +119,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/force-background-agents.sh"
+            "command": "\"$HOME\"/.claude/hooks/fill-subagent-model.sh"
           }
         ]
       },
@@ -139,12 +143,24 @@
         ]
       }
     ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/log-permission-denied.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh active"
+            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh active",
+            "async": true
           }
         ]
       }
@@ -154,7 +170,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh linger"
+            "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh linger",
+            "async": true
           },
           {
             "type": "command",
@@ -168,12 +185,37 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/notify-agent-idle.sh"
+            "command": "\"$HOME\"/.claude/hooks/notify-agent-idle.sh",
+            "async": true
           }
         ]
       }
     ]
   },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": true,
+    "autoAllowBashIfSandboxed": false,
+    "filesystem": {
+      "allowWrite": [
+        "~/.cache",
+        "~/Library/LaunchAgents",
+        "~/.claude-swap-backup",
+        "~/.config/git/allowed_signers"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.ssh", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" }
+      ]
+    }
+  },
+  "cleanupPeriodDays": 30,
   "worktree": {
     "baseRef": "fresh"
   },
@@ -222,7 +264,7 @@
   "autoContinueAtUsageLimit": false,
   "autoScrollEnabled": false,
   "remoteControlAtStartup": true,
-  "crossSessionInbound": "accept",
+  "crossSessionInbound": "notice",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
