@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Idempotent LaunchAgent install — re-runnable on every ./install.
 # Cmd+Q, Force Quit, Dock "Quit", menu-bar "Quit", and killall/pkill all end
 # in the same NSWorkspace.didTerminateApplicationNotification regardless of

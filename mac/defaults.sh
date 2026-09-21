@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Idempotent `defaults write` — re-runnable on every ./install.
 #
 # Every write is documented in the two comment lines above it:

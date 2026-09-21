@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Idempotent login items — re-runnable on every ./install.
 # LaunchServices stores these in an opaque backgrounditems.btm; the supported
 # editing surface is System Events' login-item AppleScript, so each app is added

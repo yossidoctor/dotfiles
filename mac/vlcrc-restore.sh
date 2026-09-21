@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Restore VLC's preferences from the tracked vlcrc — re-runnable on every ./install.
 #
 # Usage: vlcrc-restore.sh <vlcrc>

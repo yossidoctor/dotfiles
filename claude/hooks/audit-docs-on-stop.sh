@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Stop hook: block a stop while a rule file this turn edited carries a citation
 # that no longer resolves. Scope is behavioural text — CLAUDE.md, a skill, an
 # agent definition, a reference file a skill ships — since those bind every

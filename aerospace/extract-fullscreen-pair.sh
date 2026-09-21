@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Extract a fullscreen window and the window that just opened into a free
 # workspace, side by side, leaving the rest of the original workspace intact.
 #
