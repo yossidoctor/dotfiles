@@ -1,16 +1,15 @@
-#!/usr/bin/env bash
-# PreToolUse Agent hook: normalize every subagent dispatch.
+#!/bin/bash
+# PreToolUse Agent hook: a subagent never launches as Fable.
 #
-# Two rewrites ride one updatedInput (it REPLACES tool_input wholesale, not a
-# merge, so the original input is carried through with only these fields
-# overwritten):
-#   - run_in_background=true — a subagent never blocks the main conversation.
-#   - model=opus when a non-fork dispatch omits `model` or names `fable` — a
-#     subagent never launches as Fable. Forks inherit the parent by design and
-#     an explicitly named non-fable model is kept. An omission is filled only
-#     when no agent definition answers for it: a dispatch naming a type with a
-#     `<type>.md` on disk is deferring to that file's `model:` frontmatter, and
-#     filling the omission here would silently overwrite it.
+# A non-fork dispatch that omits `model` or names `fable` is rewritten to
+# `opus` through updatedInput (which REPLACES tool_input wholesale, so the
+# original input is carried through with only that field overwritten). Forks
+# inherit the parent by design and an explicitly named non-fable model is
+# kept. An omission is filled only when no agent definition answers for it: a
+# dispatch naming a type with a `<type>.md` on disk is deferring to that
+# file's `model:` frontmatter, and filling the omission here would silently
+# overwrite it. Backgrounding is the harness's own default for every
+# subagent, so this hook leaves run_in_background alone.
 # Idempotent: silent when nothing needs changing.
 
 set -u
@@ -43,20 +42,13 @@ esac
 
 printf '%s' "$HOOK_INPUT" | jq -c --argjson hasdef "$has_def" '
   (.tool_input // {}) as $ti
-  | ($ti.run_in_background != true) as $bg
-  | ($ti.subagent_type != "fork")
-    and ((($ti.model // "") == "fable") or ((($ti.model // "") == "") and ($hasdef | not))) as $md
-  | if ($bg or $md) then
+  | if ($ti.subagent_type != "fork")
+       and ((($ti.model // "") == "fable") or ((($ti.model // "") == "") and ($hasdef | not)))
+    then
       {hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        updatedInput: ($ti
-          + (if $bg then {run_in_background: true} else {} end)
-          + (if $md then {model: "opus"} else {} end)),
-        additionalContext: ("Agent dispatch normalized by force-background-agents.sh: "
-          + ([ (if $bg then "run_in_background=true (the main thread never blocks on a subagent)" else empty end),
-               (if $md then "model=opus (a subagent never launches as Fable; name another non-fable model explicitly to override)" else empty end)
-             ] | join("; "))
-          + ". Continue with other work; a completion notification arrives when it finishes.")}}
+        updatedInput: ($ti + {model: "opus"}),
+        additionalContext: "Agent dispatch normalized by fill-subagent-model.sh: model=opus (a subagent never launches as Fable; name another non-fable model explicitly to override)."}}
     else empty end'
 
 exit 0

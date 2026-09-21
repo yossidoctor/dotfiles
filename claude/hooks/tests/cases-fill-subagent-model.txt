@@ -1,24 +1,24 @@
-# nothing set -> bg forced (model also forced; asserted by the agent_opus cases)
-agent_forced	{}
-# bg=false, model already fine -> bg flipped to true
-agent_forced	{"run_in_background": false, "model": "opus"}
-# bg ok, model omitted -> rewritten to opus
+# nothing set -> model filled with opus
+agent_opus	{}
+# model omitted -> rewritten to opus
 agent_opus	{"run_in_background": true}
-# bg ok, model=fable -> rewritten to opus
-agent_opus	{"run_in_background": true, "model": "fable"}
-# fork inherits by design: no model rewrite, bg ok -> silent
-agent_noop	{"run_in_background": true, "subagent_type": "fork"}
+# model=fable -> rewritten to opus
+agent_opus	{"model": "fable"}
+# fork inherits by design: no model rewrite -> silent
+agent_noop	{"subagent_type": "fork"}
 # explicitly named non-fable model kept -> silent
-agent_noop	{"run_in_background": true, "model": "haiku"}
-agent_noop	{"run_in_background": true, "model": "opus"}
+agent_noop	{"model": "haiku"}
+agent_noop	{"model": "opus"}
+# run_in_background is the harness's default and never this hook's concern
+agent_noop	{"run_in_background": false, "model": "opus"}
 # a named agent type pins its model in its own frontmatter: an omission is the
 # dispatch deferring to it, so filling it here would beat the definition
-agent_noop	{"run_in_background": true, "subagent_type": "fixture-agent"}	fixtures/agents-project
+agent_noop	{"subagent_type": "fixture-agent"}	fixtures/agents-project
 # the definition is found by walking up from cwd, so a dispatch from a nested
 # repo still reaches the project's .claude/agents
-agent_noop	{"run_in_background": true, "subagent_type": "fixture-agent"}	fixtures/agents-project/nested/deeper
+agent_noop	{"subagent_type": "fixture-agent"}	fixtures/agents-project/nested/deeper
 # fable is never launched, whoever names it
-agent_opus	{"run_in_background": true, "subagent_type": "fixture-agent", "model": "fable"}	fixtures/agents-project
+agent_opus	{"subagent_type": "fixture-agent", "model": "fable"}	fixtures/agents-project
 # a type with no definition anywhere has nothing to defer to -> opus fills it
-agent_opus	{"run_in_background": true, "subagent_type": "general-purpose"}	fixtures/agents-project
-agent_opus	{"run_in_background": true, "subagent_type": "no-such-agent"}	fixtures/agents-project
+agent_opus	{"subagent_type": "general-purpose"}	fixtures/agents-project
+agent_opus	{"subagent_type": "no-such-agent"}	fixtures/agents-project
