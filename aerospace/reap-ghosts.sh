@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Ghost/phantom watchdog for AeroSpace's tiling tree. NEVER closes, kills,
 # or minimizes a window — that is a hard invariant, not a phase: a
 # close-based reaper misclassifying one live window kills real work (it

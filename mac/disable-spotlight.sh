@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Fully disable Spotlight indexing on all volumes (Raycast V2 uses its own indexer).
 #
 # Wired into ./install (shell block) guarded by `|| true`: it needs sudo, so on a

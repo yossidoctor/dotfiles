@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # statusline-lib.sh — palette and color ramp shared by statusline-command.sh and
 # subagent-statusline.sh; sourced, not run. Colors are Catppuccin Mocha shades:
 # c_ok, c_err, c_identity and c_muted are a cache of the palette in

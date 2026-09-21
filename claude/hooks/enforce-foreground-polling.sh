@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # PreToolUse Bash hook: long-running work goes off-thread.
 #
 # Two verdicts, split by whether backgrounding preserves the command's value:

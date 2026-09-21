@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Keep AeroSpace's fake-fullscreen window on top while it's focused.
 #
 # AeroSpace `fullscreen` only resizes (layout pass = frames only, zero

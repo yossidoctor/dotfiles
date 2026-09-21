@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Re-export an app's preferences into its tracked plist after changing them in
 # the app. Run this, then commit the updated plist — plist-restore.sh picks up
 # the change on the next ./install.

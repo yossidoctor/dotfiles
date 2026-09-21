@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # SessionStart (startup) hook: one colored systemMessage line reminding the
 # session that the `/mattpocock-skills:ask-matt` router exists. Banner only —
 # emits no decision and reads nothing from the payload.

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Poke AeroSpace twice (now and at 200ms) after a Cmd+W/Cmd+Q keystroke, then
 # run the ghost/phantom watchdog.
 #
