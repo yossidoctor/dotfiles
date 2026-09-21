@@ -20,6 +20,9 @@
 #                  unstick it, but naming the moment + running apps is the
 #                  evidence docs/aerospace/RETILE-DELAY.md says is missing).
 #
+# Each run writes its own diagnose-<timestamp>.log; the newest 20 are kept and
+# older ones removed on the next run, so a keystroke habit never fills the cache.
+#
 # Order matters: the window-server snapshot is taken FIRST, because any
 # aerospace CLI connection can heal the gap before it's recorded. The
 # aerospace call runs with a 5s watchdog so a GC hang yields a verdict
@@ -50,6 +53,7 @@ BIN="$CACHE/bin/window-oracle"
 ts=$(date '+%Y%m%d-%H%M%S')
 LOG="$CACHE/diagnose-$ts.log"
 mkdir -p "$CACHE/bin"
+ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | while IFS= read -r old; do rm -f "$old"; done
 
 ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
