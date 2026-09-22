@@ -1,5 +1,6 @@
 version: 1
-git_protocol: https
+# Every other key gh defaults correctly. `co` is gh's own seed, but it seeds it
+# only into a config it creates itself, so dropping it here loses the alias.
 aliases:
     co: pr checkout
 color_labels: enabled

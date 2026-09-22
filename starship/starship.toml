@@ -2,7 +2,6 @@
 # Language/cloud modules are default-on and render only in matching dirs, so they're
 # not listed here — only deviations from Starship defaults are.
 
-add_newline = true
 palette = "main"
 
 format = """
@@ -31,7 +30,6 @@ success_symbol = "[❯](bold ok)"
 error_symbol = "[❯](bold err)"
 
 [directory]
-truncation_length = 3
 truncate_to_repo = false
 style = "bold dir"
 
@@ -39,29 +37,18 @@ style = "bold dir"
 symbol = " "
 style = "bold branch"
 truncation_length = 18
-truncation_symbol = "…"
 
-# Show counts per state (e.g. "3!2?"); symbols chosen to read at a glance.
+# Counts per state (e.g. "3!2?"). Starship's own stashed symbol is `$`, which
+# reads as a shell prompt mid-line; the rest of its symbols are kept.
 [git_status]
 style = "bold err"
-modified = "!"
-untracked = "?"
-staged = "+"
-deleted = "✘"
-renamed = "»"
 stashed = "≡"
-conflicted = "="
 
 [cmd_duration]
 min_time = 3000
-format = "took [$duration]($style) "
 
 [status]
 disabled = false
-format = "[$symbol$status]($style) "
-
-[jobs]
-format = "[$symbol$number]($style) "
 
 # Default-off in Starship; enabled here for a 24h clock in the right prompt.
 [time]

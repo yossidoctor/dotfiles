@@ -1,5 +1,5 @@
-.DS_Store
-.idea/
+# .DS_Store and .idea/ are covered for every repo by git/ignore, which this repo
+# deploys as core.excludesFile; only what that file does not carry belongs here.
 __pycache__/
 *.local
 *_rsa

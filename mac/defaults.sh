@@ -129,15 +129,6 @@ defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 defaults write NSGlobalDomain AppleActionOnDoubleClick -string "Fill"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Appearance
-# ─────────────────────────────────────────────────────────────────────────────
-# Appearance › Liquid Glass (slider, Clear … Tinted) · default centre
-# 0.0 = clearest glass, 1.0 = fully tinted, 0.5 the slider's centre; any float
-# in between is accepted. Pinned so an OS update that resets appearance lands
-# here. Apps read it at launch. Undocumented key; the pane writes it on this build.
-defaults write NSGlobalDomain NSGlassTintAmount -float 0.75
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Keyboard
 # ─────────────────────────────────────────────────────────────────────────────
 # hidden · default on
@@ -213,16 +204,13 @@ defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticInlinePredictionEnabled -bool false
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Accessibility — motion & transparency
+# Accessibility — motion & transparency: UI only, never scripted
 # ─────────────────────────────────────────────────────────────────────────────
-# Accessibility › Display › "Reduce motion" · default off
-# Accessibility › Display › "Reduce transparency" · default off
-# Not written: ~/Library/Preferences/com.apple.universalaccess.plist carries
-# the com.apple.macl TCC attribute, so cfprefsd rejects the write from any
-# process without Full Disk Access ("Could not write domain"). Granting FDA to
-# the terminal hands it to everything the terminal runs. Flip these in the UI.
-# defaults write com.apple.universalaccess reduceMotion -bool true
-# defaults write com.apple.universalaccess reduceTransparency -bool true
+# Accessibility › Display › "Reduce motion" and "Reduce transparency" are set by
+# hand. ~/Library/Preferences/com.apple.universalaccess.plist carries the
+# com.apple.macl TCC attribute, so cfprefsd rejects a `defaults write` from any
+# process without Full Disk Access ("Could not write domain"), and granting FDA
+# to the terminal hands it to everything the terminal runs.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Trackpad
