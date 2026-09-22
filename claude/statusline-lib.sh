@@ -13,8 +13,11 @@
 #     as less urgent once the channels bottom out.
 #   alarm_rgb <pct> <alarm>
 #     the pill ground as "r g b", shared by the badge body and its end-caps.
-#   glyph_for_pct <pct>
-#     one Block Elements cell, ▁ through █ in eight 12.5% steps.
+#   glyph_for_pct <pct> <track_color>
+#     one Block Elements cell, ▁ through █ in eight 12.5% steps, painted on
+#     <track_color> as its ground so the cell spans the full 100% height and the
+#     unfilled remainder stays visible. <track_color> is a 38;2 foreground escape
+#     (the same one bar() takes as its empty track); it is rewritten to 48;2 here.
 #   ctx_warm_default / ctx_bold_default
 #     the context-percentage ramp's warm and bold rungs for every model but
 #     Sonnet, read by both statusline scripts; Sonnet's wider window has its own
@@ -31,10 +34,16 @@ g_stale='◌'
 
 meter_glyphs=('▁' '▂' '▃' '▄' '▅' '▆' '▇' '█')
 glyph_for_pct() {
-  local i=$(( $1 * 8 / 100 ))
+  local i=$(( $1 * 8 / 100 )) track="${2:-}"
   [ "$i" -gt 7 ] && i=7
   [ "$i" -lt 0 ] && i=0
-  printf '%s' "${meter_glyphs[i]}"
+  if [ -n "$track" ]; then
+    # Closes with 49 (default background) rather than c_off, so the ground stops
+    # at the cell while the caller's foreground carries on into the percentage.
+    printf '%s%s\\033[49m' "${track/38;2;/48;2;}" "${meter_glyphs[i]}"
+  else
+    printf '%s' "${meter_glyphs[i]}"
+  fi
 }
 
 # Prefixes a color rather than replacing it, so the attribute rides whatever
