@@ -31,32 +31,6 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 - **A tool that caused the trap is the defect.** *Skills, hooks, docs, runners.* When an error traces to missing or misleading guidance in a tool, fix the tool in the same session; reaching for a second approach because a tool misled you is the signal. Skip: your own misuse; a stale test (fix the test); genuinely new scope. Falsifier: a tool trap routed around without editing the tool; a deny whose named alternative the caller cannot reach.
 - **A new tool waits for the user to ask for it.** *Skills, scripts, hooks, agents, commands, and the manifest lines that deploy them.* Editing one the task already reaches is ordinary work; giving one existence is scope that outlives the task and that someone else then owns — so it is its own ask, never the last step of a task that authorized changing something else. A scratchpad throwaway is outside this rule until it earns a tracked path, a manifest entry, or a citation. Skip: the file the task's own deliverable is; a companion a tracked file cannot ship without. Falsifier: a tracked script, skill, hook, or agent this session created with no user message naming it.
 
-## Explaining things
-
-- **A table that earns its place is drawn as aligned columns in a code block.** UPPERCASE headers, a dashed rule under them, 3-space gutters, no pipes, no outer frame. Emoji belong in cells; an emoji or variation-selector char measures **2** columns, and the header row and data rows must end at identical widths (CJK counts as 2 too). Skip: a file whose own conventions already fix its table format — a README, or a doc whose siblings use pipes throughout. Falsifier: a pipe-delimited or framed table in output; a column whose header and cells disagree on width.
-
-```
-SERVICE       TASK       GRADE          OWNER
------------   --------   ------------   ----------
-🛒 checkout   ABC-6578   🔴 13 behind   John Smith
-🤹 indexer    ABC-6753   🟢 synced      John Smith
-```
-
-- **A number series carrying a shape gets drawn, not described.** Counts over time, distributions, rankings — in a code block, multi-column if long; same for anything where ASCII/Unicode conveys structure faster than prose. Color: a `diff` fence renders `+` green and `-` red, for pass/fail verdict lists, never for aligned tables (the marker steals a column); emoji carry hue elsewhere, and color is never the only signal. Skip: unordered or tiny sets; a file whose format its own conventions fix. Falsifier: a series or hierarchy described in prose where one of these forms fits; color as the sole carrier of a distinction.
-
-```
-bars      2026-04 █▏14    2026-05 ███ 35     ranked magnitudes
-spark     2023-08 ▁▃▂▁▂▃▄█▃▂ 2026-07         a whole series in one cell
-waffle    ■■■■■■■□□□□□□□□□□□ 7%              part-to-whole
-range     age ├───█────────────┤ 3..1088     min / median / max
-columns     █                                shape over labels
-          ▃ █ ▅
-          08 09 10
-tree      migrations/                        hierarchy, always aligns
-          ├─ heal_order_io.ts    ran
-          └─ backfill_city.ts    ran
-```
-
 ## Workspace mechanics
 
 - **Own your lines, not the file.** Every tree here has other sessions working in it, so a file this session touched usually carries someone else's uncommitted work too. Every `git stash`, `restore`, `checkout --`, `clean`, `reset`, `add` and `commit` names its paths; `git diff --cached` is read whole before each commit, and a hunk this session did not write is unstaged (`restore --staged`) or waits for its owner. Revert your own edit by rewriting it — a `checkout --` over a shared file discards their lines with yours. Re-`Read` before an `Edit` whose `old_string` was captured turns ago, since the file moved under you. Skip: a repo this session created. `enforce-git-add-paths.sh` denies the `add` sweeps and `commit -a`; `stash`, `restore`, `checkout --`, `clean` and `reset` have no enforcer and are yours to hold. Falsifier: a commit whose staged diff went unread, or that carries a line this session did not write; a `checkout --` over a file holding another session's edits; an `Edit` that failed on a stale `old_string`.
