@@ -210,10 +210,6 @@ if [ -f "$usage_cache" ]; then
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
     [ "$stale" = 1 ] && any_stale=1
-    if [ "$is_active" = true ]; then
-      [ -n "$live5" ] && { p5=$live5; r5=$live5_reset; }
-      [ -n "$live7" ] && { p7=$live7; r7=$live7_reset; }
-    fi
     account_lines+=("$(render_row "$email" "$stale")")
   done <<< "$cswap_rows"
 fi
