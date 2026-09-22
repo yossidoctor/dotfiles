@@ -1,9 +1,9 @@
 #!/bin/bash
 # PreToolUse Read|Edit|Write hook: deny when file_path is a symlink, or traverses
 # a symlinked directory whose physical home is inside a git repository, and name
-# the real path to retry with. Backstop for the global CLAUDE.md rule (§ Workspace
-# mechanics — physical paths); this catches the call that reaches the tool
-# without it.
+# the real path to retry with. Backstop for the global CLAUDE.md rule (§ Read,
+# Edit, and Write take the physical path); this catches the call that reaches
+# the tool without it.
 #
 # Why deny (not rewrite file_path via updatedInput): the shadow tracker keys the
 # path the model sent, not the one a hook returns, so a rewritten Read and a
