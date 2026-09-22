@@ -42,7 +42,7 @@ trap 'failures=$((failures + 1))' ERR
 # ─────────────────────────────────────────────────────────────────────────────
 # Desktop & Dock › Dock › Size (slider, 16–128 px) · default 48
 # Icon edge length in points.
-defaults write com.apple.dock tilesize -int 36
+defaults write com.apple.dock tilesize -int 42
 
 # Desktop & Dock › Dock › "Automatically hide and show the Dock" · default off
 # The Dock stays off-screen until the pointer reaches its edge; the two timing
@@ -512,6 +512,13 @@ defaults write "$IINA" themeMaterial -int 0
 # IINA › Preferences › General › "Screenshots:" folder · default ~/Pictures/Screenshots
 # Same folder com.apple.screencapture writes to above.
 defaults write "$IINA" screenshotFolder -string "$HOME/Screenshots"
+# IINA › Preferences › Plugins › each plugin's "Enabled" · default on once installed
+# The bundled plugins each raise a standalone window alongside the player window
+# (OpenSubtitles' search window, User Scripts' script manager), and Online Media
+# only matters for URL playback.
+defaults write "$IINA" "PluginEnabled.io.iina.opensub" -bool false
+defaults write "$IINA" "PluginEnabled.io.iina.user-script" -bool false
+defaults write "$IINA" "PluginEnabled.io.iina.ytdl" -bool false
 
 # Ghostty (cask: ghostty) — real config is ~/.config/ghostty/config, not defaults.
 # Karabiner-Elements (cask: karabiner-elements) — real config is
