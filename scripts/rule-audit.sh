@@ -20,12 +20,6 @@
 # The receipt keys on staged content (rule-audit-gate.sh owns its shape), so
 # editing anything afterwards re-arms the gate. There is no way to assert a
 # pass this script did not produce.
-#
-# The audit session runs RUN-the-script checks, so it needs a working Bash
-# tool. Launched from inside a sandboxed Claude Code session, its own sandbox
-# cannot bind its socket, and the global failIfUnavailable would leave it
-# with no shell at all; the --settings override lets that one session fall
-# back to unsandboxed Bash with the usual warning instead.
 
 set -uo pipefail
 
@@ -51,9 +45,8 @@ closure=$(
 )
 
 # Keep the files that exist in this repo, minus the staged ones themselves.
-# Membership is a pattern match over the staged list: a process substitution
-# or a temp file is closed to the sandboxed Bash-tool call this script runs
-# from, and bash 3.2 cannot parse a `case` pattern's `)` inside `$( )`.
+# Membership is a `[[ == ]]` pattern match over the staged list: bash 3.2
+# cannot parse a `case` pattern's `)` inside `$( )`.
 nl=$'\n'
 related=$(
   printf '%s\n' "$closure" | while IFS= read -r c; do
@@ -118,7 +111,7 @@ EOF
 
 n_staged=$(printf '%s\n' "$staged" | grep -c . || true)
 echo "rule-audit: auditing $n_staged staged rule files in a fresh session..."
-out=$(claude -p "$prompt" --settings '{"sandbox":{"failIfUnavailable":false}}' 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
+out=$(claude -p "$prompt" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
 printf '%s\n' "$out"
 
 # A style finding does not withhold the receipt. The bar "zero findings" is
