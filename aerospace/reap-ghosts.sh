@@ -2,8 +2,8 @@
 # Ghost/phantom watchdog for AeroSpace's tiling tree. NEVER closes, kills,
 # or minimizes a window — that is a hard invariant, not a phase: a
 # close-based reaper misclassifying one live window kills real work (it
-# closed live Ghostty windows carrying Claude sessions on 2026-07-29 — see
-# "Incident" in docs/aerospace/RETILE-DELAY.md). The one action it may take is
+# closed live Ghostty windows carrying Claude sessions on 2026-07-29). The one
+# action it may take is
 # layout-class, the category the user explicitly allows: floating a window
 # out of the tiling tree (see PHANTOM TILES below), whose worst possible
 # misfire leaves a visible window floating in place, untiled and unharmed.

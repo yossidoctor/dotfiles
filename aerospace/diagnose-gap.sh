@@ -31,9 +31,8 @@
 # and with --notify also lands as a macOS notification — that flag exists
 # for the alt-shift-d binding in aerospace.toml, so the capture is one
 # keystroke at the moment a gap is on screen, no terminal needed.
-# Uses reap-ghosts.sh's compiled window-oracle (builds it the same way if
-# missing); its ALL line is the window-server read taken before and after the
-# aerospace call, and its PHANTOM line the minimize verdict.
+# Uses the window-oracle binary: its ALL line is the window-server read taken
+# before and after the aerospace call, and its PHANTOM line the minimize verdict.
 set -euo pipefail
 
 NOTIFY=0
@@ -57,6 +56,11 @@ ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | while IFS= read -r old
 
 ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
+# Compile-if-stale: a copy of reap-ghosts.sh's ensure_bin, which is the SoT for
+# the shape (atomic mv off a mktemp, so a callback never execs a partial
+# binary). Copied rather than sourced because reap-ghosts.sh reaps at top level.
+# It differs in one way on purpose: a compile failure here is fatal, since a
+# diagnostic that silently skips its own oracle reports a gap it cannot see.
 src="$DIR/window-oracle.swift"
 if [ ! -x "$BIN" ] || [ "$src" -nt "$BIN" ]; then
   tmp=$(mktemp "$CACHE/bin/.window-oracle-XXXXXX")
@@ -91,7 +95,7 @@ if kill -0 "$as_pid" 2>/dev/null; then
     ps -axo pid,pcpu,state,comm | sort -k2 -rn | head -25
   } >> "$LOG"
   rm -f "$tmp"
-  verdict "GC HANG" "Daemon did not answer within 5s — stuck querying an unresponsive app (#1615, docs/aerospace/RETILE-DELAY.md 'What's actually happening'). Top CPU processes captured in $LOG — check which app is hung/spinning right now."
+  verdict "GC HANG" "Daemon did not answer within 5s — stuck querying an unresponsive app (#1615, docs/aerospace/RETILE-DELAY.md § Failure modes). Top CPU processes captured in $LOG — check which app is hung/spinning right now."
   exit 0
 fi
 wait "$as_pid" || true

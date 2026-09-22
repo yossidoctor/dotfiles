@@ -9,7 +9,7 @@ ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/do
 # a § cite no heading starts with is named as unresolved
 ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here, per § Gamma rule."}}	§ Gamma rule: no heading or bold lead
 # a `skill` § cite resolves in that skill's SKILL.md
-ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here (`tldr` § Pre-send check)."}}	§ Pre-send check (~/.claude/skills/tldr/SKILL.md:L
+ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here (`teach` § Teach)."}}	§ Teach (~/.claude/skills/teach/SKILL.md:L
 # a global CLAUDE.md § cite resolves there
 ctx_has	{"tool_name": "Edit", "tool_input": {"file_path": "/Users/yossidoctor/dotfiles/claude/hooks/tests/fixtures/skills/fixture/SKILL.md", "old_string": "once here.", "new_string": "once here (global CLAUDE.md § Strict single SoT)."}}	§ Strict single SoT (~/.claude/CLAUDE.md:L
 # a Write over an existing file checks cites only

@@ -3,7 +3,7 @@
 # them, and record a receipt on a clean pass.
 #
 # The fresh session is the whole point. A model reviewing its own output misses
-# 64.5% of the errors it catches in someone else's, and a second pass inside the
+# most of what it catches in someone else's, and a second pass inside the
 # writing session scores worse than one pass; a separate context beats both
 # (dotfiles/docs/claude/instructing-claude.md § 7, with sources). So this runs
 # `claude -p`, which starts clean: no memory of the edits, no reasoning that

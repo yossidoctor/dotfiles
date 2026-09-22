@@ -17,10 +17,15 @@
 # one path excluded from its own scan. gitleaks scans the same staged diff for
 # secret-shaped strings (tokens, keys) — the class GitHub's push protection
 # pattern list misses, and cheaper to stop here than to rotate after a push.
-# Last, scripts/check-doc-refs.sh
+# Then scripts/check-doc-refs.sh
 # (deployed as check-doc-refs) fails the commit when a skill cites a file or a
 # `skills/…` path that does not exist, or an install.conf.yaml `link:` names an
 # absent source — the classes that break a fresh clone; § citations only warn.
+# Last, claude/hooks/tests/run-tests.sh: a hook and its case file are one unit,
+# and a case naming a skill or fixture the same commit removed passes review and
+# fails at run time. ~6s over the whole table, so it runs on every commit rather
+# than only when claude/hooks/ is staged — a case can break from a deletion
+# anywhere in the tree.
 
 set -euo pipefail
 
@@ -54,5 +59,11 @@ fi
 report=$(bash "$root/scripts/check-doc-refs.sh" "$root" 2>&1) || {
   printf '%s\n' "$report" >&2
   echo "check-doc-refs: broken doc/config references (above) — fix, or run check-doc-refs --strict for the § warnings." >&2
+  exit 1
+}
+
+report=$(bash "$root/claude/hooks/tests/run-tests.sh" 2>&1) || {
+  printf '%s\n' "$report" >&2
+  echo "hook tests: a PreToolUse hook case failed (above) — this repo's hooks and their case files ship together." >&2
   exit 1
 }
