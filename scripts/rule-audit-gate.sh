@@ -9,7 +9,7 @@
 # are out of scope.
 #
 # Why a receipt rather than an audit here: the audit has to run somewhere with
-# no authorship history. A model reviewing its own output misses 64.5% of the
+# no authorship history. A model reviewing its own output misses most of the
 # errors it catches in someone else's, and a second review inside the writing
 # session scores worse than no second review at all (dotfiles/docs/claude/
 # instructing-claude.md § 7). So the gate cannot BE the audit — it can only
