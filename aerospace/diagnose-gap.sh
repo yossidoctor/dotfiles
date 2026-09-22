@@ -56,11 +56,8 @@ ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | while IFS= read -r old
 
 ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
-# Compile-if-stale: a copy of reap-ghosts.sh's ensure_bin, which is the SoT for
-# the shape (atomic mv off a mktemp, so a callback never execs a partial
-# binary). Copied rather than sourced because reap-ghosts.sh reaps at top level.
-# It differs in one way on purpose: a compile failure here is fatal, since a
-# diagnostic that silently skips its own oracle reports a gap it cannot see.
+# A copy of reap-ghosts.sh's ensure_bin (the SoT), which cannot be sourced
+# because that script reaps at top level; here a compile failure is fatal.
 src="$DIR/window-oracle.swift"
 if [ ! -x "$BIN" ] || [ "$src" -nt "$BIN" ]; then
   tmp=$(mktemp "$CACHE/bin/.window-oracle-XXXXXX")
