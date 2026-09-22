@@ -18,7 +18,7 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 
 ### Does it live in one place
 
-- **Strict single SoT.** Every fact has one carrier: one file per literal, one field per fact, one computation per value. A mirror carries an inline "derived from / cache of `<SoT>`" tag and then satisfies this rule, so check the tag before reporting a duplicate. A value the caller already holds is threaded on the context that rides along.
+- **Strict single SoT.** Every fact has one carrier: one file per literal, one field per fact, one computation per value. A mirror carries an inline "derived from / cache of `<SoT>`" tag and then satisfies this rule, so check the tag before reporting a duplicate. A value the caller already holds is threaded on the context that rides along. Prose obeys this too: cite a source or state the content, never both — a paraphrase beside its citation is a second carrier that drifts.
 
 ### How the edit lands
 
