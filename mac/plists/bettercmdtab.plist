@@ -2,32 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BetterCmdTab.showSettingsDetails</key>
-	<true/>
 	<key>BetterShortcuts_panelClose@switchApps</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":13}</string>
+	<string>{"carbonKeyCode":13,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_panelClose@switchWindows</key>
 	<string>{"carbonModifiers":256,"carbonKeyCode":13}</string>
 	<key>BetterShortcuts_panelFullscreen@switchApps</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":3}</string>
+	<string>{"carbonKeyCode":3,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_panelFullscreen@switchWindows</key>
 	<string>{"carbonModifiers":256,"carbonKeyCode":3}</string>
 	<key>BetterShortcuts_panelHide@switchApps</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":4}</string>
+	<string>{"carbonKeyCode":4,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_panelHide@switchWindows</key>
 	<string>{"carbonModifiers":256,"carbonKeyCode":4}</string>
 	<key>BetterShortcuts_panelMinimize@switchApps</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":46}</string>
+	<string>{"carbonKeyCode":46,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_panelMinimize@switchWindows</key>
 	<string>{"carbonModifiers":256,"carbonKeyCode":46}</string>
 	<key>BetterShortcuts_panelQuit@switchApps</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":12}</string>
+	<string>{"carbonKeyCode":12,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_panelQuit@switchWindows</key>
 	<string>{"carbonModifiers":256,"carbonKeyCode":12}</string>
+	<key>BetterShortcuts_panelSearch@switchApps</key>
+	<string>{"carbonKeyCode":44,"carbonModifiers":256}</string>
+	<key>BetterShortcuts_panelSearch@switchWindows</key>
+	<string>{"carbonModifiers":256,"carbonKeyCode":44}</string>
+	<key>BetterShortcuts_panelTabDrill@switchApps</key>
+	<string>{"carbonKeyCode":42,"carbonModifiers":256}</string>
+	<key>BetterShortcuts_panelTabDrill@switchWindows</key>
+	<string>{"carbonModifiers":256,"carbonKeyCode":42}</string>
 	<key>BetterShortcuts_switchApps</key>
 	<string>{"carbonKeyCode":48,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_switchWindows</key>
-	<string>{"carbonModifiers":256,"carbonKeyCode":50}</string>
+	<string>{"carbonKeyCode":50,"carbonModifiers":256}</string>
 	<key>BetterShortcuts_windowCenter</key>
 	<string>{"carbonKeyCode":125,"carbonModifiers":4352}</string>
 	<key>BetterShortcuts_windowMaximize</key>
@@ -56,68 +62,79 @@
 			<key>ignore</key>
 			<string>never</string>
 		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>org.videolan.vlc</string>
+			<key>hide</key>
+			<string>dontHide</string>
+			<key>ignore</key>
+			<string>always</string>
+		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>com.apple.mail</string>
+			<key>hide</key>
+			<string>whenNoWindows</string>
+			<key>ignore</key>
+			<string>never</string>
+		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>net.whatsapp.WhatsApp</string>
+			<key>hide</key>
+			<string>whenNoWindows</string>
+			<key>ignore</key>
+			<string>never</string>
+		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>com.spotify.client</string>
+			<key>hide</key>
+			<string>dontHide</string>
+			<key>ignore</key>
+			<string>never</string>
+		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>com.apple.MobileSMS</string>
+			<key>hide</key>
+			<string>whenNoWindows</string>
+			<key>ignore</key>
+			<string>never</string>
+		</dict>
+		<dict>
+			<key>bundleID</key>
+			<string>com.apple.iCal</string>
+			<key>hide</key>
+			<string>whenNoWindows</string>
+			<key>ignore</key>
+			<string>never</string>
+		</dict>
 	</array>
+	<key>Switcher.commitSoundName</key>
+	<string>Basso</string>
 	<key>Switcher.disabledSymbolicHotKeys</key>
 	<array>
 		<integer>1</integer>
 		<integer>2</integer>
 		<integer>6</integer>
 	</array>
-	<key>Switcher.hapticOnCommit</key>
+	<key>Switcher.experimentalLivePreviews</key>
 	<false/>
-	<key>Switcher.hideFromScreenSharing</key>
+	<key>Switcher.hapticOnCommit</key>
 	<false/>
 	<key>Switcher.hideMenuBarIcon</key>
 	<true/>
-	<key>Switcher.letterHintsEnabled</key>
+	<key>Switcher.livePreviews</key>
 	<false/>
 	<key>Switcher.nextScopedShortcutID</key>
 	<integer>0</integer>
+	<key>Switcher.panelScaleRebased</key>
+	<true/>
 	<key>Switcher.scopedShortcutList</key>
 	<array/>
-	<key>Switcher.shortcutOverrides</key>
-	<array>
-		<dict>
-			<key>boldSelectedLabel</key>
-			<string>true</string>
-			<key>letterHintsEnabled</key>
-			<string>false</string>
-			<key>panelSize</key>
-			<string>large</string>
-			<key>previewTitleAlignment</key>
-			<string>center</string>
-			<key>showApplicationNames</key>
-			<string>true</string>
-			<key>showHidden</key>
-			<string>true</string>
-			<key>showMinimized</key>
-			<string>true</string>
-			<key>showUnreadBadges</key>
-			<string>false</string>
-			<key>showWindowTitleLabel</key>
-			<string>true</string>
-			<key>showWindowless</key>
-			<string>false</string>
-			<key>sortOrder</key>
-			<string>mruWindows</string>
-			<key>spaceScope</key>
-			<string>allSpaces</string>
-			<key>target</key>
-			<string>switchApps</string>
-		</dict>
-		<dict>
-			<key>showWindowless</key>
-			<string>false</string>
-			<key>target</key>
-			<string>switchWindows</string>
-		</dict>
-	</array>
-	<key>Switcher.showUnreadBadges</key>
-	<false/>
 	<key>Switcher.showWindowlessApps</key>
-	<false/>
-	<key>Switcher.sortOrder</key>
-	<string>mruWindows</string>
+	<true/>
 	<key>Switcher.soundOnCommit</key>
 	<false/>
 </dict>
