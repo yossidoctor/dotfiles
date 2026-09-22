@@ -74,7 +74,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 
 ### Permissions
 
-`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names as having no hook (`checkout --`, `clean`, `stash drop|clear`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk.
+`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names (`checkout --`, `clean`, `stash drop|clear`, `reset --hard`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk.
 
 ### Bash-tool environment
 
