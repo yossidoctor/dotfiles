@@ -503,6 +503,28 @@ defaults write "$TRANSMISSION" CheckQuit -bool false
 defaults write "$TRANSMISSION" WarningLegal -bool false
 defaults write "$TRANSMISSION" WarningDonate -bool false
 
+# IINA (cask: iina) — defaults IS the config mechanism; every key below is in
+# upstream iina/Preference.swift `defaultPreference`:
+#   https://github.com/iina/iina/blob/develop/iina/Preference.swift
+# IINA reads through cfprefsd and observes changes live, so no quit is needed.
+# Labels are the installed build's Pref*ViewController.strings.
+IINA=com.colliderli.iina
+# IINA › Preferences › Subtitle › "Preferred language:" · default "" (none)
+# ISO 639-2 code, passed to mpv as slang: an English embedded or sidecar track
+# is selected on open. Also the language OpenSubtitles searches are made in.
+defaults write "$IINA" subLang -string "eng"
+# IINA › Preferences › General › "Resume last playback position" · default on
+defaults write "$IINA" resumeLastPosition -bool true
+# IINA › Preferences › General › "Quit after all windows are closed" · default off
+# No windowless IINA left in ⌘-Tab after the last player closes.
+defaults write "$IINA" quitWhenNoOpenedWindow -bool true
+# IINA › Preferences › UI › "Theme:" · default Dark (0)
+# 0 Dark, 2 Light, 4 System.
+defaults write "$IINA" themeMaterial -int 0
+# IINA › Preferences › General › "Screenshots:" folder · default ~/Pictures/Screenshots
+# Same folder com.apple.screencapture writes to above.
+defaults write "$IINA" screenshotFolder -string "$HOME/Screenshots"
+
 # Ghostty (cask: ghostty) — real config is ~/.config/ghostty/config, not defaults.
 # Karabiner-Elements (cask: karabiner-elements) — real config is
 # ~/.config/karabiner/karabiner.json (defaults holds only window geometry).
