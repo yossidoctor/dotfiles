@@ -197,6 +197,26 @@
     "failIfUnavailable": true,
     "allowUnsandboxedCommands": true,
     "autoAllowBashIfSandboxed": false,
+    "enableWeakerNetworkIsolation": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com",
+        "ghcr.io",
+        "formulae.brew.sh",
+        "registry.npmjs.org",
+        "nodejs.org",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "*.googleapis.com",
+        "accounts.google.com",
+        "json.schemastore.org",
+        "*.anthropic.com",
+        "*.claude.ai",
+        "claude.ai"
+      ]
+    },
     "filesystem": {
       "allowWrite": [
         "~/.cache",
