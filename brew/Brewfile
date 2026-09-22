@@ -72,13 +72,13 @@ cask "claude-code@latest"
 cask "expressvpn"
 cask "font-jetbrains-mono-nerd-font" # JetBrains Mono + Nerd Font glyphs
 cask "ghostty"                      # GPU-accelerated terminal emulator
+cask "iina"                         # media player (mpv-based); prefs in mac/defaults.sh
 cask "linear"
 cask "slack"
 cask "spotify"
 cask "stremio"                      # media streaming client
 cask "transmission"                 # BitTorrent client
 cask "visual-studio-code"
-cask "vlc"
 cask "whatsapp"
 cask "zoom"
 
