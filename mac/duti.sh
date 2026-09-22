@@ -9,7 +9,7 @@ command -v duti >/dev/null 2>&1 || {
 
 VSCODE="com.microsoft.VSCode"
 GHOSTTY="com.mitchellh.ghostty"
-VLC="org.videolan.vlc"
+IINA="com.colliderli.iina"
 
 # role defaults to editor (read+save, implies viewer) — the right role for a
 # document handler. `all` additionally claims URL-scheme roles.
@@ -58,7 +58,7 @@ for ext in command tool; do
   bind "$GHOSTTY" ".$ext" shell
 done
 
-# ── VLC: video ──
+# ── IINA: video ──
 # `all` claims both roles: LaunchServices resolves LSHandlerRoleAll ahead of
 # LSHandlerRoleViewer, so a viewer-only binding loses to any app holding RoleAll
 # on the UTI — including an uninstalled one, whose claim outlives it.
@@ -69,12 +69,12 @@ done
 # ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist
 # then `killall lsd` to force a reload.
 for ext in mp4 mkv mov avi webm flv wmv; do
-  bind "$VLC" ".$ext" all
+  bind "$IINA" ".$ext" all
 done
 
-# ── VLC: audio ──
+# ── IINA: audio ──
 for ext in mp3 flac wav ogg m4a opus; do
-  bind "$VLC" ".$ext" all
+  bind "$IINA" ".$ext" all
 done
 
 echo "duti bindings applied."

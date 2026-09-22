@@ -22,7 +22,7 @@
 #
 # A floating window never triggers #422 and never tiles beside anything, so
 # it is not a trigger here: the new window must be tiling. The float rules in
-# aerospace.toml (Finder, Calculator, Mail, VLC, …) therefore exempt
+# aerospace.toml (Finder, Calculator, Mail, IINA, …) therefore exempt
 # themselves, and so does any window AeroSpace floats on its own.
 #
 # Never closes, kills, or minimizes — the invariant reap-ghosts.sh states and
