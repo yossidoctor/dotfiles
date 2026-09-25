@@ -224,6 +224,9 @@
     },
     "claude-sonnet-5": {
       "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
     }
   },
   "promptSuggestionEnabled": false,
