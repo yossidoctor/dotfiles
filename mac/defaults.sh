@@ -481,9 +481,10 @@ defaults write "$TRANSMISSION" AutoStartDownload -bool true
 # 1.0 gives back what was taken, then stops.
 defaults write "$TRANSMISSION" RatioCheck -bool true
 defaults write "$TRANSMISSION" RatioLimit -float 1.0
-# Transmission › Settings › Peers › "Global maximum connections:" / "per transfer:" · default 200 / 60
-# A 600 Mbit line saturates only with a wide swarm; small 4K swarms need every reachable peer.
+# Transmission › Settings › Peers › Connections › "Global maximum connections:" · default 200
+# A fiber line saturates only with a wide swarm; small swarms need every reachable peer.
 defaults write "$TRANSMISSION" PeersTotal -int 500
+# Transmission › Settings › Peers › Connections › "Maximum connections for new transfers:" · default 60
 defaults write "$TRANSMISSION" PeersTorrent -int 120
 # Transmission › View › Compact View · default off
 defaults write "$TRANSMISSION" SmallView -bool true
