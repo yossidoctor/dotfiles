@@ -24,7 +24,10 @@
 #      as written
 #   3  a `§ Section` cite prefix-matches a heading or a `- **Bold lead**` in the rule
 #      text: the root's CLAUDE.mds, skills, agents, rules and output-styles, plus
-#      the deployed ~/.claude/CLAUDE.md, skills, rules and output-styles
+#      the deployed ~/.claude/CLAUDE.md, skills, rules and output-styles; headings
+#      of installed plugin skills (~/.claude/plugins/marketplaces/*/skills) join the
+#      pool so a `/<plugin>:<skill> § Heading` cite resolves, though their own
+#      cites are not audited
 #
 # The skill trees are every claude/*/skills and claude/skills directory under the
 # root plus ~/.claude/skills, deduplicated by physical path, so the global layer's
@@ -76,8 +79,13 @@ trap 'rm -rf "$TMP"' EXIT
 
 for t in "${SKILL_TREES[@]}"; do find "$t" -type f 2>/dev/null | sed "s|^$t/|skills/|"; done | sort -u > "$TMP/paths"
 
+PLUGIN_SKILLS=()
+for f in "$HOME"/.claude/plugins/marketplaces/*/skills/*/SKILL.md "$HOME"/.claude/plugins/marketplaces/*/skills/*/*/SKILL.md; do
+  [ -f "$f" ] && PLUGIN_SKILLS+=("$f")
+done
+
 {
-  grep -rhoE '^#{1,6} .+' "${RULE_TEXT[@]}" 2>/dev/null | sed -E 's/^#+[[:space:]]+//'
+  grep -rhoE '^#{1,6} .+' "${RULE_TEXT[@]}" ${PLUGIN_SKILLS[@]+"${PLUGIN_SKILLS[@]}"} 2>/dev/null | sed -E 's/^#+[[:space:]]+//'
   grep -rhoE '^- \*\*[^*]+\*\*' "${RULE_TEXT[@]}" 2>/dev/null | sed -E 's/^- \*\*//; s/\*\*$//; s/[.,][[:space:]]*$//'
 } > "$TMP/headings"
 
