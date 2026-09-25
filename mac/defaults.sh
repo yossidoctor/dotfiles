@@ -456,8 +456,9 @@ transmission_was_running=false; pgrep -xq Transmission && transmission_was_runni
 killall Transmission 2>/dev/null || true
 
 # Transmission (cask: transmission) — defaults IS the config mechanism. The
-# listening port is NOT here — it lives in ~/Library/Application Support/
-# Transmission/settings.json as `peer-port`.
+# listening port (BindPort) is per-machine state the app writes into this same
+# domain; it must be forwarded on the router by hand (Settings › Network shows
+# "Port is open") when the router offers neither UPnP nor NAT-PMP.
 TRANSMISSION=org.m0k.transmission
 # Transmission › Settings › Transfers › Adding › "Default location:" (chosen folder) · default ~/Downloads
 defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Downloads"
@@ -476,10 +477,14 @@ defaults write "$TRANSMISSION" DeleteOriginalTorrent -bool true
 # Transmission › Settings › Transfers › Adding › "Start transfers when added" · default on
 defaults write "$TRANSMISSION" AutoStartDownload -bool true
 # Transmission › Settings › Transfers › Management › "Stop seeding at ratio:" · default off, 2
-# 0.01 stops seeding right after completion. Not 0: libtransmission treats a
-# 0 seed ratio as "no limit" (torrent.cc effective_seed_ratio()==0 → check off).
+# Peers unchoke uploaders first, so a client that never seeds is served last;
+# 1.0 gives back what was taken, then stops.
 defaults write "$TRANSMISSION" RatioCheck -bool true
-defaults write "$TRANSMISSION" RatioLimit -float 0.01
+defaults write "$TRANSMISSION" RatioLimit -float 1.0
+# Transmission › Settings › Peers › "Global maximum connections:" / "per transfer:" · default 200 / 60
+# A 600 Mbit line saturates only with a wide swarm; small 4K swarms need every reachable peer.
+defaults write "$TRANSMISSION" PeersTotal -int 500
+defaults write "$TRANSMISSION" PeersTorrent -int 120
 # Transmission › View › Compact View · default off
 defaults write "$TRANSMISSION" SmallView -bool true
 # Transmission › Settings › General › "Notifications:" · default on
