@@ -88,12 +88,6 @@ else
 fi
 echo
 
-echo "→ Known vulnerabilities in installed formulae..."
-if ! brew vulns; then
-    WARNINGS+=("brew vulns reported advisories or failed")
-fi
-echo
-
 echo "→ Brewfile drift, every layer's Brewfile as one set (informational)..."
 brewfiles=("$HOME"/.config/homebrew/Brewfile.d/*)
 if [ -e "${brewfiles[0]}" ]; then
