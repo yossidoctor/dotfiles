@@ -6,10 +6,12 @@
 # original input is carried through with only that field overwritten). Forks
 # inherit the parent by design and an explicitly named non-fable model is
 # kept. An omission is filled only when no agent definition answers for it: a
-# dispatch naming a type with a `<type>.md` on disk is deferring to that
-# file's `model:` frontmatter, and filling the omission here would silently
-# overwrite it. Backgrounding is the harness's own default for every
-# subagent, so this hook leaves run_in_background alone.
+# dispatch naming a type whose `<type>.md` on disk carries a `model:` line is
+# deferring to that pin, and filling the omission here would silently
+# overwrite it. A definition without one inherits the session's model, Fable
+# included, so it counts as no answer and the omission is filled. Backgrounding
+# is the harness's own default for every subagent, so this hook leaves
+# run_in_background alone.
 # Idempotent: silent when nothing needs changing.
 
 set -u
@@ -24,9 +26,10 @@ esac
 hook_parse_input
 [ "$HOOK_TOOL_NAME" = "Agent" ] || exit 0
 
-# Does an agent definition answer for this dispatch's type? Its own `model:`
-# owns the choice, so an omitted model is deferral to it, not a gap to fill.
-# One `[ -f ]` per dispatch, against the roots agent definitions deploy to.
+# Does an agent definition pin a model for this dispatch's type? Its own
+# `model:` owns the choice, so an omitted model is deferral to it, not a gap to
+# fill. One grep per candidate file, against the roots definitions deploy to.
+pins_model() { [ -f "$1" ] && grep -qE '^model:[[:space:]]*[a-z]' "$1"; }
 sub_type=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.subagent_type // ""')
 has_def=false
 case "$sub_type" in
@@ -34,10 +37,10 @@ case "$sub_type" in
   *)
     dir=${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}
     while [ -n "$dir" ] && [ "$dir" != / ]; do
-      [ -f "$dir/.claude/agents/$sub_type.md" ] && { has_def=true; break; }
+      pins_model "$dir/.claude/agents/$sub_type.md" && { has_def=true; break; }
       dir=$(dirname "$dir")
     done
-    [ -f "$HOME/.claude/agents/$sub_type.md" ] && has_def=true ;;
+    pins_model "$HOME/.claude/agents/$sub_type.md" && has_def=true ;;
 esac
 
 printf '%s' "$HOOK_INPUT" | jq -c --argjson hasdef "$has_def" '

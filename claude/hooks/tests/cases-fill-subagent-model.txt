@@ -19,6 +19,9 @@ agent_noop	{"subagent_type": "fixture-agent"}	fixtures/agents-project
 agent_noop	{"subagent_type": "fixture-agent"}	fixtures/agents-project/nested/deeper
 # fable is never launched, whoever names it
 agent_opus	{"subagent_type": "fixture-agent", "model": "fable"}	fixtures/agents-project
+# a definition with no model: line inherits the session's model, Fable included,
+# so it answers nothing and the omission is filled
+agent_opus	{"subagent_type": "fixture-agent-nomodel"}	fixtures/agents-project
 # a type with no definition anywhere has nothing to defer to -> opus fills it
 agent_opus	{"subagent_type": "general-purpose"}	fixtures/agents-project
 agent_opus	{"subagent_type": "no-such-agent"}	fixtures/agents-project
