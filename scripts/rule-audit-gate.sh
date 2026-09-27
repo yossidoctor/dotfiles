@@ -70,12 +70,15 @@ count=$(printf '%s\n' "$staged" | grep -c . || true)
   printf '%s\n' "$staged" | sed 's/^/  /'
   echo
   echo "rule-audit: $count staged rule file(s) above have no audit receipt for their current content."
-  echo "Run the auditor, which reads them in a session that did not write them:"
+  echo "Run the auditor OFF-THREAD — it is one claude -p session and takes minutes, so the turn"
+  echo "stays free and a message still reaches you (from Claude Code: Bash with"
+  echo "run_in_background: true; enforce-foreground-polling.sh sets that anyway):"
   echo
   echo "  bash ~/dotfiles/scripts/rule-audit.sh $root"
   echo
-  echo "It writes the receipt unless a correctness finding survives — a claim the text"
-  echo "makes that running the thing disproves. Style findings print and pass."
+  echo "Commit again when its completion notice reads AUDIT CLEAN or AUDIT ADVISORY — the"
+  echo "receipt is on disk by then. It is withheld only for a correctness finding, a claim"
+  echo "the text makes that running the thing disproves; style findings print and pass."
   echo "Editing a file afterwards re-arms this gate."
 } >&2
 exit 1
