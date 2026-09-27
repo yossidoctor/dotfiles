@@ -3,8 +3,8 @@
 # content, or the commit stops. Shared by every rule repo's pre-commit hook —
 # it takes the repo root and knows nothing else.
 #
-# Rule files are behavioural text: CLAUDE.md, a skill, an agent definition, a
-# rules file, a reference a skill ships. They bind every later session, and a defect in one
+# Rule files are behavioural text: CLAUDE.md, AGENTS.md, a skill, an agent definition, an
+# output style, a rules file, a reference a skill ships. They bind every later session, and a defect in one
 # is read as intent by every session after it. Session docs, READMEs and code
 # are out of scope.
 #
