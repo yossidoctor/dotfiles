@@ -81,7 +81,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 Every key under `env` in `claude/settings.json` is exported into each Bash-tool subprocess, so the object carries values only; the reasons live here.
 
 - `PATH` duplicates `zsh/zshenv` (the SoT) because the harness's `env.PATH` overrides the shell PATH for Bash-tool calls, which never source zshenv. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which Bash-tool calls don't run.
-- `HOMEBREW_NO_ANALYTICS` mirrors `brew/env.sh`, which only an interactive zsh and `brew/brew-maintenance.sh` source; a Bash-tool `brew` call reads neither.
+- `HOMEBREW_NO_ANALYTICS` mirrors `brew/env.sh`, which only an interactive zsh and `brew/maintenance.sh` source; a Bash-tool `brew` call reads neither.
 - `DISABLE_AUTOUPDATER`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable.
 - `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
 - `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.
@@ -121,7 +121,7 @@ Overrides the agent-panel rows via `subagentStatusLine`. Per row: description le
 
 ### Brew maintenance
 
-`brew/brew-maintenance.sh` runs `update`, `upgrade --formula`, `upgrade --cask --greedy`, `missing`, `autoremove`, `cleanup --prune=all`, `doctor`, then `npm cache verify` and `uv cache prune` (the two caches nothing else trims; a pruned entry only costs a re-download), then the drift check over the union of every Brewfile in `~/.config/homebrew/Brewfile.d/` (each layer links its own there; this repo's is `00-base`): `bundle check` for declared-but-missing, a non-forcing `bundle cleanup` for installed-but-undeclared — continues on per-step failure, collects them into end summary. `brew update` itself fails → run flagged STALE (later steps hit stale tap metadata). Cask upgrades pass `--no-quit`, so a running app is left alone and serves its old binary until quit by hand. Closes with inventory of pinned formulae, `:latest` casks, started services.
+`brew/maintenance.sh` runs `update`, `upgrade --formula`, `upgrade --cask --greedy`, `missing`, `autoremove`, `cleanup --prune=all`, `doctor`, then `npm cache verify` and `uv cache prune` (the two caches nothing else trims; a pruned entry only costs a re-download), then the drift check over the union of every Brewfile in `~/.config/homebrew/Brewfile.d/` (each layer links its own there; this repo's is `00-base`): `bundle check` for declared-but-missing, a non-forcing `bundle cleanup` for installed-but-undeclared — continues on per-step failure, collects them into end summary. `brew update` itself fails → run flagged STALE (later steps hit stale tap metadata). Cask upgrades pass `--no-quit`, so a running app is left alone and serves its old binary until quit by hand. Closes with inventory of pinned formulae, `:latest` casks, started services.
 
 ### Daily jobs
 
