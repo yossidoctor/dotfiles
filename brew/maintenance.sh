@@ -28,6 +28,10 @@
 
 . "$HOME/dotfiles/brew/env.sh"
 
+# A step's verdict is its own exit status, never that of the `tail` trimming
+# its output.
+set -o pipefail
+
 STALE=0
 FAILURES=()
 WARNINGS=()

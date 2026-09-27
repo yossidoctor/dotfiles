@@ -1,15 +1,17 @@
 #!/bin/bash
-# PermissionDenied hook: append one JSON line per call auto mode refused to
-# ~/.cache/claude/permission-denied.jsonl — the tool, the command or path, the
-# session and the time. Observation only: it emits no decision, so a refused
-# call stays refused, and it is registered `async` so it never sits in the
-# tool call's latency budget.
+# PermissionDenied hook: append one JSON line per call a permission rule
+# refused to ~/.cache/claude/permission-denied.jsonl — the tool, the command
+# or path, the session and the time. Under bypass mode that is a `deny`
+# pattern in settings.json; under auto mode the classifier's refusals too.
+# Observation only: it emits no decision, so a refused call stays refused, and
+# it is registered `async` so it never sits in the tool call's latency budget.
 #
 # The deny hooks under PreToolUse already leave their verdicts in the
-# transcripts; auto mode's own refusals leave nothing readable, and they are
+# transcripts; a settings-rule refusal leaves nothing readable, and those are
 # the rules that bite without a script behind them. This file is what a
-# review of "which refusals recur" reads. Rotation: past 1MB keep the last
-# 2000 lines, the reap.log convention.
+# review of "which refusals recur" reads — it is how an over-broad deny
+# pattern shows up. Rotation: past 1MB keep the last 2000 lines, the reap.log
+# convention.
 
 set -u
 

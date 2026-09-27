@@ -3,9 +3,10 @@
 #
 # Two verdicts, split by whether backgrounding preserves the command's value:
 #   - REWRITTEN to run_in_background=true: follow streams and watch commands
-#     (`tail -f`, `watch`, `kubectl logs -f`, `journalctl -f`, `gh run watch`,
-#     `gh pr checks --watch`) — the output is what's wanted, off-thread is where
-#     it belongs, so the call is normalized rather than refused.
+#     (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`,
+#     `journalctl -f`, `gh run watch`, `gh pr checks --watch`) — the output is
+#     what's wanted, off-thread is where it belongs, so the call is normalized
+#     rather than refused.
 #   - DENIED: a bare `sleep >=10` and sleep-loops. Backgrounding a wait yields
 #     nothing to consume, and a poll loop off-thread still burns a subprocess
 #     per tick — `ScheduleWakeup` and `Monitor` are the mechanisms that replace
@@ -32,7 +33,7 @@ set -u
 # cwd, the description and the session id alongside the command.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*journalctl*|*'gh run'*|*'gh pr'*) ;;
+  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
@@ -100,10 +101,12 @@ esac
 #   - `tail -f`/`--follow`: the flag may sit anywhere in tail's own pipeline
 #     segment ([^|;&] keeps the scan from crossing into a piped command).
 #   - `watch`: only in command position — start of input or after a separator.
-#   - `kubectl logs -f`, `journalctl -f`: same segment-scoped flag match.
+#   - `kubectl logs -f`, `journalctl -f`, `docker logs -f`, `docker compose logs
+#     -f`: same segment-scoped flag match.
+#   - `kubectl get -w` / `--watch`: kubectl's own watch, which never returns.
 #   - `gh run watch`, `gh pr checks --watch`: gh's own blocking waits, in either
 #     argument order.
-if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
+if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bkubectl[[:space:]]+get\b[^|;&]*([[:space:]]-w\b|[[:space:]]--watch(-only)?\b)|\bdocker(-compose|[[:space:]]+compose)?[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
   printf '%s' "$HOOK_INPUT" | jq -c '{hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "allow",

@@ -51,6 +51,19 @@ bg_forced	kubectl logs my-pod --follow
 bg_forced	kubectl logs -f deploy/gateway -n ns
 bg_forced	journalctl -f
 bg_forced	journalctl -u nginx -f
+# kubectl's own watch and docker's follow streams, in every spelling
+bg_forced	kubectl get pods -w
+bg_forced	kubectl get pods --watch -n ns
+bg_forced	kubectl get deploy/gateway --watch-only
+bg_forced	docker logs -f api
+bg_forced	docker logs api --follow
+bg_forced	docker compose logs -f
+bg_forced	docker-compose logs -f web
+allow	kubectl get pods
+allow	kubectl get pods -n ns -o wide
+allow	docker logs api --tail 50
+allow	docker compose logs
+allow	docker compose ps -a
 # gh's own blocking waits, either argument order. A finished run's logs are a
 # one-shot read and must pass untouched.
 bg_forced	gh run watch 123
