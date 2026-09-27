@@ -1,7 +1,9 @@
 #!/bin/bash
 # Keep macOS awake while Claude is working.
 #
-# UserPromptSubmit -> `active`: caffeinate while Claude generates (1h bound).
+# UserPromptSubmit -> `active`: caffeinate while Claude generates (4h bound —
+#                                an autonomous turn routinely outlives an hour,
+#                                and nothing refreshes the assertion mid-turn).
 # Stop             -> `linger`: 30-min post-turn window for a late follow-up
 #                                (e.g. a remote response from the Claude app).
 #
@@ -50,7 +52,7 @@ if [ -f "$pidfile" ]; then
 fi
 
 if [ "$mode" = "active" ]; then
-  timeout=3600
+  timeout=14400
 else
   timeout=1800
 fi

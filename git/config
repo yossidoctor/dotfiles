@@ -54,9 +54,11 @@
 [pull]
 	autoStash = true
 
+# No pruneTags: a fetch would delete a local tag minted but not yet pushed,
+# which is exactly the window a shared-lib release sits in between the tag
+# and its push.
 [fetch]
 	prune = true
-	pruneTags = true
 
 [rebase]
 	autoStash = true

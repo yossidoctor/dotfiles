@@ -14,6 +14,23 @@ deny	cat ~/proj/docs/adr/0021-verifier-agents.md	/Users/yossidoctor
 deny	cat /Users/yossidoctor/proj/.claude/skills/360/references/testsuite-matrix.md	/Users/yossidoctor
 deny	cat README.md	/Users/yossidoctor/proj/gateway-service
 
+# --- denied: head/tail line counts and the pager cousins are the same read ---
+deny	head -50 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	head -n 20 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	head /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	tail -n +30 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	tail -20 /Users/yossidoctor/dotfiles/README.md	/Users/yossidoctor
+deny	bat /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	less /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	more README.md	/Users/yossidoctor/proj/gateway-service
+# a last-N tail needs the file's line count for its Read offset; no file, no call to name
+allow	tail -20 /Users/yossidoctor/proj/x/nonexistent.py	/Users/yossidoctor
+# --- allowed: a flag beyond a line count is a format or a byte read ---
+allow	head -c 100 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+allow	bat -p /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+allow	head -5 /tmp/x.log	/Users/yossidoctor
+allow	tail -n 100 log.txt | grep -f patterns.txt	/Users/yossidoctor/proj
+
 # --- allowed: throwaway + harness-internal trees. Read registration buys nothing
 #     there, and a transcript or task-output file can be enormous. ---
 allow	sed -n '1,45p' /tmp/yas209.txt	/Users/yossidoctor

@@ -16,11 +16,9 @@
 #                     rewrites it with updatedInput run_in_background == true
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
 #   read_deny|read_allow<TAB><file_path>      Read payload (no content)
-#   msg_deny|msg_allow<TAB><message>           Slack-message payload
-#   agent_forced|agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
+#   agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
 #                     Agent payload: overrides merged over {"subagent_type": "x",
-#                     "prompt": "p"}. agent_forced asserts updatedInput
-#                     run_in_background == true, agent_opus asserts updatedInput
+#                     "prompt": "p"}. agent_opus asserts updatedInput
 #                     model == "opus", agent_noop asserts the hook emits nothing
 #   ctx_has|ctx_none<TAB><payload JSON>[<TAB><substring>]
 #                     raw payload; ctx_has asserts additionalContext contains the
@@ -63,9 +61,6 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
     read_deny|read_allow)
       payload=$(hook_json '{tool_name: "Read", tool_input: {file_path: $a1}}' "$f2")
       expect=${expect#read_} ;;
-    msg_deny|msg_allow)
-      payload=$(hook_json '{tool_input: {message: $a1}}' "$(printf '%b' "$f2")")
-      expect=${expect#msg_} ;;
     allow_bg)
       payload=$(hook_json '{tool_input: {command: $a1, run_in_background: true}}' "$(printf '%b' "$f2")")
       expect=allow ;;
@@ -109,7 +104,7 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
         fail=$((fail + 1)); echo "FAIL [$hook] expected=$expect got=$verdict"
       fi
       return ;;
-    agent_forced|agent_opus|agent_noop)
+    agent_opus|agent_noop)
       # a relative cwd names a fixture, so it resolves against TESTS_DIR
       case "$f3" in ""|/*) acwd=$f3 ;; *) acwd="$TESTS_DIR/$f3" ;; esac
       payload=$(jq -cn --argjson ov "$f2" --arg cwd "$acwd" \
@@ -119,15 +114,9 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
       if [ "$expect" = "agent_noop" ]; then
         [ -z "$out" ] && verdict=agent_noop || verdict="emitted:$out"
       else
-        key=run_in_background want=true
-        [ "$expect" = "agent_opus" ] && { key=model; want=opus; }
-        got=$(printf '%s' "$out" | jq -r --arg k "$key" '
-          (.hookSpecificOutput.updatedInput[$k]) as $v
-          | if $v == true then "true"
-            elif ($v | type) == "string" then $v
-            else "unset" end' 2>/dev/null || printf 'unset')
+        got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.model // "unset"' 2>/dev/null || printf 'unset')
         [ -n "$got" ] || got=unset
-        [ "$got" = "$want" ] && verdict=$expect || verdict="wrong-$key:${out:-<empty>}"
+        [ "$got" = "opus" ] && verdict=$expect || verdict="wrong-model:${out:-<empty>}"
       fi
       total=$((total + 1))
       if [ "$verdict" != "$expect" ]; then
