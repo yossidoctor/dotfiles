@@ -1,12 +1,6 @@
 {
   "cleanupPeriodDays": 30,
   "skillListingBudgetFraction": 0.03,
-  "autoMode": {
-    "allow": [
-      "$defaults",
-      "`git commit --no-verify` in ~/dotfiles or the private config layer (the repo `readlink -f ~/.config/git/local.gitconfig` resolves into) when the user has asked to skip or bypass the rule-audit gate. Those two are the user's solo config repos with no CI, and the pre-commit rule-audit is the user's own review step, which the user may waive."
-    ]
-  },
   "env": {
     "PATH": "/Users/yossidoctor/.local/share/fnm/aliases/default/bin:/Users/yossidoctor/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "DISABLE_AUTOUPDATER": "1",
@@ -23,8 +17,7 @@
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1",
-    "CLAUDE_CODE_AUTO_MODE_SERVER": "0"
+    "CLAUDE_GIT_SHOW_COMMIT_HASHES": "1"
   },
   "attribution": {
     "commit": "",
@@ -74,7 +67,7 @@
       "Bash(git * stash drop*)",
       "Bash(git * stash clear*)"
     ],
-    "defaultMode": "auto",
+    "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "/Users/yossidoctor/dotfiles"
     ]
@@ -228,10 +221,10 @@
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "xhigh"
+      "effortLevel": "medium"
     },
     "claude-fable-5-1": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     }
   },
   "promptSuggestionEnabled": false,
@@ -244,6 +237,7 @@
   },
   "timeFormat": "24-hour",
   "autoMemoryEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "editorMode": "normal",
@@ -257,5 +251,11 @@
   "crossSessionInbound": "hold",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "`git commit --no-verify` in ~/dotfiles or the private config layer (the repo `readlink -f ~/.config/git/local.gitconfig` resolves into) when the user has asked to skip or bypass the rule-audit gate. Those two are the user's solo config repos with no CI, and the pre-commit rule-audit is the user's own review step, which the user may waive."
+    ]
+  }
 }
