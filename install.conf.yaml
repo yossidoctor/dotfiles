@@ -21,10 +21,10 @@
     ~/.gitignore_global: git/ignore
     ~/.gitattributes_global: git/attributes
     ~/.config/git/identities.d/personal.sh: identities.sh
-    # every layer drops its Brewfile here; brew-maintenance reads the union
+    # every layer drops its Brewfile here; brew/maintenance.sh reads the union
     ~/.config/homebrew/Brewfile.d/00-base: brew/Brewfile
     # every layer drops its daily job here; mac/daily.sh runs them in name order
-    ~/.config/daily.d/00-brew-maintenance: brew/brew-maintenance.sh
+    ~/.config/daily.d/00-brew-maintenance: brew/maintenance.sh
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/check-doc-refs: scripts/check-doc-refs.sh
     ~/.local/bin/rule-audit: scripts/rule-audit.sh
