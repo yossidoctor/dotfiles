@@ -17,6 +17,11 @@
 # Usage:  rule-audit.sh <repo-root>
 # Exit:   0 clean, receipt written · 1 findings printed, no receipt · 2 usage
 #
+# It runs for minutes, so from Claude Code it is launched with the Bash tool's
+# run_in_background (enforce-foreground-polling.sh sets that on any call naming
+# this script): the turn stays free, a message still reaches the session, and
+# the verdict line arrives with the completion notice.
+#
 # The receipt keys on staged content (rule-audit-gate.sh owns its shape), so
 # editing anything afterwards re-arms the gate. There is no way to assert a
 # pass this script did not produce.

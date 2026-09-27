@@ -64,6 +64,17 @@ allow	kubectl get pods -n ns -o wide
 allow	docker logs api --tail 50
 allow	docker compose logs
 allow	docker compose ps -a
+# the rule auditor is a minutes-long claude -p session; the fast gate script is not
+bg_forced	bash ~/dotfiles/scripts/rule-audit.sh ~/layer
+bg_forced	rule-audit ~/dotfiles
+bg_forced	cd ~/dotfiles && git add README.md && bash scripts/rule-audit.sh .
+bg_forced	~/.local/bin/rule-audit ~/layer
+# the gate is fast, and a command that merely NAMES the file is not a run of it
+bg_none	bash ~/dotfiles/scripts/rule-audit-gate.sh ~/dotfiles
+bg_none	git commit -m "rule-audit: receipt shape"
+bg_none	grep -n receipt ~/dotfiles/scripts/rule-audit.sh
+bg_none	git add README.md scripts/rule-audit.sh scripts/rule-audit-gate.sh
+bg_none	cat ~/dotfiles/scripts/rule-audit.sh | head -5
 # gh's own blocking waits, either argument order. A finished run's logs are a
 # one-shot read and must pass untouched.
 bg_forced	gh run watch 123

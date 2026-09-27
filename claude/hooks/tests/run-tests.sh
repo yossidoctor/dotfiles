@@ -14,6 +14,8 @@
 #                     rewrites it with updatedInput timeout == ms
 #   bg_forced<TAB><command>                    Bash payload; asserts the hook
 #                     rewrites it with updatedInput run_in_background == true
+#   bg_none<TAB><command>                      Bash payload; asserts no such
+#                     rewrite and no deny — `allow` alone passes a rewrite
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
 #   read_deny|read_allow<TAB><file_path>      Read payload (no content)
 #   agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
@@ -78,14 +80,19 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
         fail=$((fail + 1)); echo "FAIL [$hook] expected timeout=$f3 got=$verdict : $f2"
       fi
       return ;;
-    bg_forced)
+    bg_forced|bg_none)
       payload=$(hook_json '{tool_name: "Bash", tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
       got=$(printf '%s' "$out" | jq -r '
-        if (.hookSpecificOutput.updatedInput.run_in_background) == true
-        then "true" else "unset" end' 2>/dev/null || printf 'unset')
+        if (.hookSpecificOutput.updatedInput.run_in_background) == true then "true"
+        elif (.hookSpecificOutput.permissionDecision // "allow") != "allow" then "denied"
+        else "unset" end' 2>/dev/null || printf 'unset')
       [ -n "$got" ] || got=unset
-      [ "$got" = "true" ] && verdict=bg_forced || verdict="not-backgrounded:${out:-<empty>}"
+      if [ "$expect" = bg_forced ]; then
+        [ "$got" = "true" ] && verdict=bg_forced || verdict="not-backgrounded:${out:-<empty>}"
+      else
+        [ "$got" = "unset" ] && verdict=bg_none || verdict="rewritten:${out:-<empty>}"
+      fi
       total=$((total + 1))
       if [ "$verdict" != "$expect" ]; then
         fail=$((fail + 1)); echo "FAIL [$hook] expected=$expect got=$verdict : $f2"
