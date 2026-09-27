@@ -1,4 +1,5 @@
 {
+  "cleanupPeriodDays": 30,
   "skillListingBudgetFraction": 0.03,
   "env": {
     "PATH": "/Users/yossidoctor/.local/share/fnm/aliases/default/bin:/Users/yossidoctor/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
@@ -189,7 +190,6 @@
       }
     ]
   },
-  "cleanupPeriodDays": 30,
   "worktree": {
     "baseRef": "fresh"
   },
@@ -221,14 +221,11 @@
   "alwaysThinkingEnabled": false,
   "effortLevel": "medium",
   "modelSettings": {
-    "claude-opus-5": {
-      "effortLevel": "xhigh"
-    },
-    "claude-sonnet-5": {
-      "effortLevel": "xhigh"
-    },
     "claude-opus-5-5": {
       "effortLevel": "xhigh"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "high"
     }
   },
   "promptSuggestionEnabled": false,
