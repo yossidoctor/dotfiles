@@ -39,8 +39,10 @@ transcript="$HOOK_TRANSCRIPT"
 [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
 
 # A rule edit is an Edit/Write row whose file_path is markdown, or a Bash row
-# naming a markdown file. A transcript carrying neither has nothing to audit,
-# and grep settles that before python parses every row of it.
+# naming a markdown file as a whole shell word — never the tail of a `$VAR/…`
+# expansion — resolved against the cwd that row ran in, not this hook's. A
+# transcript carrying neither has nothing to audit, and grep settles that
+# before python parses every row of it.
 grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit)".*"file_path":"[^"]*\.(md|mdc|mdx)"|"name":"Bash".*\.(md|mdc|mdx)\b' "$transcript" || exit 0
 
 # Turn number, and whether this turn edited a rule file at all.
@@ -93,8 +95,8 @@ for d in rows[start:]:
             cmd = (b.get("input") or {}).get("command") or ""
             if re.search(r"(?:^|[|&;(]|\s)(?:sed|perl|awk|python3?|tee|dd|truncate|install|cp|mv)\b", cmd) \
                or re.search(r">>?\s*[\w./~-]+\.(?:md|mdc|mdx)\b", cmd):
-                for tok in re.findall(r"[\w./~-]+\.(?:md|mdc|mdx)\b", cmd):
-                    if behavioral(os.path.expanduser(tok)):
+                for tok in re.findall(r"(?<![\w$}./~-])[\w./~-]+\.(?:md|mdc|mdx)\b", cmd):
+                    if behavioral(os.path.join(d.get("cwd") or "", os.path.expanduser(tok))):
                         edited = 1
 print(turn, edited)
 PY
