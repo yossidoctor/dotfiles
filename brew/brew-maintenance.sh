@@ -22,12 +22,19 @@
 # formula one layer declares is drift against the other layer's file alone.
 # `bundle cleanup` runs without --force and with stdin closed, so it lists what
 # no Brewfile declares and removes nothing.
+#
+# Runs daily as a job of mac/daily.sh, whose end banner
+# is the closing outcome line written to $DAILY_SUMMARY.
 
 . "$HOME/dotfiles/brew/env.sh"
 
 STALE=0
 FAILURES=()
 WARNINGS=()
+
+list_outdated() {
+    HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --greedy --quiet 2>/dev/null
+}
 
 echo "========================================"
 echo "  Homebrew Maintenance Script"
@@ -40,6 +47,7 @@ if ! brew update; then
     STALE=1
     FAILURES+=("brew update")
 fi
+OUTDATED_BEFORE=$(list_outdated)
 echo
 
 echo "→ Upgrading formulae..."
@@ -48,6 +56,7 @@ echo
 
 echo "→ Upgrading casks (--greedy)..."
 brew upgrade --cask --greedy --yes --quiet --no-quit || FAILURES+=("brew upgrade --cask --greedy")
+UPGRADED=$(comm -23 <(sort <<<"$OUTDATED_BEFORE") <(list_outdated | sort) | paste -sd' ' -)
 echo
 
 echo "→ Checking for missing dependencies (informational)..."
@@ -127,6 +136,7 @@ brew services list | awk 'NR==1 || $2=="started"'
 echo
 
 echo "========================================"
+echo "  Upgraded: ${UPGRADED:-nothing}"
 if [ "$STALE" -eq 1 ]; then
     echo "  ⚠️  STALE METADATA: brew update failed"
     echo "      Results are incomplete."
@@ -142,6 +152,15 @@ else
     echo "  Maintenance complete — no step failures"
 fi
 echo "========================================"
+
+if [ ${#FAILURES[@]} -gt 0 ]; then
+    OUTCOME="❌ Failed: $(IFS=,; echo "${FAILURES[*]}")"
+elif [ ${#WARNINGS[@]} -gt 0 ]; then
+    OUTCOME="⚠️ ${#WARNINGS[@]} warning(s)"
+else
+    OUTCOME="✅ Clean"
+fi
+[ -n "${DAILY_SUMMARY:-}" ] && echo "$OUTCOME · upgraded: ${UPGRADED:-nothing}" >"$DAILY_SUMMARY"
 
 [ ${#FAILURES[@]} -gt 0 ] && exit 1
 exit 0
