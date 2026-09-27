@@ -18,6 +18,10 @@ short_model() {
   esac
 }
 
+align_left()  { printf '%s%*s' "$2" $(( $1 - ${#2} )) ''; }
+align_right() { printf '%*s%s' $(( $1 - ${#2} )) '' "$2"; }
+widen() { [ "${#2}" -gt "${!1}" ] && printf -v "$1" '%s' "${#2}"; return 0; }
+
 now_ms=$(( $(date +%s) * 1000 ))
 us=$'\x1f'
 
@@ -26,24 +30,46 @@ us=$'\x1f'
 {
   read -r columns
   : "${columns:=0}"
-  while IFS=$'\x1f' read -r id desc model tokens window start_ms; do
-
+  n=0 w_mdl=0 w_pct=0 w_eff=0 w_ela=0 w_tok=0
+  while IFS=$'\x1f' read -r id desc model effort tokens window start_ms; do
     pct=$(( tokens * 100 / window ))
-    color=$(ramp_color "$pct" "$ctx_warm_default" "$ctx_bold_default")
+    ids[n]=$id descs[n]=$desc pcts[n]="$pct%"
+    colors[n]=$(ramp_color "$pct" "$ctx_warm_default" "$ctx_bold_default")
+    mdls[n]=""; [ -n "$model" ] && mdls[n]=$(short_model "$model")
+    effs[n]=""; [ -n "$effort" ] && effs[n]=$(effort_label "$effort")
+    elas[n]=""; [ "$start_ms" -gt 0 ] && elas[n]=$(fmt_elapsed $(( (now_ms - start_ms) / 1000 )))
+    toks[n]="↓$(fmt_tokens "$tokens")"
+    widen w_mdl "${mdls[n]}"; widen w_pct "${pcts[n]}"; widen w_eff "${effs[n]}"
+    widen w_ela "${elas[n]}"; widen w_tok "${toks[n]}"
+    n=$(( n + 1 ))
+  done
 
-    mdl=""; [ -n "$model" ] && mdl="$(short_model "$model") "
-    ela=""; [ "$start_ms" -gt 0 ] && ela="$(fmt_elapsed $(( (now_ms - start_ms) / 1000 ))) · "
-    tok="↓$(fmt_tokens "$tokens")"
+  i=0
+  while [ "$i" -lt "$n" ]; do
+    mdl=""; [ "$w_mdl" -gt 0 ] && mdl="$(align_left "$w_mdl" "${mdls[i]}") "
+    pct=$(align_right "$w_pct" "${pcts[i]}")
+    eff=""
+    if [ "$w_eff" -gt 0 ]; then
+      mark=" ·"; [ -z "${effs[i]}" ] && mark="  "
+      eff="${mark}$(align_left "$w_eff" "${effs[i]}")"
+    fi
+    ela=""
+    if [ "$w_ela" -gt 0 ]; then
+      mark=" · "; [ -z "${elas[i]}" ] && mark="   "
+      ela="$(align_right "$w_ela" "${elas[i]}")${mark}"
+    fi
+    tok=$(align_right "$w_tok" "${toks[i]}")
 
-    right_plain="${mdl}${pct}%  ${ela}${tok}"
-    right="${mdl}${color}${pct}%${c_off}  ${c_muted}${ela}${tok}${c_off}"
+    right_plain="${mdl}${pct}${eff}  ${ela}${tok}"
+    right="${mdl}${colors[i]}${pct}${c_off}${c_muted}${eff}  ${ela}${tok}${c_off}"
 
-    gap=$(( columns - ${#desc} - ${#right_plain} ))
+    gap=$(( columns - ${#descs[i]} - ${#right_plain} ))
     [ "$gap" -lt 2 ] && gap=2
     pad=$(printf '%*s' "$gap" '')
-    content=$(printf "%b" "${c_muted}${desc}${c_off}${pad}${right}")
+    content=$(printf "%b" "${c_muted}${descs[i]}${c_off}${pad}${right}")
 
-    printf '%s%s%s\n' "$id" "$us" "$content"
+    printf '%s%s%s\n' "${ids[i]}" "$us" "$content"
+    i=$(( i + 1 ))
   done
 } < <(printf '%s' "$input" | jq -r '
   ((.columns // 0) | tostring),
@@ -52,6 +78,7 @@ us=$'\x1f'
    | [ (.id // "" | tostring),
        ((.description // .label // .name // "") | gsub("\n"; " ")),
        (.model // ""),
+       (.effort // "" | if type == "number" then floor | tostring else . end),
        ((.tokenCount // 0) | floor | tostring),
        (.contextWindowSize | floor | tostring),
        ((.startTime // 0) | floor | tostring) ]

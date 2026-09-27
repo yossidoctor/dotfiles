@@ -18,6 +18,9 @@
 #     <track_color> as its ground so the cell spans the full 100% height and the
 #     unfilled remainder stays visible. <track_color> is a 38;2 foreground escape
 #     (the same one bar() takes as its empty track); it is rewritten to 48;2 here.
+#   effort_label <level|token budget>
+#     the short effort tag both scripts print after `·`; a numeric budget is
+#     formatted like a token count.
 #   ctx_warm_default / ctx_bold_default
 #     the context-percentage ramp's warm and bold rungs for every model but
 #     Sonnet, read by both statusline scripts; Sonnet's wider window has its own
@@ -70,6 +73,18 @@ fmt_tokens() {
   else
     printf '%d' "$t"
   fi
+}
+
+effort_label() {
+  case "$1" in
+    low)    printf 'Low' ;;
+    medium) printf 'Mid' ;;
+    high)   printf 'High' ;;
+    xhigh)  printf 'XHi' ;;
+    max)    printf 'Max' ;;
+    *[!0-9]*) printf '%s' "$1" ;;
+    *)      fmt_tokens "$1" ;;
+  esac
 }
 
 fmt_elapsed() {

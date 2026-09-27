@@ -66,6 +66,7 @@ bar() {
 
 # ── claude section ───────────────────────────────────────────
 claude_section=""
+field_sep="${c_muted} · ${c_off}"
 
 cswap_state="$HOME/.claude-swap-backup/sequence.json"
 
@@ -87,19 +88,11 @@ if [ -n "$used_pct" ]; then
     ctx_str="${ctx_color}${used_pct}%${c_off}"
   fi
   [ -n "$cache_cold" ] && ctx_str="${c_muted}∘${c_off}${ctx_str}"
-  claude_section+="${claude_section:+ }${ctx_str}"
+  claude_section+="${claude_section:+$field_sep}${ctx_str}"
 fi
 
 if [ -n "$effort" ]; then
-  case "$effort" in
-    low)    effort_label="Low" ;;
-    medium) effort_label="Mid" ;;
-    high)   effort_label="High" ;;
-    xhigh)  effort_label="XHi" ;;
-    max)    effort_label="Max" ;;
-    *)      effort_label="$effort" ;;
-  esac
-  claude_section+="${claude_section:+ }${c_muted}·${effort_label}${c_off}"
+  claude_section+="${claude_section:+$field_sep}${c_muted}$(effort_label "$effort")${c_off}"
 fi
 
 case "$permission_mode" in

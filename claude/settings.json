@@ -197,7 +197,8 @@
   "workflowKeywordTriggerEnabled": false,
   "statusLine": {
     "type": "command",
-    "command": "bash \"$HOME\"/.claude/statusline-command.sh"
+    "command": "bash \"$HOME\"/.claude/statusline-command.sh",
+    "refreshInterval": 15
   },
   "subagentStatusLine": {
     "type": "command",
