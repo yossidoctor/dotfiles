@@ -76,9 +76,10 @@ allow	kubectl logs my-pod
 allow	kubectl logs my-pod --tail 100
 allow	journalctl -u nginx -n 50
 allow	git commit -m "stream logs with kubectl logs -f"
-# An agent has neither ScheduleWakeup nor Monitor, and a backgrounded sleep delays
-# its next turn by nothing, so a held foreground sleep is its only wait. The
-# payload carries no caller identity, so `description: poll wait` is the opt-out.
+# An agent has neither ScheduleWakeup nor Monitor. It waits on its own process by
+# backgrounding it and ending its turn, but a condition no process signals leaves it
+# a held foreground sleep. The payload carries no caller identity, so
+# `description: poll wait` is the opt-out.
 poll_allow	sleep 300
 poll_allow	sleep 5m
 poll_allow	sleep 45s

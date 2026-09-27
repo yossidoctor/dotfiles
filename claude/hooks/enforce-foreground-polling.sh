@@ -14,10 +14,11 @@
 #
 # Skips when run_in_background=true (off-thread already), and for a sleep whose
 # `description` is exactly `poll wait`. Both replacements the deny names are
-# main-thread tools an agent does not have, so inside one the deny has no
-# satisfiable form: backgrounding is not it either, since an agent's next turn
-# starts the moment the call returns, so a backgrounded sleep delays nothing and
-# the agent polls in a hot loop. The payload carries no caller identity to key on
+# main-thread tools an agent does not have. An agent waiting on its own process
+# backgrounds it and ends its turn, and the harness wakes it on exit; the carve-out
+# is for a condition no process of its own signals (a reply landing on a thread),
+# where a backgrounded sleep the agent works past delays nothing and it polls in a
+# hot loop. The payload carries no caller identity to key on
 # — session_id, transcript_path and cwd are the parent session's on an agent's
 # call too — so the opt-out is the description, which only a prompt that means it
 # sets. It names a bare sleep, never a poll loop.
@@ -73,7 +74,7 @@ fi
 # letting a killed process reap, a device handshake settle — where the check
 # belongs in the same command and there is nothing to come back to.
 if printf '%s' "$cmd_unq" | grep -qE '\bsleep[[:space:]]+([1-9][0-9]|[1-9][0-9]{2,})([.][0-9]+)?s?\b|\bsleep[[:space:]]+[0-9]+([.][0-9]+)?[mhd]\b'; then
-  deny "Foreground \`sleep\` >=10s blocked. Main thread: waiting on a condition is \`Monitor\` (off-thread, notifies on exit); a single fixed delay before re-checking is \`ScheduleWakeup\` (no process at all — the session resumes and re-checks); work whose OUTPUT is the point is \`Bash\` with \`run_in_background: true\`. Subagent (none of those tools): a bare \`sleep N\` whose description is exactly \`poll wait\` passes and gets a timeout matching N — that is the only delay an agent has, between liveness checks of a process the harness detached. Backgrounding a bare wait is not the fix — it still burns a subprocess and still needs someone to come back for the answer. Sub-10s waits pass, for settling after a kill or a connect."
+  deny "Foreground \`sleep\` >=10s blocked. Main thread: waiting on a condition is \`Monitor\` (off-thread, notifies on exit); a single fixed delay before re-checking is \`ScheduleWakeup\` (no process at all — the session resumes and re-checks); work whose OUTPUT is the point is \`Bash\` with \`run_in_background: true\`. Subagent (none of those tools): wait on your own process by launching it with \`run_in_background: true\` and ending your turn — the harness wakes you on exit; for a condition no process of yours signals, a bare \`sleep N\` whose description is exactly \`poll wait\` passes and gets a timeout matching N. Backgrounding a bare wait is not the fix — it still burns a subprocess and still needs someone to come back for the answer. Sub-10s waits pass, for settling after a kill or a connect."
 fi
 
 # Sleep-loops: polling pattern. Monitor runs off-thread + notifies on exit.
