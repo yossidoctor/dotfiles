@@ -80,7 +80,13 @@ if [ -n "$used_pct" ]; then
     *)                 warm_start=$ctx_warm_default; bold_start=$ctx_bold_default; alarm=50 ;;
   esac
   ctx_color=$(ramp_color "$used_pct" "$warm_start" "$bold_start" "" "$alarm")
-  ctx_str="${ctx_color}${used_pct}%${c_off}"
+  if [ "$used_pct" -ge "$alarm" ]; then
+    read -r a_r a_g a_b <<<"$(alarm_rgb "$used_pct" "$alarm")"
+    cap="\\033[38;2;${a_r};${a_g};${a_b}m"
+    ctx_str="${cap}\\0356\\0202\\0266${c_off}${ctx_color}${used_pct}%${c_off}${cap}\\0356\\0202\\0264${c_off}"
+  else
+    ctx_str="${ctx_color}${used_pct}%${c_off}"
+  fi
   [ -n "$cache_cold" ] && ctx_str="${c_muted}∘${c_off}${ctx_str}"
   claude_section+="${claude_section:+$field_sep}${ctx_str}"
 fi
