@@ -2,8 +2,14 @@
 # Daily job runner, started by the LaunchAgent daily-agent.sh installs. Runs
 # every job under ~/.config/daily.d/ in name order, one at a time: each layer
 # links its own there, and running them serially keeps a brew upgrade from
-# landing under another job's install. Jobs have no timeout, so a hung job
-# holds the ones after it, and launchd starts no new run while it is alive.
+# landing under another job's install. A job past its deadline has its whole
+# process tree killed and ends ❌ timed out, so a hung job neither holds the
+# ones after it nor keeps launchd from starting the next day's run; a job cut
+# mid-install is the price of that bound.
+#
+# launchd may start the run inside a Power Nap dark wake, which sleeps again
+# within seconds and freezes a job mid-fetch. caffeinate holds the Mac awake
+# for as long as the runner lives, and the deadlines bound how long that is.
 #
 # The runner starts the moment the Mac wakes, before Wi-Fi may be back, so it
 # first waits a bounded time for github.com to answer; the jobs run either way
@@ -14,15 +20,26 @@
 # terminal-notifier banner marks its start and its end — one group per job, so
 # the end replaces the start, and a click opens the log. The end banner is the
 # one line the job writes to the file named by $DAILY_SUMMARY, or ✅/❌ from
-# its exit code when it writes none. Names drop their order prefix.
+# its exit code when it writes none. Names drop their order prefix. A banner
+# macOS refuses (notifications off for terminal-notifier) is reported on
+# stderr, which the LaunchAgent keeps.
 set -u
 
 jobs_dir="$HOME/.config/daily.d"
 log_root="$HOME/Library/Logs/daily"
+deadline_seconds=180
 
 notify() {
-    terminal-notifier -title "$1" -message "$2" -group "daily-$1" -open "file://$3" >/dev/null 2>&1
+    terminal-notifier -title "$1" -message "$2" -group "daily-$1" -open "file://$3" >&2
 }
+
+kill_tree() {
+    local child
+    for child in $(pgrep -P "$1"); do kill_tree "$child"; done
+    kill -TERM "$1" 2>/dev/null
+}
+
+caffeinate -i -w $$ &
 
 command -v npm >/dev/null 2>&1 || { command -v fnm >/dev/null 2>&1 && eval "$(fnm env --shell bash)"; }
 
@@ -41,12 +58,21 @@ for job in "$jobs_dir"/*; do
     mkdir -p "$log_dir"
     find "$log_dir" -name '*.log' -mtime +30 -delete
     notify "$name" "Started — click for the live log" "$log"
-    DAILY_SUMMARY="$summary" "$job" </dev/null >"$log" 2>&1
+    DAILY_SUMMARY="$summary" "$job" </dev/null >"$log" 2>&1 &
+    pid=$!
+    ( sleep "$deadline_seconds"; touch "$summary.timeout"; kill_tree "$pid" ) &
+    watchdog=$!
+    wait "$pid" 2>/dev/null
     rc=$?
+    kill_tree "$watchdog"
+    wait "$watchdog" 2>/dev/null
     outcome=$(head -1 "$summary")
-    if [ -z "$outcome" ]; then
+    if [ -e "$summary.timeout" ]; then
+        outcome="❌ Timed out after $((deadline_seconds / 60)) min"
+        echo "daily: killed after ${deadline_seconds}s" >>"$log"
+    elif [ -z "$outcome" ]; then
         if [ "$rc" -eq 0 ]; then outcome="✅ Done"; else outcome="❌ Exited $rc"; fi
     fi
     notify "$name" "$outcome" "$log"
-    rm -f "$summary"
+    rm -f "$summary" "$summary.timeout"
 done
