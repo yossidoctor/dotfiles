@@ -24,7 +24,8 @@
 #           - targets under /tmp, /private/tmp, a scratchpad dir, or ~/.claude
 #             — throwaway and harness files (transcripts and task outputs live
 #             there), where Read's registration buys nothing and the file may
-#             be enormous
+#             be enormous. A ~/.claude path that is a dotbot link into a repo
+#             is that repo's file and is judged as such, by its real path
 #           - a path in a variable or glob — the operand is unknowable here
 #
 # The deny names the exact Read call, so the retry is one turn.
@@ -42,6 +43,7 @@ hook_parse_input
 [ -z "$HOOK_CMD" ] && exit 0
 
 cmd_flat=$(printf '%s' "$HOOK_CMD" | tr '\n' ' ')
+strip_quotes() { tr -d "'\""; }
 
 # `grep -r` recurses; `rg -r` takes a REPLACEMENT string and ripgrep already
 # recurses by default. So `rg -r <pattern> <path>` consumes the pattern as the
@@ -49,10 +51,13 @@ cmd_flat=$(printf '%s' "$HOOK_CMD" | tr '\n' ' ')
 # the literal `n` — both exit 0 with output that reads as a real result, which is
 # how a corrupted search gets believed. Deny on the short forms typed from grep
 # muscle memory; `--replace=` spelled out is a deliberate rewrite and passes.
-case "$cmd_flat" in
+# Matched on the command SHAPE (quotes and heredoc bodies dropped), so an echo
+# or commit message that merely names the flag is not an invocation.
+cmd_shape=$(hook_command_shape ' ')
+case "$cmd_shape" in
   *--replace*) ;;
   *)
-    if printf '%s' "$cmd_flat" | grep -qE '(^|[[:space:]&|;/])rg[[:space:]]+(-[a-zA-Z]*r[a-zA-Z]*)([[:space:]]|$)'; then
+    if printf '%s' "$cmd_shape" | grep -qE '(^|[[:space:]&|;/])rg[[:space:]]+(-[a-zA-Z]*r[a-zA-Z]*)([[:space:]]|$)'; then
       deny "\`rg -r\` is ripgrep's --replace flag, not grep's recursive flag — ripgrep already recurses. As written the next argument is consumed as a replacement string, so the search either matches nothing or prints every match rewritten, and exits 0 either way. Drop the \`-r\`: \`rg <pattern> <path>\`. Use \`-e <pattern>\` when the pattern starts with a dash, and spell out \`--replace=<text>\` if a rewrite really is what you want."
     fi
     ;;
@@ -73,7 +78,7 @@ limit=""
 if printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*sed[[:space:]]+-n[[:space:]]'; then
   # Must carry a line-range print script; a pattern print is a filter, not a read.
   printf '%s' "$cmd_flat" | grep -qE "['\"]?[0-9]+,[0-9\$]+p['\"]?" || exit 0
-  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | tr -d "'\"")
+  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | strip_quotes)
   case "$file" in
     -*|*,*p|"") exit 0 ;;
   esac
@@ -85,20 +90,22 @@ elif printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*(cat|bat|less|more)[[:spac
   # Exactly one operand and no flags: `cat -n`, `cat -A`, `bat -p` and `cat a b`
   # are numbering, escaping, paging and concatenation — none is a plain file read.
   printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*(cat|bat|less|more)[[:space:]]+[^-][^[:space:]]*[[:space:]]*$' || exit 0
-  file=$(printf '%s' "$cmd_flat" | awk '{print $2}' | tr -d '"'"'"'')
+  file=$(printf '%s' "$cmd_flat" | awk '{print $2}' | strip_quotes)
 elif printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*head[[:space:]]'; then
   # `head [-n N | -N] <file>`: the count is Read's limit; head's own default is 10.
   printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*head([[:space:]]+(-n[[:space:]]*[0-9]+|-[0-9]+))?[[:space:]]+[^-][^[:space:]]*[[:space:]]*$' || exit 0
-  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | tr -d "'\"")
-  limit=$(printf '%s' "$cmd_flat" | grep -oE '(-n[[:space:]]*|-)[0-9]+' | grep -oE '[0-9]+$' | head -1)
+  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | strip_quotes)
+  # The count is read right after the command word, never from the operand: a
+  # `-2` inside `foo-2.txt` is part of a filename.
+  limit=$(printf '%s' "$cmd_flat" | grep -oE '^[[:space:]]*head[[:space:]]+(-n[[:space:]]*|-)[0-9]+' | grep -oE '[0-9]+$')
   limit=${limit:-10}
 elif printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*tail[[:space:]]'; then
   # `tail -n +K <file>` starts at line K. `tail [-n N | -N] <file>` is the last N
   # lines, which Read reaches by an offset counted back from `wc -l` once the
   # operand has resolved below.
   printf '%s' "$cmd_flat" | grep -qE '^[[:space:]]*tail([[:space:]]+(-n[[:space:]]*\+?[0-9]+|-[0-9]+))?[[:space:]]+[^-][^[:space:]]*[[:space:]]*$' || exit 0
-  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | tr -d "'\"")
-  tail_n=$(printf '%s' "$cmd_flat" | grep -oE '(-n[[:space:]]*|-)\+?[0-9]+' | grep -oE '\+?[0-9]+$' | head -1)
+  file=$(printf '%s' "$cmd_flat" | awk '{print $NF}' | strip_quotes)
+  tail_n=$(printf '%s' "$cmd_flat" | grep -oE '^[[:space:]]*tail[[:space:]]+(-n[[:space:]]*|-)\+?[0-9]+' | grep -oE '\+?[0-9]+$')
   tail_n=${tail_n:-10}
   case "$tail_n" in
     +*) offset=${tail_n#+} ;;
@@ -119,8 +126,13 @@ abs=$(hook_abspath "$file")
 
 # Throwaway and harness-internal trees: Read buys nothing there, and a transcript
 # or task-output file is large enough that a bounded shell range is the better tool.
+# A ~/.claude path is exempt only while it resolves inside ~/.claude: the dotbot
+# links there lead into a config repo, whose file this is, judged by its real path.
 case "$abs" in
-  /tmp/*|/private/tmp/*|"$HOME"/.claude/*|*/scratchpad/*) exit 0 ;;
+  /tmp/*|/private/tmp/*|*/scratchpad/*) exit 0 ;;
+  "$HOME"/.claude/*)
+    real=$(readlink -f "$abs" 2>/dev/null) || real=$abs
+    case "$real" in "$HOME"/.claude/*) exit 0 ;; *) abs=$real ;; esac ;;
 esac
 
 if [ -n "${tail_last:-}" ]; then

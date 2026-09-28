@@ -22,18 +22,20 @@
 # this script): the turn stays free, a message still reaches the session, and
 # the verdict line arrives with the completion notice.
 #
-# The receipt keys on staged content (rule-audit-gate.sh owns its shape), so
-# editing anything afterwards re-arms the gate. There is no way to assert a
-# pass this script did not produce.
+# The receipt keys on staged content (rule-audit-lib.sh owns the staged set and
+# the key; rule-audit-gate.sh owns the receipt's shape), so editing anything
+# afterwards re-arms the gate. There is no way to assert a pass this script did
+# not produce. The audit session cannot edit: Edit and Write are disallowed on
+# its command line, so it reads and runs but never changes the files it judges.
 
 set -uo pipefail
+
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/rule-audit-lib.sh"
 
 root="${1:?usage: rule-audit.sh <repo-root>}"
 command -v claude >/dev/null || { echo "rule-audit: claude not on PATH" >&2; exit 2; }
 
-staged=$(git -C "$root" diff --cached --name-only --diff-filter=ACMR \
-  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|rules|output-styles)/.*\.(md|sh)$' \
-  || true)
+staged=$(rule_audit_staged "$root")
 [ -n "$staged" ] || { echo "rule-audit: nothing staged in scope."; exit 0; }
 
 # The closure: files the staged set cites, and files that cite the staged set.
@@ -116,7 +118,7 @@ EOF
 
 n_staged=$(printf '%s\n' "$staged" | grep -c . || true)
 echo "rule-audit: auditing $n_staged staged rule files in a fresh session..."
-out=$(claude -p "$prompt" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
+out=$(claude -p --disallowedTools "Edit,Write,MultiEdit,NotebookEdit" "$prompt" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
 printf '%s\n' "$out"
 
 # A style finding does not withhold the receipt. The bar "zero findings" is
@@ -128,12 +130,7 @@ printf '%s\n' "$out"
 verdict=$(printf '%s' "$out" | tail -3 | grep -oE 'AUDIT (CLEAN|BLOCKING|ADVISORY)' | tail -1)
 case "$verdict" in
   "AUDIT CLEAN"|"AUDIT ADVISORY")
-    key=$(
-      printf '%s\n' "$staged" | while IFS= read -r f; do
-        [ -n "$f" ] || continue
-        printf '%s %s\n' "$f" "$(git -C "$root" rev-parse ":$f" 2>/dev/null || echo missing)"
-      done | shasum -a 256 | cut -d' ' -f1
-    )
+    key=$(rule_audit_key "$root" "$staged")
     # A clean pass pins the exact content. An advisory pass pins the file set
     # instead, so fixing the style findings it just reported does not re-arm the
     # gate against that very fix; the gate re-arms the moment a file outside the

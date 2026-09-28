@@ -24,7 +24,7 @@ case "$mode" in active|linger) ;; *) exit 0 ;; esac
 
 hook_read_input
 session="${HOOK_SESSION_ID:-default}"
-pidfile="/tmp/claude-caffeinate-${session}.pid"
+pidfile="${TMPDIR:-/tmp}/claude-caffeinate-${session}.pid"
 
 # Find this hook's Claude parent by walking up the process tree: one ps of every
 # process, walked in awk, instead of two ps forks per level. Empty -> -w is

@@ -33,8 +33,15 @@ if ! [ -L "$fp" ]; then
     */*) ;;
     *) exit 0 ;;
   esac
+  # A Write may name a directory that does not exist yet; the nearest existing
+  # ancestor is what decides whether the path runs through a link.
   dir=${fp%/*}
   base=${fp##*/}
+  while [ -n "$dir" ] && ! [ -d "$dir" ]; do
+    base="${dir##*/}/$base"
+    dir=${dir%/*}
+  done
+  [ -n "$dir" ] || exit 0
   logical=$(cd "$dir" 2>/dev/null && pwd -L) || exit 0
   phys=$(cd "$dir" 2>/dev/null && pwd -P) || exit 0
   [ "$phys" = "$logical" ] && exit 0

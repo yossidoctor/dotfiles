@@ -31,7 +31,11 @@ was_running=false
 pgrep -xq "$app" && was_running=true
 killall "$app" 2>/dev/null || true
 
-defaults import "$domain" "$plist"
+if ! defaults import "$domain" "$plist"; then
+  echo "plist-restore: defaults import failed for $domain — settings not applied, stamp not written" >&2
+  $was_running && open -a "$app" 2>/dev/null || true
+  exit 1
+fi
 
 $was_running && open -a "$app" 2>/dev/null || true
 

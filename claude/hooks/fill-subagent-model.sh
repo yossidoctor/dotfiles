@@ -8,8 +8,9 @@
 # kept. An omission is filled only when no agent definition answers for it: a
 # dispatch naming a type whose `<type>.md` on disk carries a `model:` line is
 # deferring to that pin, and filling the omission here would silently
-# overwrite it. A definition without one inherits the session's model, Fable
-# included, so it counts as no answer and the omission is filled. Backgrounding
+# overwrite it. A definition without one, or with `model: inherit`, inherits
+# the session's model, Fable included, so it counts as no answer and the
+# omission is filled; a definition pinning `fable` is the same gap. Backgrounding
 # is the harness's own default for every subagent, so this hook leaves
 # run_in_background alone.
 # Idempotent: silent when nothing needs changing.
@@ -28,12 +29,21 @@ hook_parse_input
 
 # Does an agent definition pin a model for this dispatch's type? Its own
 # `model:` owns the choice, so an omitted model is deferral to it, not a gap to
-# fill. One grep per candidate file, against the roots definitions deploy to.
-pins_model() { [ -f "$1" ] && grep -qE '^model:[[:space:]]*[a-z]' "$1"; }
+# fill. One grep per candidate file, against the roots definitions deploy to;
+# a `plugin:name` type resolves under the installed marketplaces.
+pins_model() {
+  [ -f "$1" ] && grep -qE '^model:[[:space:]]*[a-z]' "$1" \
+    && ! grep -qE '^model:[[:space:]]*(inherit|fable)([[:space:]]|$)' "$1"
+}
 sub_type=$(printf '%s' "$HOOK_INPUT" | jq -r '.tool_input.subagent_type // ""')
 has_def=false
 case "$sub_type" in
   ""|*/*|.*) ;;
+  *:*)
+    for f in "$HOME"/.claude/plugins/marketplaces/*/agents/"${sub_type#*:}".md \
+             "$HOME"/.claude/plugins/marketplaces/*/*/agents/"${sub_type#*:}".md; do
+      pins_model "$f" && { has_def=true; break; }
+    done ;;
   *)
     dir=${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}
     while [ -n "$dir" ] && [ "$dir" != / ]; do

@@ -13,10 +13,10 @@
 # stderr is kept (auto-stderr.log), so a crash-loop still leaves evidence.
 set -euo pipefail
 
+. "$(dirname "${BASH_SOURCE[0]}")/../mac/launchagent-lib.sh"
+
 label="dev.yossidoctor.cswap-auto"
 cswap="$HOME/.local/bin/cswap"
-plist_dst="$HOME/Library/LaunchAgents/$label.plist"
-
 [ -x "$cswap" ] || exit 0
 
 plist_new=$(cat <<EOF
@@ -48,18 +48,4 @@ plist_new=$(cat <<EOF
 EOF
 )
 
-if [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plist_new" ]; then
-  exit 0
-fi
-
-mkdir -p "$HOME/Library/LaunchAgents"
-launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1 || true
-printf '%s\n' "$plist_new" > "$plist_dst"
-# bootout returns before launchd has torn the job down, and a bootstrap that
-# lands inside that window fails with "Input/output error"; a second try a
-# moment later succeeds.
-for _ in 1 2 3 4 5; do
-  launchctl bootstrap "gui/$(id -u)" "$plist_dst" 2>/dev/null && exit 0
-  sleep 1
-done
-launchctl bootstrap "gui/$(id -u)" "$plist_dst"
+install_launchagent "$label" "$plist_new"

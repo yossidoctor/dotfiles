@@ -14,16 +14,18 @@
 # Stop is the right event for it: it fires exactly when the claim of done is
 # made, and a dangling `§` cite is free to fix in that turn and expensive to
 # find a week later. The check is `check-doc-refs.sh`, which the project owns —
-# no findings, no block, and a project without the script never blocks.
+# it reads the whole project, so a hard failure anywhere in it blocks once a
+# rule edit this turn has made it worth re-reading; § warnings never block.
 #
-# At most one block per turn, enforced by a marker file holding the audited
-# turn number and written on every stop. The turn is the unit because it
-# separates the fix — which lands in the turn the block created, and must not
-# re-arm it — from a later round of edits. Turns are counted from transcript
-# user rows carrying prose: tool results and hook injections replay as user
-# rows too, and a block's own reason replays under the harness's "Stop hook
-# feedback:" prefix, so counting either would number a turn this gate
-# manufactured and re-block forever.
+# The transcript is read incrementally: a state file per session holds the
+# byte offset already parsed, the turn number reached, whether that turn has
+# edited a rule file, and the turn last blocked, so each stop parses only the
+# rows appended since the last one. Turns are counted from transcript user rows
+# carrying prose: tool results and hook injections replay as user rows too, and
+# a block's own reason replays under the harness's "Stop hook feedback:" prefix,
+# so counting either would number a turn this gate manufactured and re-block
+# forever. At most one block per turn: the fix lands in the turn the block
+# created and must not re-arm it.
 #
 # The block reason prints under the harness's "Stop hook error:" prefix, so it
 # carries the findings themselves — they are short, and a file to open would be
@@ -38,91 +40,77 @@ hook_read_input
 transcript="$HOOK_TRANSCRIPT"
 [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
 
-# A rule edit is an Edit/Write row whose file_path is markdown, or a Bash row
-# naming a markdown file as a whole shell word — never the tail of a `$VAR/…`
-# expansion — resolved against the cwd that row ran in, not this hook's. A
-# transcript carrying neither has nothing to audit, and grep settles that
-# before python parses every row of it.
-grep -qE '"name":"(Edit|Write|MultiEdit|NotebookEdit)".*"file_path":"[^"]*\.(md|mdc|mdx)"|"name":"Bash".*\.(md|mdc|mdx)\b' "$transcript" || exit 0
+state="${TMPDIR:-/tmp}/claude-docs-audited-${HOOK_SESSION_ID:-default}.json"
 
-# Turn number, and whether this turn edited a rule file at all.
-read -r turn edited <<EOF
-$(python3 - "$transcript" "$(dirname "${BASH_SOURCE[0]}")" <<'PY'
+# Turn number, whether this turn edited a rule file, and the turn last blocked.
+read -r turn edited blocked <<EOF2
+$(python3 - "$transcript" "$state" "$(dirname "${BASH_SOURCE[0]}")" <<'PY'
 import json, os, re, sys
 
-sys.path.insert(0, sys.argv[2])
+sys.path.insert(0, sys.argv[3])
 from hook_lib import behavioral
 
-rows = []
-for line in open(sys.argv[1], errors="replace"):
-    try:
-        rows.append(json.loads(line))
-    except Exception:
-        pass
-
-start = 0
-turn = 0
-for i, d in enumerate(rows):
-    m = d.get("message") or {}
-    if d.get("type") == "user" and m.get("role") == "user":
-        c = m.get("content")
-        if isinstance(c, str):
-            text = c
-        elif isinstance(c, list):
-            text = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
-        else:
-            text = ""
-        if (text.strip() and "tool_use_id" not in json.dumps(c)[:200]
-                and not text.lstrip().startswith("Stop hook feedback:")):
-            start = i
-            turn += 1
+tpath, spath = sys.argv[1], sys.argv[2]
+st = {"offset": 0, "turn": 0, "edited": 0, "blocked": -1}
+try:
+    st.update(json.load(open(spath)))
+except Exception:
+    pass
+if os.path.getsize(tpath) < st["offset"]:
+    st.update({"offset": 0, "turn": 0, "edited": 0})
 
 DOC = (".md", ".mdc", ".mdx")
 WRITERS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
+BASH_WRITER = re.compile(r"(?:^|[|&;(]|\s)(?:sed|perl|awk|python3?|tee|dd|truncate|install|cp|mv)\b")
+BASH_REDIRECT = re.compile(r">>?\s*[\w./~-]+\.(?:md|mdc|mdx)\b")
+BASH_TOKEN = re.compile(r"(?<![\w$}./~-])[\w./~-]+\.(?:md|mdc|mdx)\b")
 
-edited = 0
-for d in rows[start:]:
-    c = (d.get("message") or {}).get("content")
-    if not isinstance(c, list):
-        continue
-    for b in c:
-        if not isinstance(b, dict) or b.get("type") != "tool_use":
+with open(tpath, "rb") as f:
+    f.seek(st["offset"])
+    for raw in f:
+        try:
+            d = json.loads(raw.decode(errors="replace"))
+        except Exception:
             continue
-        p = (b.get("input") or {}).get("file_path") or ""
-        if b.get("name") in WRITERS and p.endswith(DOC) and behavioral(p):
-            edited = 1
-        if b.get("name") == "Bash":
-            cmd = (b.get("input") or {}).get("command") or ""
-            if re.search(r"(?:^|[|&;(]|\s)(?:sed|perl|awk|python3?|tee|dd|truncate|install|cp|mv)\b", cmd) \
-               or re.search(r">>?\s*[\w./~-]+\.(?:md|mdc|mdx)\b", cmd):
-                for tok in re.findall(r"(?<![\w$}./~-])[\w./~-]+\.(?:md|mdc|mdx)\b", cmd):
-                    if behavioral(os.path.join(d.get("cwd") or "", os.path.expanduser(tok))):
-                        edited = 1
-print(turn, edited)
+        m = d.get("message") or {}
+        c = m.get("content")
+        if d.get("type") == "user" and m.get("role") == "user":
+            text = c if isinstance(c, str) else " ".join(
+                b.get("text", "") for b in c if isinstance(b, dict)) if isinstance(c, list) else ""
+            if (text.strip() and "tool_use_id" not in json.dumps(c)[:200]
+                    and not text.lstrip().startswith("Stop hook feedback:")):
+                st["turn"] += 1
+                st["edited"] = 0
+        if not isinstance(c, list):
+            continue
+        for b in c:
+            if not isinstance(b, dict) or b.get("type") != "tool_use":
+                continue
+            p = (b.get("input") or {}).get("file_path") or ""
+            if b.get("name") in WRITERS and p.endswith(DOC) and behavioral(p):
+                st["edited"] = 1
+            if b.get("name") == "Bash":
+                cmd = (b.get("input") or {}).get("command") or ""
+                if BASH_WRITER.search(cmd) or BASH_REDIRECT.search(cmd):
+                    for tok in BASH_TOKEN.findall(cmd):
+                        if behavioral(os.path.join(d.get("cwd") or "", os.path.expanduser(tok))):
+                            st["edited"] = 1
+    st["offset"] = f.tell()
+json.dump(st, open(spath, "w"))
+print(st["turn"], st["edited"], st["blocked"])
 PY
 )
-EOF
+EOF2
 
 [ "${edited:-0}" = "1" ] || exit 0
+[ "${blocked:-}" = "${turn:-}" ] && exit 0
 
 checker="${CLAUDE_PROJECT_DIR:-${HOOK_CWD:-$PWD}}/scripts/check-doc-refs.sh"
 [ -x "$checker" ] || exit 0
 
-refs=$("$checker" 2>/dev/null | grep -E '^  [A-Z]+  ')
+refs=$("$checker" 2>/dev/null | grep -E '^  [A-Z]+  ' | grep -v '^  WARN  ')
 [ -n "$refs" ] || exit 0
 
-fp_file="/tmp/claude-docs-audited-${HOOK_SESSION_ID:-default}.fp"
-if [ -n "${turn:-}" ]; then
-  seen=$(cat "$fp_file" 2>/dev/null)
-  printf '%s' "$turn" > "$fp_file" 2>/dev/null || true
-  [ "$seen" = "$turn" ] && exit 0
-fi
-
-python3 - "$refs" <<'PY'
-import json, sys
-print(json.dumps({
-    "decision": "block",
-    "reason": "A citation this turn edited no longer resolves. Fix each, then stop:\n" + sys.argv[1],
-}))
-PY
+jq -c --arg t "$turn" '.blocked = ($t | tonumber)' "$state" > "$state.tmp" 2>/dev/null && mv "$state.tmp" "$state"
+jq -cn --arg r "$refs" '{decision: "block", reason: ("A citation this turn edited no longer resolves. Fix each, then stop:\n" + $r)}'
 exit 0

@@ -22,12 +22,17 @@
 #   2  every install.conf.yaml `link:` source exists (scalar `~/dest: src`, mapped
 #      `path: src`, `glob:` parent dir); `~`-prefixed and absolute sources resolve
 #      as written
-#   3  a `§ Section` cite prefix-matches a heading or a `- **Bold lead**` in the rule
-#      text: the root's CLAUDE.mds, skills, agents, rules and output-styles, plus
-#      the deployed ~/.claude/CLAUDE.md, skills, rules and output-styles; headings
-#      of installed plugin skills (~/.claude/plugins/marketplaces/*/skills) join the
-#      pool so a `/<plugin>:<skill> § Heading` cite resolves, though their own
-#      cites are not audited
+#   3  a `§ Section` cite and a heading or `- **Bold lead**` prefix-match, either
+#      way round at a word boundary: the cite is captured up to punctuation, so it
+#      carries the prose after the name. Headings come from the rule text — the
+#      root's CLAUDE.mds, skills, agents, rules and output-styles, plus the deployed
+#      ~/.claude/CLAUDE.md, skills, rules and output-styles — and from the root's
+#      READMEs and the global layer's; each also joins the pool without a leading
+#      `N ·` number, and a bold lead as its first clause, the form a rule name is
+#      cited by. Headings of installed plugin skills
+#      (~/.claude/plugins/marketplaces/*/skills) join too, so a
+#      `/<plugin>:<skill> § Heading` cite resolves, though their own cites are not
+#      audited
 #
 # The skill trees are every claude/*/skills and claude/skills directory under the
 # root plus ~/.claude/skills, deduplicated by physical path, so the global layer's
@@ -84,10 +89,18 @@ for f in "$HOME"/.claude/plugins/marketplaces/*/skills/*/SKILL.md "$HOME"/.claud
   [ -f "$f" ] && PLUGIN_SKILLS+=("$f")
 done
 
+READMES=()
+while IFS= read -r f; do READMES+=("$ROOT/$f"); done < <(git -C "$ROOT" ls-files -- 'README.md' '*/README.md' 2>/dev/null)
+GLOBAL_ROOT=$(git -C "$(dirname "$(readlink -f "$HOME/.claude/CLAUDE.md" 2>/dev/null || echo /)")" rev-parse --show-toplevel 2>/dev/null) \
+  && [ -f "$GLOBAL_ROOT/README.md" ] && READMES+=("$GLOBAL_ROOT/README.md")
+
 {
-  grep -rhoE '^#{1,6} .+' "${RULE_TEXT[@]}" ${PLUGIN_SKILLS[@]+"${PLUGIN_SKILLS[@]}"} 2>/dev/null | sed -E 's/^#+[[:space:]]+//'
-  grep -rhoE '^- \*\*[^*]+\*\*' "${RULE_TEXT[@]}" 2>/dev/null | sed -E 's/^- \*\*//; s/\*\*$//; s/[.,][[:space:]]*$//'
-} > "$TMP/headings"
+  grep -rhoE '^#{1,6} .+' "${RULE_TEXT[@]}" ${READMES[@]+"${READMES[@]}"} ${PLUGIN_SKILLS[@]+"${PLUGIN_SKILLS[@]}"} 2>/dev/null \
+    | sed -E 's/^#+[[:space:]]+//'
+  grep -rhoE '^- \*\*[^*]+\*\*' "${RULE_TEXT[@]}" 2>/dev/null \
+    | sed -E 's/^- \*\*//; s/\*\*$//; s/[.,][[:space:]]*$//'
+} | sed -E 'p; s/^[0-9]+[[:space:]]*(·|\.|\))[[:space:]]*//; p; s/(,|;|:| \(| —| ·).*//; s/[`*]//g; s/[[:space:]]+$//' \
+  | sort -u > "$TMP/headings"
 
 FILES_LIST=$'\n'$(cat "$TMP/files")$'\n'
 PATHS_LIST=$'\n'$(cat "$TMP/paths")$'\n'
@@ -151,7 +164,7 @@ grep -rnoE --exclude-dir=tests '[A-Za-z0-9_/-]*references/[A-Za-z0-9_.-]+\.md' "
          ' "$file" 2>/dev/null; then
         continue
       fi
-      [ -f "$skilldir/$ref" ] || echo "  BROKEN  ${file#$ROOT/}:$lineno  ->  $ref"
+      [ -f "$skilldir/$ref" ] || echo "  BROKEN  ${file#"$ROOT"/}:$lineno  ->  $ref"
     done | sort -u > "$TMP/rep_rel"
 if [ -s "$TMP/rep_rel" ]; then cat "$TMP/rep_rel"; fail=1; else echo "  ok — all relative references/ citations resolve"; fi
 
@@ -159,8 +172,9 @@ echo "== install.conf.yaml link sources =="
 if [ -f "$ROOT/install.conf.yaml" ]; then
   awk '
     /^- link:/            { inlink=1; next }
-    /^- (create|shell|defaults):/ { inlink=0; next }
+    /^- (create|shell|defaults|clean):/ { inlink=0; next }
     inlink==0             { next }
+    /^[[:space:]]*#/      { next }
     /^[[:space:]]+glob:[[:space:]]*true/ { print "GLOB " last_path; next }
     /^[[:space:]]+path:[[:space:]]*[^[:space:]]/ {
       s=$0; sub(/^[[:space:]]+path:[[:space:]]*/,"",s); gsub(/"/,"",s); last_path=s; print "PATH " s; next
@@ -189,17 +203,20 @@ grep -rhoE --exclude-dir=tests '§ [A-Za-z][^.,;:)`*]*' "${RULE_TEXT[@]}" 2>/dev
   | sed -E 's/^§ //; s/[[:space:]]+$//' | sort -u \
   | awk -v pool="$TMP/headings" '
       BEGIN { while ((getline h < pool) > 0) if (h != "") heads[++hn] = tolower(h) }
-      function hit(needle,   i) {
+      function hit(needle,   i, h, n) {
         if (needle == "") return 0
         needle = tolower(needle)
-        for (i = 1; i <= hn; i++) if (index(heads[i], needle)) return 1
+        for (i = 1; i <= hn; i++) {
+          h = heads[i]; n = length(h)
+          if (index(h, needle) == 1) return 1
+          if (n >= 3 && index(needle, h) == 1 && substr(needle, n + 1, 1) !~ /[a-z0-9]/) return 1
+        }
         return 0
       }
       $0 == "" { next }
       {
         probe = $0; gsub(/`/, "", probe)
-        first = $0; sub(/ .*$/, "", first)
-        if (!hit(probe) && !hit(first))
+        if (!hit(probe))
           print "  WARN  § " $0 "  (no heading prefix-matches — verify or reword)"
       }
     ' > "$TMP/rep_secs"

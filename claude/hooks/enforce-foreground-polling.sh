@@ -53,14 +53,15 @@ cmd_unq=$(hook_command_shape)
 #
 # The sleep's own duration sets the call timeout, because the Bash default is
 # 2 minutes: a longer wait is SIGTERMed mid-sleep (exit 143) and comes back short,
-# which reads as a delay that silently did not happen.
+# which reads as a delay that silently did not happen. The harness caps a timeout
+# at 600000 ms, so a sleep past 590 s is capped there and still returns early.
 if [ "$HOOK_DESCRIPTION" = "poll wait" ] &&
    printf '%s' "$cmd_unq" | grep -qE '^[[:space:]]*sleep[[:space:]]+[0-9]+([.][0-9]+)?[smhd]?[[:space:]]*;?[[:space:]]*$'; then
   printf '%s' "$HOOK_INPUT" | jq -c '
     ((.tool_input.command | capture("sleep[[:space:]]+(?<n>[0-9]+([.][0-9]+)?)(?<u>[smhd]?)"))
       | (.n | tonumber) * (if .u == "m" then 60 elif .u == "h" then 3600 elif .u == "d" then 86400 else 1 end)
     ) as $secs
-    | (($secs * 1000 + 10000) | floor) as $ms
+    | (($secs * 1000 + 10000) | floor | if . > 600000 then 600000 else . end) as $ms
     | if (.tool_input.timeout // 0) >= $ms then empty else
       {hookSpecificOutput: {
         hookEventName: "PreToolUse",
@@ -82,15 +83,16 @@ fi
 
 # Sleep-loops: polling pattern. Monitor runs off-thread + notifies on exit.
 # A poll loop has `sleep` between a loop keyword and the loop's closing `done`.
-# Strip from the LAST `done` onward (`${x%done*}`) so the head spans the whole
-# outermost loop: a nested inner loop closing first stays inside the head, while
-# a trailing sleep after the loop fully closes drops out
-# (`for x in a b; do echo $x; done; sleep 5` -> head has no sleep).
+# The body under test runs from the FIRST loop keyword to the LAST `done`
+# (`${x%done*}`), so it spans the whole outermost loop: a nested inner loop
+# closing first stays inside, a sleep before the loop opens or after it fully
+# closes drops out (`sleep 5; for x in a b; do echo $x; done` -> no sleep in
+# the body).
 case "$cmd_unq" in
   *done*)
     loop_head=${cmd_unq%done*}
-    if printf '%s' "$loop_head" | grep -qE '\b(while|until|for)\b' &&
-       printf '%s' "$loop_head" | grep -qE '\bsleep\b'; then
+    loop_body=$(printf '%s' "$loop_head" | grep -oE '(^|[;&|(][[:space:]]*|[[:space:]])(while|until|for)[[:space:]].*' | head -1)
+    if [ -n "$loop_body" ] && printf '%s' "$loop_body" | grep -qE '\bsleep\b'; then
       deny "Foreground \`while|until|for ... sleep ...\` loop blocked. Main thread: \`Monitor\` with \`until <check>; do sleep 2; done\` — runs off-thread, notifies on exit; fire-and-forget loops: \`Bash\` with \`run_in_background: true\`. Subagent: one bare \`sleep N\` per call with description exactly \`poll wait\`, then the check as its own call — no loop."
     fi
     ;;

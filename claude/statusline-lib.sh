@@ -12,7 +12,7 @@
 #     deepens with <pct>, because past that point a deeper foreground red reads
 #     as less urgent once the channels bottom out.
 #   alarm_rgb <pct> <alarm>
-#     the pill ground as "r g b", shared by the badge body and its end-caps.
+#     the pill ground as "r g b", which ramp_color paints behind the badge.
 #   glyph_for_pct <pct> <track_color>
 #     one Block Elements cell, ▁ through █ in eight 12.5% steps, painted on
 #     <track_color> as its ground so the cell spans the full 100% height and the

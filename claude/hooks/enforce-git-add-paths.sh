@@ -35,7 +35,7 @@ set -u
 # words, so this matches the verbs alone rather than the pair.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *git*add*|*git*commit*) ;;
+  *git*add*|*git*commit*|*'git ci'*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
@@ -44,8 +44,8 @@ hook_parse_input
 cmd=$(hook_command_shape)
 
 # `git commit -a` / `--all` bypasses the index: every tracked modification in
-# the tree goes in, whoever wrote it.
-if printf '%s' "$cmd" | grep -qE '(^|[;&|] *)git +(-C +[^ ]+ +)?commit\b[^;&|]*( -[a-zA-Z]*a[a-zA-Z]*( |$)| --all\b)'; then
+# the tree goes in, whoever wrote it. `ci` is git/config's alias for commit.
+if printf '%s' "$cmd" | grep -qE '(^|[;&|] *)git +(-C +[^ ]+ +)?(commit|ci)\b[^;&|]*( -[a-zA-Z]*a[a-zA-Z]*( |$)| --all\b)'; then
   deny "\`git commit -a\` stages every tracked modification in the tree, including hunks another session left uncommitted. Stage the paths you wrote (\`git add <path>...\`), read \`git diff --cached\` in full, then \`git commit\` without -a."
 fi
 

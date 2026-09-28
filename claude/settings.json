@@ -58,7 +58,11 @@
       "Bash(gh repo delete *)",
       "Bash(gh release delete *)",
       "Bash(gh cache delete *)",
-      "Bash(gh secret delete *)"
+      "Bash(gh secret delete *)",
+      "Bash(git push * --delete *)",
+      "Bash(git push * -d *)",
+      "Bash(git * push * --delete *)",
+      "Bash(git * push * -d *)"
     ],
     "ask": [
       "Bash(git branch -D *)",
@@ -76,7 +80,13 @@
       "Bash(git stash drop*)",
       "Bash(git stash clear*)",
       "Bash(git * stash drop*)",
-      "Bash(git * stash clear*)"
+      "Bash(git * stash clear*)",
+      "Bash(git push * --force-with-lease*)",
+      "Bash(git * push * --force-with-lease*)",
+      "Bash(git co -- *)",
+      "Bash(git * co -- *)",
+      "Bash(git br -D *)",
+      "Bash(git * br -D *)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [

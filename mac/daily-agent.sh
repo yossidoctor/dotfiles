@@ -12,14 +12,13 @@
 # The job starts under zsh because launchd hands it the bare system PATH and
 # zsh reads zshenv, the PATH SoT. Stdout is discarded since daily.sh logs each
 # job itself; stderr is kept, so a launch that dies before a job starts still
-# leaves evidence. bootout returns before launchd has torn the old job down,
-# and a bootstrap inside that window fails with "Input/output error", hence
-# the retries.
+# leaves evidence. The install itself is mac/launchagent-lib.sh.
 set -euo pipefail
+
+. "$(dirname "${BASH_SOURCE[0]}")/launchagent-lib.sh"
 
 label="dev.yossidoctor.daily"
 script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/daily.sh"
-plist_dst="$HOME/Library/LaunchAgents/$label.plist"
 
 plist_new=$(cat <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -52,15 +51,4 @@ plist_new=$(cat <<EOF
 EOF
 )
 
-if [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plist_new" ]; then
-  exit 0
-fi
-
-mkdir -p "$HOME/Library/LaunchAgents"
-launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1 || true
-printf '%s\n' "$plist_new" > "$plist_dst"
-for _ in 1 2 3 4 5; do
-  launchctl bootstrap "gui/$(id -u)" "$plist_dst" 2>/dev/null && exit 0
-  sleep 1
-done
-launchctl bootstrap "gui/$(id -u)" "$plist_dst"
+install_launchagent "$label" "$plist_new"

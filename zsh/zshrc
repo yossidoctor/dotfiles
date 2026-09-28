@@ -27,7 +27,7 @@ command -v fzf >/dev/null && source <(fzf --zsh)
 # Prompt.
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
-# Modern CLI replacements (installed via brew/Brewfile personal section).
+# Modern CLI replacements (brew/Brewfile § file & dir tools and § system monitors).
 # Skipped under Claude Code: these change core-command output format, which
 # breaks the agent's tool parsing (e.g. `ls` -> eza swallowed plain output).
 if [[ -z "$CLAUDECODE" ]]; then

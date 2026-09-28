@@ -25,3 +25,6 @@ agent_opus	{"subagent_type": "fixture-agent-nomodel"}	fixtures/agents-project
 # a type with no definition anywhere has nothing to defer to -> opus fills it
 agent_opus	{"subagent_type": "general-purpose"}	fixtures/agents-project
 agent_opus	{"subagent_type": "no-such-agent"}	fixtures/agents-project
+# `model: inherit` and `model: fable` in a definition are no pin: the omission is filled
+agent_opus	{"subagent_type": "fixture-agent-inherit"}	fixtures/agents-project
+agent_opus	{"subagent_type": "fixture-agent-fable"}	fixtures/agents-project

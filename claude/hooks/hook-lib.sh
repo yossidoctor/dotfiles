@@ -5,9 +5,9 @@
 #
 # Interpreter startup is the dominant cost of the hook layer (~/.claude/rules/
 # hot-path-scripts.md § A script on a hot path spends nothing before it knows it
-# has work), so a hook
-# reads the raw payload first, gates on a literal `case` over it, and parses only
-# past the gate; the python3 blocks that remain do parsing work the shell cannot.
+# has work), so a hook reads the raw payload first, gates on a literal `case`
+# over it, and parses only past the gate; the python3 blocks that remain do
+# parsing work the shell cannot.
 # The payload is parsed by jq only: hand-extracting a JSON string with parameter
 # expansion truncates at the first escaped quote, so a gate reading a command
 # field that way fails open. jq starts in a fraction of python3's time.
