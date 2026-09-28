@@ -1,6 +1,6 @@
 #!/bin/bash
 # Evidence capture for a visible tiling gap (empty half-screen / sliced
-# layout). Run it THE MOMENT a gap is on screen — it separates the three
+# layout). Run it THE MOMENT a gap is on screen — it separates the four
 # #1615 failure modes documented in docs/aerospace/RETILE-DELAY.md:
 #
 #   stale layout — tree matches the window server; the aerospace connection
@@ -28,10 +28,12 @@
 # aerospace call runs with a 5s watchdog so a GC hang yields a verdict
 # instead of a hung script. Full snapshots land in
 # ~/.cache/aerospace/diagnose-<timestamp>.log; verdict prints to stdout,
-# and with --notify also lands as a macOS notification — that flag exists
-# for the alt-shift-d binding in aerospace.toml, so the capture is one
-# keystroke at the moment a gap is on screen, no terminal needed.
-# Uses the window-oracle binary: its ALL line is the window-server read taken
+# and with --notify also lands as a macOS notification (terminal-notifier,
+# which macOS can grant; osascript's banner shows nothing on macOS 26+) —
+# that flag exists for the alt-shift-d binding in aerospace.toml, so the
+# capture is one keystroke at the moment a gap is on screen, no terminal
+# needed. Uses the window-oracle binary (compiled through swift-lib.sh; a
+# failed compile is fatal here): its ALL line is the window-server read taken
 # before and after the aerospace call, and its PHANTOM line the minimize verdict.
 set -euo pipefail
 
@@ -41,14 +43,16 @@ verdict() {
   echo "VERDICT: $1"
   echo "$2"
   if [ "$NOTIFY" = 1 ]; then
-    /usr/bin/osascript -e "display notification \"$(printf '%s' "$2" | head -c 200)\" with title \"diagnose-gap: $1\"" >/dev/null 2>&1 || true
+    if [ -x /opt/homebrew/bin/terminal-notifier ]; then
+      /opt/homebrew/bin/terminal-notifier -title "diagnose-gap: $1" -message "$(printf '%s' "$2" | head -c 200)" -group diagnose-gap >/dev/null 2>&1 || true
+    else
+      /usr/bin/osascript -e "display notification \"$(printf '%s' "$2" | head -c 200)\" with title \"diagnose-gap: $1\"" >/dev/null 2>&1 || true
+    fi
   fi
 }
 
 AS=/opt/homebrew/bin/aerospace
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
-BIN="$CACHE/bin/window-oracle"
 ts=$(date '+%Y%m%d-%H%M%S')
 LOG="$CACHE/diagnose-$ts.log"
 mkdir -p "$CACHE/bin"
@@ -56,14 +60,9 @@ ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | while IFS= read -r old
 
 ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
-# A copy of reap-ghosts.sh's ensure_bin (the SoT), which cannot be sourced
-# because that script reaps at top level; here a compile failure is fatal.
-src="$DIR/window-oracle.swift"
-if [ ! -x "$BIN" ] || [ "$src" -nt "$BIN" ]; then
-  tmp=$(mktemp "$CACHE/bin/.window-oracle-XXXXXX")
-  xcrun swiftc -O -o "$tmp" "$src"
-  mv -f "$tmp" "$BIN"
-fi
+. "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
+ensure_swift_bin window-oracle || { echo "diagnose-gap: window-oracle.swift failed to compile" >&2; exit 1; }
+BIN="$SWIFT_BIN"
 
 cg_before=$(ids_of "$("$BIN")" ALL | sort -u)
 {
@@ -77,12 +76,13 @@ tree_json=""
 tmp=$(mktemp)
 "$AS" list-windows --all --json > "$tmp" 2>&1 &
 as_pid=$!
-elapsed=0
-while kill -0 "$as_pid" 2>/dev/null && [ "$elapsed" -lt 5000 ]; do
+# Ticks of 100 ms are the clock here; one perl at each end measures the call.
+ticks=0
+while kill -0 "$as_pid" 2>/dev/null && [ "$ticks" -lt 50 ]; do
   sleep 0.1
-  now=$(perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
-  elapsed=$((now - t0))
+  ticks=$((ticks + 1))
 done
+elapsed=$((ticks * 100))
 
 if kill -0 "$as_pid" 2>/dev/null; then
   kill "$as_pid" 2>/dev/null || true

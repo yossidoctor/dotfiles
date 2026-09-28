@@ -23,6 +23,14 @@ IINA="com.colliderli.iina"
 # previous handler when it is dismissed, while `duti -s` still exits 0, so the
 # binding is read back and a mismatch is reported instead of trusted.
 bind() {
+  # Already bound = nothing to write: a read is cheap and a write on every
+  # ./install is what makes macOS raise its default-app prompt again.
+  local cur
+  case "$2" in
+    .*) cur=$(duti -x "${2#.}" 2>/dev/null | sed -n '3p') ;;
+    *)  cur=$(duti -d "$2" 2>/dev/null) ;;
+  esac
+  [ "$cur" = "$1" ] && return
   duti -s "$1" "$2" "${3:-editor}" || { echo "  skip: $2 (no LaunchServices entry)"; return; }
   case "$2" in
     .*) [ "$(duti -x "${2#.}" 2>/dev/null | sed -n '3p')" = "$1" ] \

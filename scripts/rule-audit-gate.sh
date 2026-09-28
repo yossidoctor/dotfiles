@@ -29,23 +29,15 @@
 
 set -uo pipefail
 
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/rule-audit-lib.sh"
+
 root="${1:?usage: rule-audit-gate.sh <repo-root>}"
 [ -d "$root/.git" ] || [ -f "$root/.git" ] || exit 0
 
-# Staged rule files. A skill's own scripts count: a skill and the script it
-# names are one instruction.
-staged=$(git -C "$root" diff --cached --name-only --diff-filter=ACMR \
-  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|rules|output-styles)/.*\.(md|sh)$' \
-  || true)
+staged=$(rule_audit_staged "$root")
 [ -n "$staged" ] || exit 0
 
-# Content key: the blob hash of each staged rule file, in path order.
-key=$(
-  printf '%s\n' "$staged" | while IFS= read -r f; do
-    [ -n "$f" ] || continue
-    printf '%s %s\n' "$f" "$(git -C "$root" rev-parse ":$f" 2>/dev/null || echo missing)"
-  done | shasum -a 256 | cut -d' ' -f1
-)
+key=$(rule_audit_key "$root" "$staged")
 
 receipt="$root/.git/rule-audit-receipt"
 [ -f "$receipt" ] && [ "$(head -1 "$receipt" 2>/dev/null)" = "$key" ] && exit 0

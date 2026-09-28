@@ -33,19 +33,15 @@ AS=/opt/homebrew/bin/aerospace
 new_id="${AEROSPACE_WINDOW_ID:-}"
 [ -n "$new_id" ] || exit 0
 
-read -r fs_id fs_ws < <(
-  "$AS" list-windows --monitor all \
-        --format '%{window-id} %{workspace} %{window-is-fullscreen} %{window-layout}' 2>/dev/null |
-  awk '$3 == "true" && $4 != "floating" { print $1, $2; exit }'
-) || exit 0
+# One read answers both questions — the fullscreen window, and the new one's
+# workspace and layout — so the margin is spent on a single CLI call.
+snap=$("$AS" list-windows --monitor all \
+        --format '%{window-id} %{workspace} %{window-is-fullscreen} %{window-layout}' 2>/dev/null) || exit 0
+read -r fs_id fs_ws < <(printf '%s\n' "$snap" | awk '$3 == "true" && $4 != "floating" { print $1, $2; exit }') || exit 0
 [ -n "${fs_id:-}" ] || exit 0
 [ "$fs_id" != "$new_id" ] || exit 0
 
-read -r new_ws new_layout < <(
-  "$AS" list-windows --monitor all \
-        --format '%{window-id} %{workspace} %{window-layout}' 2>/dev/null |
-  awk -v id="$new_id" '$1 == id { print $2, $3; exit }'
-) || exit 0
+read -r new_ws new_layout < <(printf '%s\n' "$snap" | awk -v id="$new_id" '$1 == id { print $2, $4; exit }') || exit 0
 [ "${new_layout:-}" = "floating" ] && exit 0
 [ "${new_ws:-}" = "$fs_ws" ] || exit 0
 

@@ -88,8 +88,9 @@
 	version = 4
 	skipHash = true
 
+# No blame.ignoreRevsFile: with the key set, `git blame` is fatal in every repo
+# that lacks the file; a repo that ships one sets the key in its own config.
 [blame]
-	ignoreRevsFile = .git-blame-ignore-revs
 	markUnblamableLines = true
 
 [maintenance]

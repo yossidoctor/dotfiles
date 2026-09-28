@@ -16,29 +16,18 @@
 #
 # Raise/activate only, via raise-window (same dir) — never closes, kills,
 # or minimizes (2026-07-29 incident invariant, docs/aerospace/RETILE-DELAY.md). Activation
-# targets the app already owning keyboard focus, so no focus theft.
-# Compile-on-demand mirrors reap-ghosts.sh: temp file + atomic mv (see its
-# header for the half-written-binary race this prevents). Absolute paths
-# throughout, so the script behaves the same from an AeroSpace callback
-# and a terminal, whose PATHs differ.
+# targets the app already owning keyboard focus, so no focus theft. The
+# binary compiles on demand through swift-lib.sh. Absolute paths throughout,
+# so the script behaves the same from an AeroSpace callback and a terminal,
+# whose PATHs differ.
 set -euo pipefail
 
 AS=/opt/homebrew/bin/aerospace
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC="$DIR/raise-window.swift"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
-BIN="$CACHE/bin/raise-window"
 
-if [ ! -x "$BIN" ] || [ "$SRC" -nt "$BIN" ]; then
-  mkdir -p "$CACHE/bin"
-  tmp=$(mktemp "$CACHE/bin/.rw-XXXXXX")
-  if xcrun swiftc -O -o "$tmp" "$SRC" >/dev/null 2>&1; then
-    mv -f "$tmp" "$BIN"
-  else
-    rm -f "$tmp"
-    exit 0
-  fi
-fi
+. "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
+ensure_swift_bin raise-window || exit 0
+BIN="$SWIFT_BIN"
 
 read -r id fs < <("$AS" list-windows --focused --format '%{window-id} %{window-is-fullscreen}' 2>/dev/null) || exit 0
 [ "${fs:-false}" = "true" ] || exit 0

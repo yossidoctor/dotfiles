@@ -4,91 +4,93 @@
 # registers the file so a follow-up Edit can target it.
 
 # --- denied: sed line-range reads of source ---
-deny	sed -n '1,60p' /Users/yossidoctor/proj/gateway-service/src/main.ts	/Users/yossidoctor
-deny	sed -n '406,600p' /Users/yossidoctor/proj/analyzer-service/app/x.py	/Users/yossidoctor
-deny	sed -n '10,$p' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+deny	sed -n '1,60p' %HOME%/proj/gateway-service/src/main.ts	%HOME%
+deny	sed -n '406,600p' %HOME%/proj/analyzer-service/app/x.py	%HOME%
+deny	sed -n '10,$p' %HOME%/proj/x/y.py	%HOME%
 
 # --- denied: plain cat of a real file (the measured shapes — docs, ADRs, refs) ---
-deny	cat /Users/yossidoctor/proj/docs/knowledgebase/money-matters.md	/Users/yossidoctor
-deny	cat ~/proj/docs/adr/0021-verifier-agents.md	/Users/yossidoctor
-deny	cat /Users/yossidoctor/proj/.claude/skills/360/references/testsuite-matrix.md	/Users/yossidoctor
-deny	cat README.md	/Users/yossidoctor/proj/gateway-service
+deny	cat %HOME%/proj/docs/knowledgebase/money-matters.md	%HOME%
+deny	cat ~/proj/docs/adr/0021-verifier-agents.md	%HOME%
+deny	cat %HOME%/proj/.claude/skills/360/references/testsuite-matrix.md	%HOME%
+deny	cat README.md	%HOME%/proj/gateway-service
 
 # --- denied: head/tail line counts and the pager cousins are the same read ---
-deny	head -50 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	head -n 20 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	head /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	tail -n +30 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	tail -20 /Users/yossidoctor/dotfiles/README.md	/Users/yossidoctor
-deny	bat /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	less /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-deny	more README.md	/Users/yossidoctor/proj/gateway-service
+deny	head -50 %HOME%/proj/x/y.py	%HOME%
+deny	head -n 20 %HOME%/proj/x/y.py	%HOME%
+deny	head %HOME%/proj/x/y.py	%HOME%
+deny	tail -n +30 %HOME%/proj/x/y.py	%HOME%
+deny	tail -20 %HOME%/dotfiles/README.md	%HOME%
+deny	bat %HOME%/proj/x/y.py	%HOME%
+deny	less %HOME%/proj/x/y.py	%HOME%
+deny	more README.md	%HOME%/proj/gateway-service
 # a last-N tail needs the file's line count for its Read offset; no file, no call to name
-allow	tail -20 /Users/yossidoctor/proj/x/nonexistent.py	/Users/yossidoctor
+allow	tail -20 %HOME%/proj/x/nonexistent.py	%HOME%
 # --- allowed: a flag beyond a line count is a format or a byte read ---
-allow	head -c 100 /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-allow	bat -p /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-allow	head -5 /tmp/x.log	/Users/yossidoctor
-allow	tail -n 100 log.txt | grep -f patterns.txt	/Users/yossidoctor/proj
+allow	head -c 100 %HOME%/proj/x/y.py	%HOME%
+allow	bat -p %HOME%/proj/x/y.py	%HOME%
+allow	head -5 /tmp/x.log	%HOME%
+allow	tail -n 100 log.txt | grep -f patterns.txt	%HOME%/proj
 
 # --- allowed: throwaway + harness-internal trees. Read registration buys nothing
 #     there, and a transcript or task-output file can be enormous. ---
-allow	sed -n '1,45p' /tmp/yas209.txt	/Users/yossidoctor
-allow	sed -n '1,60p' /Users/yossidoctor/.claude/projects/x/t.jsonl	/Users/yossidoctor
-allow	cat /private/tmp/claude-501/-Users-yossidoctor/4cc7b3b3/tasks/b7w09.output	/Users/yossidoctor
-allow	cat /tmp/scratch.json	/Users/yossidoctor
-allow	sed -n '1,20p' /private/tmp/claude-501/x/scratchpad/out.txt	/Users/yossidoctor
+allow	sed -n '1,45p' /tmp/yas209.txt	%HOME%
+allow	sed -n '1,60p' %HOME%/.claude/projects/x/t.jsonl	%HOME%
+allow	cat /private/tmp/claude-501/-Users-yossidoctor/4cc7b3b3/tasks/b7w09.output	%HOME%
+allow	cat /tmp/scratch.json	%HOME%
+allow	sed -n '1,20p' /private/tmp/claude-501/x/scratchpad/out.txt	%HOME%
 # a project directory merely named tasks/ or scratch/ is source, not throwaway
-deny	cat /Users/yossidoctor/proj/src/tasks/runner.py	/Users/yossidoctor
-deny	cat /Users/yossidoctor/proj/scratch/notes.md	/Users/yossidoctor
+deny	cat %HOME%/proj/src/tasks/runner.py	%HOME%
+deny	cat %HOME%/proj/scratch/notes.md	%HOME%
 
 # --- allowed: cat that is NOT a single-file read ---
-allow	cat <<'EOF' > /Users/yossidoctor/proj/x/y.py\nprint(1)\nEOF	/Users/yossidoctor
-allow	cat a.txt b.txt	/Users/yossidoctor/proj
-allow	cat -n /Users/yossidoctor/dotfiles/mac/duti.sh	/Users/yossidoctor
-allow	cat file.txt | grep foo	/Users/yossidoctor/proj
-allow	grep -n 'x' README.md | cat -A | head -10	/Users/yossidoctor/dotfiles
-allow	cat /Users/yossidoctor/proj/x/y.py > /tmp/copy	/Users/yossidoctor
+allow	cat <<'EOF' > %HOME%/proj/x/y.py\nprint(1)\nEOF	%HOME%
+allow	cat a.txt b.txt	%HOME%/proj
+allow	cat -n %HOME%/dotfiles/mac/duti.sh	%HOME%
+allow	cat file.txt | grep foo	%HOME%/proj
+allow	grep -n 'x' README.md | cat -A | head -10	%HOME%/dotfiles
+allow	cat %HOME%/proj/x/y.py > /tmp/copy	%HOME%
 
 # --- allowed: sed reading a PIPE is a stream filter, not a file read ---
-allow	adb shell dumpsys meminfo | sed -n '1,45p'	/Users/yossidoctor
-allow	cat f | sed -n '1,10p'	/Users/yossidoctor
+allow	adb shell dumpsys meminfo | sed -n '1,45p'	%HOME%
+allow	cat f | sed -n '1,10p'	%HOME%
 
 # --- allowed: -i is a mutation; pattern print and substitution are filters ---
-allow	sed -i '' 's/a/b/' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-allow	sed -n '/pattern/p' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
-allow	sed 's/foo/bar/' /Users/yossidoctor/proj/x/y.py	/Users/yossidoctor
+allow	sed -i '' 's/a/b/' %HOME%/proj/x/y.py	%HOME%
+allow	sed -n '/pattern/p' %HOME%/proj/x/y.py	%HOME%
+allow	sed 's/foo/bar/' %HOME%/proj/x/y.py	%HOME%
 
 # --- denied: sequencing work AFTER a whole-file read does not launder it —
 #     the bytes still land in the transcript. Judged on the first stage. ---
-deny	cat ~/proj/docs/knowledgebase/workflows.md; echo ====; ls ~/proj/docs/knowledgebase/ | grep -i workflow	/Users/yossidoctor
-deny	cat /Users/yossidoctor/proj/x/y.py && echo done	/Users/yossidoctor
-deny	sed -n '1,10p' /Users/yossidoctor/proj/x/y.py && echo done	/Users/yossidoctor
+deny	cat ~/proj/docs/knowledgebase/workflows.md; echo ====; ls ~/proj/docs/knowledgebase/ | grep -i workflow	%HOME%
+deny	cat %HOME%/proj/x/y.py && echo done	%HOME%
+deny	sed -n '1,10p' %HOME%/proj/x/y.py && echo done	%HOME%
 
 # --- allowed: a read feeding a pipe or a redirect sends the bytes to a filter
 #     or a file, not into the transcript ---
-allow	cat /Users/yossidoctor/proj/x/y.py | grep foo	/Users/yossidoctor
-allow	echo hi; cat /Users/yossidoctor/proj/x/y.py | head -5	/Users/yossidoctor
+allow	cat %HOME%/proj/x/y.py | grep foo	%HOME%
+allow	echo hi; cat %HOME%/proj/x/y.py | head -5	%HOME%
 
 # --- allowed: unresolvable operand — there is no Read call to name ---
-allow	cat $CONFIG_FILE	/Users/yossidoctor/proj
-allow	cat *.md	/Users/yossidoctor/proj
+allow	cat $CONFIG_FILE	%HOME%/proj
+allow	cat *.md	%HOME%/proj
 
 # --- denied: `rg -r` typed from grep muscle memory (it is --replace) ---
-deny	rg -r pattern /Users/yossidoctor/proj/gateway-service/src
-deny	rg -rn pattern /Users/yossidoctor/proj/gateway-service/src
-deny	rg -rl pattern /Users/yossidoctor/proj/gateway-service/src
+deny	rg -r pattern %HOME%/proj/gateway-service/src
+deny	rg -rn pattern %HOME%/proj/gateway-service/src
+deny	rg -rl pattern %HOME%/proj/gateway-service/src
 # -R is not a ripgrep flag at all: it fails loudly with `unrecognized flag`, which
 # needs no interception — only the silent -r corruption does.
-allow	rg -R pattern /Users/yossidoctor/proj/gateway-service/src
+allow	rg -R pattern %HOME%/proj/gateway-service/src
 # a git-style path invocation is the same command
-deny	cd /Users/yossidoctor/proj && rg -rn dispatch src
+deny	cd %HOME%/proj && rg -rn dispatch src
 # --- allowed: correct ripgrep, and a deliberate rewrite ---
-allow	rg pattern /Users/yossidoctor/proj/gateway-service/src
+allow	rg pattern %HOME%/proj/gateway-service/src
 allow	rg -n dispatch src
 allow	rg -e -dashed-pattern src
 allow	rg --replace=NEW pattern src
 allow	rg -l --replace=NEW pattern src
 # -r inside another word or another command must not trip it
 allow	git rebase -r main
-allow	ls -r /Users/yossidoctor/proj
+allow	ls -r %HOME%/proj
+allow	echo "never type rg -r here"	%HOME%
+allow	git commit -m "drop the rg -rn habit"	%HOME%/dotfiles

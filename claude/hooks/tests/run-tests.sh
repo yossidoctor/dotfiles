@@ -25,8 +25,11 @@
 #   ctx_has|ctx_none<TAB><payload JSON>[<TAB><substring>]
 #                     raw payload; ctx_has asserts additionalContext contains the
 #                     substring, ctx_none asserts the hook emits nothing
-# Literal \n in write content / message fields expands to a newline. Blank
-# lines and lines starting with # are ignored.
+# Literal \n in write content / message fields expands to a newline. `%HOME%`
+# in a field expands to $HOME and `%FIX%` to $TESTS_FIXTURE_DIR (a fixture tree
+# the calling runner builds), so a case file names no machine. Blank lines and
+# lines starting with # are ignored. Case files run in parallel, one background
+# job each: they are independent, and the run's cost is process spawns.
 #
 #
 # Every hook a settings.json wires is also checked to exist, be executable, and
@@ -147,30 +150,47 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
 
 settings="$HOOKS_DIR/../settings.json"
 if [ -f "$settings" ]; then
+  repo=$(git -C "$HOOKS_DIR" rev-parse --show-toplevel 2>/dev/null)
+  yaml="$repo/install.conf.yaml"
+  rel="${HOOKS_DIR#"$repo"/}"
   while IFS= read -r target; do
     src="$HOOKS_DIR/$(basename "$target")"
     [ -f "$src" ] || { echo "WIRED-BUT-MISSING [$target] no such file: $src" >&2; fail=$((fail + 1)); }
     [ -x "$src" ] || { echo "WIRED-BUT-NOT-EXECUTABLE [$target] chmod +x $src" >&2; fail=$((fail + 1)); }
-    repo=$(git -C "$HOOKS_DIR" rev-parse --show-toplevel 2>/dev/null)
-    yaml="$repo/install.conf.yaml"
-    rel="${HOOKS_DIR#$repo/}"
-    grep -qF "$(basename "$target")" "$yaml" || grep -qE "^[[:space:]]+path: $rel/?$" "$yaml" \
+    grep -qF "$(basename "$target")" "$yaml" || grep -qE "(^|[[:space:]:])$rel/?$" "$yaml" \
       || { echo "WIRED-BUT-UNLINKED [$target] no install.conf.yaml entry for it or for $rel/" >&2; fail=$((fail + 1)); }
     total=$((total + 3))
   done < <(jq -r '(.hooks // {})[] | .[]? | (.hooks // [])[] | .command // empty' "$settings" \
     | grep -o '[^/]*\.sh' | sort -u)
 fi
 
-for cases in "$TESTS_DIR"/cases-*.txt; do
-  hook="$(basename "$cases" .txt)"
-  hook="${hook#cases-}.sh"
-  [ -f "$HOOKS_DIR/$hook" ] || { echo "no hook for case file: $cases" >&2; exit 2; }
+run_file() {  # $1=cases file -> FAIL lines, then "#SUMMARY <total> <fail>"
+  local cases="$1" hook expect f2 f3
+  hook="$(basename "$cases" .txt)"; hook="${hook#cases-}.sh"
+  total=0 fail=0
   while IFS=$'\t' read -r expect f2 f3; do
     [ -z "${expect:-}" ] && continue
     case "$expect" in \#*) continue ;; esac
+    f2=${f2//%HOME%/$HOME}; f3=${f3//%HOME%/$HOME}
+    f2=${f2//%FIX%/${TESTS_FIXTURE_DIR:-}}; f3=${f3//%FIX%/${TESTS_FIXTURE_DIR:-}}
     run_case "$hook" "$expect" "$f2" "${f3:-}"
   done < "$cases"
+  echo "#SUMMARY $total $fail"
+}
+
+out=$(mktemp -d "${TMPDIR:-/tmp}/hooktests.XXXXXX")
+for cases in "$TESTS_DIR"/cases-*.txt; do
+  hook="$(basename "$cases" .txt)"; hook="${hook#cases-}.sh"
+  [ -f "$HOOKS_DIR/$hook" ] || { echo "no hook for case file: $cases" >&2; rm -rf "$out"; exit 2; }
+  run_file "$cases" > "$out/$(basename "$cases")" &
 done
+wait
+for f in "$out"/*; do
+  grep -v '^#SUMMARY' "$f"
+  read -r _ t fl < <(grep '^#SUMMARY' "$f")
+  total=$((total + t)); fail=$((fail + fl))
+done
+rm -rf "$out"
 
 echo "$((total - fail))/$total passed"
 [ "$fail" -eq 0 ]

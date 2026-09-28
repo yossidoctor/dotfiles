@@ -48,36 +48,18 @@
 # window-server read, so the two verdicts cannot disagree about which windows
 # existed at that instant.
 #
-# Helpers compile with swiftc to ~/.cache/aerospace/bin/ when missing or
-# older than source — to a temp file first, atomically mv'd into place,
-# because concurrent invocations (focus + workspace callbacks fire
-# together) racing one shared output path can execute a half-written
-# binary; that race on the first-ever compile is the leading explanation
-# for the incident. Absolute paths throughout, so the script behaves the
-# same from an AeroSpace callback, a Karabiner shell_command (via
-# retry-poke.sh), and a terminal, whose PATHs differ.
+# The window-oracle binary compiles on demand through swift-lib.sh (the SoT for
+# the temp-file + atomic-mv compile and why it matters). Absolute paths
+# throughout, so the script behaves the same from an AeroSpace callback, a
+# Karabiner shell_command (via retry-poke.sh), and a terminal, whose PATHs differ.
 set -euo pipefail
 
 AS=/opt/homebrew/bin/aerospace
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
 LOG="$CACHE/reap.log"
 
-ensure_bin() {
-  local src="$DIR/$1.swift" bin="$CACHE/bin/$1" tmp
-  if [ ! -x "$bin" ] || [ "$src" -nt "$bin" ]; then
-    mkdir -p "$CACHE/bin"
-    tmp=$(mktemp "$CACHE/bin/.$1-XXXXXX")
-    if xcrun swiftc -O -o "$tmp" "$src" >/dev/null 2>&1; then
-      mv -f "$tmp" "$bin"
-    else
-      rm -f "$tmp"
-      return 1
-    fi
-  fi
-}
-
-ensure_bin window-oracle || exit 0
+. "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
+ensure_swift_bin window-oracle || exit 0
 
 # The log grows a line per candidate run for years; past 1MB keep the last
 # 2000 lines, which is weeks of fingerprint at the observed rate.

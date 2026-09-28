@@ -1,5 +1,5 @@
 #!/bin/bash
-# Commit gate for ~/dotfiles, four checks.
+# Commit gate for ~/dotfiles, five checks.
 #
 # First, in every rule repo: scripts/rule-audit-gate.sh refuses a staged rule
 # file that has no audit receipt for its current content. Commit is the right
@@ -33,6 +33,9 @@ if [ -f "$root/scripts/rule-audit-gate.sh" ]; then
 elif [ -f "$HOME/dotfiles/scripts/rule-audit-gate.sh" ]; then
   bash "$HOME/dotfiles/scripts/rule-audit-gate.sh" "$root" || exit 1
 fi
+
+# The run-tests fixture dir and the hook test suite below need no network; the
+# denylist is the one check that is this repo's alone.
 
 case "$root" in "$HOME/dotfiles") ;; *) exit 0 ;; esac
 

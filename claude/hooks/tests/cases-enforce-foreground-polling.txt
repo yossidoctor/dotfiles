@@ -133,3 +133,8 @@ allow	bash <<'EOF'\necho don't\nsleep 60\nEOF
 # A heredoc body quoting a follow stream: data, not a command.
 allow	git commit -F - <<'EOF'\nrewrites tail -f and gh run watch\nEOF
 allow	cat <<'EOF' > cases.txt\nbg_forced\tgh run watch 123\nEOF
+# a sleep before the loop opens is not a poll loop, and under ten seconds it passes
+allow	sleep 5; for x in a b; do echo $x; done
+# the harness caps a Bash timeout at 600000 ms
+poll_timeout	sleep 600	600000
+poll_timeout	sleep 900	600000
