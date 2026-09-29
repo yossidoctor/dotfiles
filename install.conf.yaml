@@ -74,3 +74,4 @@
     - [bash mac/plist-restore.sh BetterCmdTab pro.bettercmdtab.BetterCmdTab mac/plists/bettercmdtab.plist, Restore BetterCmdTab settings]
     - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]
+    - [bash claude/cswap-prime-agent.sh, Install/refresh the cswap 5h-window primer LaunchAgent]
