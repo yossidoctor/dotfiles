@@ -112,5 +112,5 @@ refs=$("$checker" 2>/dev/null | grep -E '^  [A-Z]+  ' | grep -v '^  WARN  ')
 [ -n "$refs" ] || exit 0
 
 jq -c --arg t "$turn" '.blocked = ($t | tonumber)' "$state" > "$state.tmp" 2>/dev/null && mv "$state.tmp" "$state"
-jq -cn --arg r "$refs" '{decision: "block", reason: ("A citation this turn edited no longer resolves. Fix each, then stop:\n" + $r)}'
+jq -cn --arg r "$refs" '{decision: "block", reason: ("This turn edited a rule file, and check-doc-refs.sh now finds citations anywhere in the project that do not resolve. Fix each one this turn wrote; one another session wrote is reported to the user, not rewritten:\n" + $r)}'
 exit 0
