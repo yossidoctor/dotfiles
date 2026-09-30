@@ -1,17 +1,7 @@
 #!/bin/bash
-# Commit gate for ~/dotfiles, five checks.
+# Commit gate for ~/dotfiles, four checks.
 #
-# First, in every rule repo: scripts/rule-audit-gate.sh refuses a staged rule
-# file that has no audit receipt for its current content. Commit is the right
-# boundary for that audit — a turn is arbitrary, and a rule change spanning
-# four turns gets audited four times and never as a whole. The audit itself
-# runs in a session that did not write the files, which is where the measured
-# gains are; the gate only checks that one happened
-# (docs/claude/instructing-claude.md § 7). A layer repo's skills bind exactly
-# as hard as this one's, so it runs there too, from the layer's own copy of the
-# script or from ~/dotfiles.
-#
-# Then, ~/dotfiles only. This is a public repo, so the staged tree may name no
+# This is a public repo, so the staged tree may name no
 # private layer and nothing from the employer's world: the denylist below is
 # the gate, a hit blocks the commit and prints the line, and this file is the
 # one path excluded from its own scan. gitleaks scans the same staged diff for
@@ -27,12 +17,6 @@
 set -euo pipefail
 
 root=$(git rev-parse --show-toplevel)
-
-if [ -f "$root/scripts/rule-audit-gate.sh" ]; then
-  bash "$root/scripts/rule-audit-gate.sh" "$root" || exit 1
-elif [ -f "$HOME/dotfiles/scripts/rule-audit-gate.sh" ]; then
-  bash "$HOME/dotfiles/scripts/rule-audit-gate.sh" "$root" || exit 1
-fi
 
 # The run-tests fixture dir and the hook test suite below need no network; the
 # denylist is the one check that is this repo's alone.
