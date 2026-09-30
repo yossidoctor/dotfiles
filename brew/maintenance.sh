@@ -17,6 +17,16 @@
 # is special: it doesn't abort, but flags the run STALE because all later
 # steps would be operating on out-of-date tap metadata.
 #
+# After `brew update`, HOMEBREW_NO_AUTO_UPDATE holds the whole run to that one
+# snapshot. Without it, any step starting 450s later (the API refresh interval —
+# a run the Mac sleeps through is hours of wall time) refetches metadata, so a
+# version published mid-run lands after its upgrade step: skipped, then flagged
+# by cleanup, and missing from the Upgraded diff.
+#
+# An upgrade step's verdict is what it leaves outdated, not brew's exit code:
+# brew exits non-zero when a download fails once even though its retry
+# installs the package. Pinned formulae are held back by intent and don't count.
+#
 # The drift check reads every Brewfile under ~/.config/homebrew/Brewfile.d/ as
 # one set (each layer links its own there; this repo's is 00-base), because a
 # formula one layer declares is drift against the other layer's file alone.
@@ -37,7 +47,23 @@ FAILURES=()
 WARNINGS=()
 
 list_outdated() {
-    HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --greedy --quiet 2>/dev/null
+    brew outdated --greedy --quiet "$@" 2>/dev/null
+}
+
+upgrade() {
+    local kind=$1 outdated left
+    shift
+    brew upgrade "$kind" --yes --quiet "$@" && return
+    if ! outdated=$(list_outdated "$kind"); then
+        FAILURES+=("brew upgrade $kind")
+        return
+    fi
+    left=$(comm -23 <(sort <<<"$outdated") <(brew list --pinned | sort) | paste -sd' ' -)
+    if [ -n "$left" ]; then
+        FAILURES+=("brew upgrade $kind: $left")
+    else
+        echo "  (brew exited non-zero, but nothing is left outdated)"
+    fi
 }
 
 echo "========================================"
@@ -51,15 +77,16 @@ if ! brew update; then
     STALE=1
     FAILURES+=("brew update")
 fi
+export HOMEBREW_NO_AUTO_UPDATE=1
 OUTDATED_BEFORE=$(list_outdated)
 echo
 
 echo "→ Upgrading formulae..."
-brew upgrade --formula --yes --quiet || FAILURES+=("brew upgrade")
+upgrade --formula
 echo
 
 echo "→ Upgrading casks (--greedy)..."
-brew upgrade --cask --greedy --yes --quiet --no-quit || FAILURES+=("brew upgrade --cask --greedy")
+upgrade --cask --greedy --no-quit
 UPGRADED=$(comm -23 <(sort <<<"$OUTDATED_BEFORE") <(list_outdated | sort) | paste -sd' ' -)
 echo
 
