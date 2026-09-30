@@ -93,7 +93,7 @@
       "/Users/yossidoctor/dotfiles"
     ]
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "availableModels": [
     "fable",
     "opus",
@@ -242,7 +242,7 @@
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "medium"
+      "effortLevel": "high"
     },
     "claude-fable-5-1": {
       "effortLevel": "xhigh"
@@ -251,6 +251,7 @@
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "askUserQuestionTimeout": "never",
+  "dialogExpiry": "10m",
   "tui": "fullscreen",
   "voice": {
     "enabled": true,
@@ -270,10 +271,8 @@
   "autoScrollEnabled": false,
   "remoteControlAtStartup": true,
   "crossSessionInbound": "accept",
-  "dialogExpiry": "10m",
   "inputNeededNotifEnabled": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
   "autoMode": {
     "allow": [
       "$defaults",
