@@ -7,9 +7,14 @@
 # ones after it nor keeps launchd from starting the next day's run; a job cut
 # mid-install is the price of that bound.
 #
-# launchd may start the run inside a Power Nap dark wake, which sleeps again
-# within seconds and freezes a job mid-fetch. caffeinate holds the Mac awake
-# for as long as the runner lives, and the deadlines bound how long that is.
+# launchd starts the run inside the scheduled wake daily-agent.sh sets, which
+# with the lid closed sleeps again within seconds, on battery whatever
+# caffeinate asserts, and freezes a job mid-fetch. So the runner's first act
+# is `pmset disablesleep 1` (passwordless through the sudoers.d rule
+# daily-agent.sh installs), undone by the EXIT trap, which also runs when the
+# runner is TERMed; caffeinate stays as the hold when sudo refuses. A SIGKILL
+# skips the trap and leaves sleep disabled until the next run's exit. The
+# deadlines bound how long the Mac is held awake.
 #
 # The runner starts the moment the Mac wakes, before Wi-Fi may be back, so it
 # first waits a bounded time for github.com to answer; the jobs run either way
@@ -25,9 +30,11 @@
 # stderr, which the LaunchAgent keeps.
 set -u
 
+sudo -n /usr/bin/pmset disablesleep 1 && trap 'sudo -n /usr/bin/pmset disablesleep 0' EXIT
+
 jobs_dir="$HOME/.config/daily.d"
 log_root="$HOME/Library/Logs/daily"
-deadline_seconds=180
+deadline_seconds=1200
 
 notify() {
     terminal-notifier -title "$1" -message "$2" -group "daily-$1" -open "file://$3" >&2

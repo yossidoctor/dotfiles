@@ -1,9 +1,17 @@
 #!/bin/bash
-# 5h-window primer, started by the LaunchAgent cswap-prime-agent.sh installs
-# (that script owns the schedule and the wake). Sends one tiny Haiku prompt to
-# every claude-swap account, so each account's 5h window opens at the slot
-# rather than at the first message of the day, and a workday spans three
-# windows.
+# 5h-window primer. Sends one tiny Haiku prompt to every claude-swap account,
+# so each account's 5h window opens at the slot rather than at the first
+# message of the day, and a workday spans three windows. The first slot is the
+# 07:00 daily run, where it is the first job of mac/daily.sh, ahead of the brew
+# upgrade that can replace the claude binary; the later slots are the
+# LaunchAgent cswap-prime-agent.sh installs. It runs in the empty $workdir, so
+# claude starts with no project around it to read and no other app's data
+# under ~/Library in its tree. Without claude-swap installed it does nothing.
+#
+# Under the daily runner ($DAILY_SUMMARY set) the outcome line goes to that
+# file for the runner's banner instead of its own, and a reset is waited out
+# for at most $daily_reset_wait_cap seconds, since every later daily job waits
+# behind it; a window live longer is left to the next slot.
 #
 # Each prompt goes through `cswap run <n>`, which runs claude as that account
 # in its own CLAUDE_CONFIG_DIR profile and refreshes its token first; the
@@ -32,14 +40,23 @@
 set -u
 
 reset_wait_cap=3600
+daily_reset_wait_cap=300
 reset_margin=30
 send_timeout=120
 attempts=5
 retry_gap=30
 log="$HOME/Library/Logs/cswap-prime.log"
+workdir="$HOME/.cache/cswap-prime"
 
 note() { printf '%s %s\n' "$(date '+%F %T')" "$*" >>"$log"; }
 notify() { terminal-notifier -title cswap-prime -message "$1" -group cswap-prime -open "file://$log" >&2; }
+report() {
+    if [ -n "${DAILY_SUMMARY:-}" ]; then echo "$1" >"$DAILY_SUMMARY"; else notify "$1"; fi
+}
+
+[ -x "$HOME/.local/bin/cswap" ] || exit 0
+[ -n "${DAILY_SUMMARY:-}" ] && reset_wait_cap=$daily_reset_wait_cap
+mkdir -p "$workdir" && cd "$workdir" || exit 1
 
 prime() {
     local try
@@ -69,7 +86,7 @@ plan=$(cswap list --json | jq -r '
     | @tsv')
 if [ -z "$plan" ]; then
     note "no accounts from cswap list --json"
-    notify "❌ cswap list returned no accounts"
+    report "❌ cswap list returned no accounts"
     exit 1
 fi
 
@@ -101,10 +118,10 @@ message=""
 [ -n "$live" ] && message="$message · live:$live"
 message=${message# · }
 if [ -n "$failed" ]; then
-    notify "❌ $message"
+    report "❌ $message"
 elif [ -n "$primed" ]; then
-    notify "✅ $message"
+    report "✅ $message"
 else
-    notify "⏭ $message"
+    report "⏭ $message"
 fi
 [ -z "$failed" ]
