@@ -117,7 +117,7 @@ Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active numb
 
 What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent, installed by `claude/cswap-auto.sh` (a `./install` shell step, and the SoT for the arguments and the log routing): `cswap auto`, kept alive across logout and reboot, rotating to the account with the most quota left once the active one hits `cswap`'s default 90% threshold. `launchctl list | grep cswap` shows whether it's running. Registering an account is manual and interactive (`cswap add`) — it never runs from `./install`.
 
-The `dev.yossidoctor.cswap-prime` LaunchAgent, installed by `claude/cswap-prime-agent.sh` (the SoT for the schedule), runs `claude/cswap-prime.sh` at fixed slots: one Haiku prompt per account through `cswap run`, so every account's 5h window opens on the slot instead of at the first message of the day. Each run appends to `~/Library/Logs/cswap-prime.log`; the headers carry the mechanics.
+`claude/cswap-prime.sh` runs at fixed slots, the first as the first daily job (§ Daily jobs) and the later ones from the `dev.yossidoctor.cswap-prime` LaunchAgent `claude/cswap-prime-agent.sh` installs: one Haiku prompt per account through `cswap run`, so every account's 5h window opens on the slot instead of at the first message of the day. Each run appends to `~/Library/Logs/cswap-prime.log`; the headers carry the mechanics.
 
 Context pct rides `ramp_color`: muted grey below the warm threshold, red deepening to bold, and from the alarm threshold a filled white-on-red pill (a deeper foreground red stops reading as more urgent once the channels bottom out). Thresholds warm/bold/alarm: 25/40/50 by default, 45/65/80 for Sonnet. Account meters use the muted ramp at 40/70 (softer red, no bold, no pill). A muted `∘` precedes ctx% when the payload's `prompt_cache.warm` is false, so the next turn pays a rebuild. `·Low|Mid|High|XHi|Max` (muted) shows the current reasoning-effort level; unmapped values pass through raw; absent when the model doesn't support the effort parameter. `bypass` badge (red) shows only in bypass-permissions mode. Render cost, `hyperfine -N` 20 runs with two accounts: 30.4 ± 0.4 ms.
 
@@ -131,7 +131,7 @@ Overrides the agent-panel rows via `subagentStatusLine`. Per row: description le
 
 ### Daily jobs
 
-`mac/daily.sh` runs each layer's job in `~/.config/daily.d/`; `mac/daily-agent.sh` (an `./install` step) schedules it. The headers carry the mechanics.
+`mac/daily.sh` runs each layer's job in `~/.config/daily.d/`; `mac/daily-agent.sh` (an `./install` step) schedules it with the day's one scheduled wake, and installs `/etc/sudoers.d/daily-disablesleep` so the run can hold the Mac awake. The headers carry the mechanics.
 
 ### macOS defaults
 
