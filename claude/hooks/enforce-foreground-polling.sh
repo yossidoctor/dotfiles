@@ -122,7 +122,7 @@ fi
 
 # The rule auditor: a whole `claude -p` session, minutes long, whose verdict is
 # the output. Backgrounded, the turn stays free and the verdict arrives with the
-# completion notice; the gate script (rule-audit-gate.sh, fast) is not this.
+# completion notice.
 # Command position only — start of input or after a separator, optionally
 # behind `bash` — so a `git add`, `grep` or `cat` naming the file stays put.
 if printf '%s' "$cmd_unq" | grep -qE '(^|[;&|(])[[:space:]]*(bash[[:space:]]+)?([^[:space:];&|]*/)?rule-audit(\.sh)?([[:space:]]|$)'; then
@@ -131,7 +131,7 @@ if printf '%s' "$cmd_unq" | grep -qE '(^|[;&|(])[[:space:]]*(bash[[:space:]]+)?(
     permissionDecision: "allow",
     permissionDecisionReason: "Backgrounded — the rule audit is a minutes-long claude -p session.",
     updatedInput: ((.tool_input // {}) + {run_in_background: true}),
-    additionalContext: "rule-audit.sh moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It runs a fresh claude -p session for minutes; end the turn or keep working, and read its verdict (AUDIT CLEAN / ADVISORY / BLOCKING) off the completion notification. CLEAN or ADVISORY means the receipt is on disk — commit then. Never wait on it with a sleep."}}'
+    additionalContext: "rule-audit.sh moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It runs a fresh claude -p session for minutes; end the turn or keep working, and read its verdict (AUDIT CLEAN / ADVISORY / BLOCKING) off the completion notification. Never wait on it with a sleep."}}'
   exit 0
 fi
 
