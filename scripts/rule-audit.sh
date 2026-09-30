@@ -1,6 +1,6 @@
 #!/bin/bash
 # Audit the staged rule files in a repo, in a Claude session that did not write
-# them, and record a receipt on a clean pass.
+# them.
 #
 # The fresh session is the whole point. A model reviewing its own output misses
 # most of what it catches in someone else's, and a second pass inside the
@@ -12,30 +12,28 @@
 # It reads whole files, never a diff; the prompt below says why. The input is
 # every staged rule file plus its closure: every tracked file they cite, and
 # every tracked file that cites them — a README row or a hook header that
-# describes a staged rule is where a falsified claim sits.
+# describes a staged rule is where a falsified claim sits. A rule file is
+# CLAUDE.md, AGENTS.md, or any .md/.sh under a skills/, agents/, rules/ or
+# output-styles/ dir: a skill and the script it names are one instruction.
 #
 # Usage:  rule-audit.sh <repo-root>
-# Exit:   0 clean, receipt written · 1 findings printed, no receipt · 2 usage
+# Exit:   0 clean or style findings only · 1 a correctness finding · 2 usage
 #
 # It runs for minutes, so from Claude Code it is launched with the Bash tool's
 # run_in_background (enforce-foreground-polling.sh sets that on any call naming
 # this script): the turn stays free, a message still reaches the session, and
 # the verdict line arrives with the completion notice.
 #
-# The receipt keys on staged content (rule-audit-lib.sh owns the staged set and
-# the key; rule-audit-gate.sh owns the receipt's shape), so editing anything
-# afterwards re-arms the gate. There is no way to assert a pass this script did
-# not produce. The audit session cannot edit: Edit and Write are disallowed on
-# its command line, so it reads and runs but never changes the files it judges.
+# The audit session cannot edit: Edit and Write are disallowed on its command
+# line, so it reads and runs but never changes the files it judges.
 
 set -uo pipefail
-
-. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/rule-audit-lib.sh"
 
 root="${1:?usage: rule-audit.sh <repo-root>}"
 command -v claude >/dev/null || { echo "rule-audit: claude not on PATH" >&2; exit 2; }
 
-staged=$(rule_audit_staged "$root")
+staged=$(git -C "$root" diff --cached --name-only --diff-filter=ACMR \
+  | grep -E '(^|/)(CLAUDE\.md$|AGENTS\.md$)|(^|/)(skills|agents|rules|output-styles)/.*\.(md|sh)$')
 [ -n "$staged" ] || { echo "rule-audit: nothing staged in scope."; exit 0; }
 
 # The closure: files the staged set cites, and files that cite the staged set.
@@ -118,39 +116,20 @@ EOF
 
 n_staged=$(printf '%s\n' "$staged" | grep -c . || true)
 echo "rule-audit: auditing $n_staged staged rule files in a fresh session..."
-out=$(claude -p --disallowedTools "Edit,Write,MultiEdit,NotebookEdit" "$prompt" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
+out=$(printf '%s' "$prompt" | claude -p --disallowedTools "Edit,Write,MultiEdit,NotebookEdit" 2>&1) || { printf '%s\n' "$out" >&2; echo "rule-audit: the audit session failed." >&2; exit 1; }
 printf '%s\n' "$out"
 
-# A style finding does not withhold the receipt. The bar "zero findings" is
+# Only a correctness finding fails the run. The bar "zero findings" is
 # unreachable against a rule set this dense: every fix is new prose and new
-# prose is new surface, so the loop never terminates and finished work sits
-# uncommitted behind a narrower falsifier. What the gate exists to stop is a
-# false claim about something executable — the class that misleads a reader
-# into a wrong action, and the class a fresh session catches by RUNNING things.
+# prose is new surface, so the loop never terminates. What the audit exists to
+# stop is a false claim about something executable — the class that misleads a
+# reader into a wrong action, and the class a fresh session catches by RUNNING
+# things.
 verdict=$(printf '%s' "$out" | tail -3 | grep -oE 'AUDIT (CLEAN|BLOCKING|ADVISORY)' | tail -1)
-case "$verdict" in
-  "AUDIT CLEAN"|"AUDIT ADVISORY")
-    key=$(rule_audit_key "$root" "$staged")
-    # A clean pass pins the exact content. An advisory pass pins the file set
-    # instead, so fixing the style findings it just reported does not re-arm the
-    # gate against that very fix; the gate re-arms the moment a file outside the
-    # set is staged. Its shape is rule-audit-gate.sh's to read.
-    if [ "$verdict" = "AUDIT CLEAN" ]; then
-      printf '%s' "$key" > "$root/.git/rule-audit-receipt"
-    else
-      { echo advisory; printf '%s\n' "$staged"; } > "$root/.git/rule-audit-receipt"
-    fi
-    echo
-    if [ "$verdict" = "AUDIT CLEAN" ]; then
-      echo "rule-audit: clean — receipt written. The commit will pass."
-    else
-      echo "rule-audit: style findings only (above) — receipt written, the commit will pass."
-      echo "Fix them on the next touch of these files."
-    fi
-    exit 0
-    ;;
-esac
-
 echo
-echo "rule-audit: a correctness finding above blocks the commit — something the text claims is false about a command, a script, a path or a count. Fix those, re-stage, run again; style findings alone would have passed." >&2
+case "$verdict" in
+  "AUDIT CLEAN") echo "rule-audit: clean."; exit 0 ;;
+  "AUDIT ADVISORY") echo "rule-audit: style findings only (above) — fix them on the next touch of these files."; exit 0 ;;
+esac
+echo "rule-audit: a correctness finding above — something the text claims is false about a command, a script, a path or a count. Fix those, re-stage, run again." >&2
 exit 1
