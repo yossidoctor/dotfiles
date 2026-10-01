@@ -137,7 +137,7 @@ grep -rnoE --exclude-dir=tests '[A-Za-z0-9_/-]*references/[A-Za-z0-9_.-]+\.md' "
       rest=${hit#*:}; lineno=${rest%%:*}
       ref=${hit##*:}
       case "$ref" in */references/*) continue ;; esac
-      after=${file#*/skills/}
+      after=${file##*/skills/}
       skilldir=${file%/skills/*}/skills/${after%%/*}
       own=${skilldir##*/}
       if awk -v ln="$lineno" -v own="$own" -v roster="$TMP/skillnames" '
