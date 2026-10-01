@@ -207,7 +207,8 @@
     ]
   },
   "worktree": {
-    "baseRef": "fresh"
+    "baseRef": "fresh",
+    "bgIsolation": "none"
   },
   "enableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
