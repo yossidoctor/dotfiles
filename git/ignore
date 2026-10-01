@@ -33,3 +33,4 @@ ehthumbs.db
 
 # Git worktrees
 .worktrees/
+.claude/worktrees/
