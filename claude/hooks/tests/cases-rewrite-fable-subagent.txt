@@ -1,0 +1,11 @@
+# model=fable -> rewritten to opus, whatever the type
+agent_opus	{"model": "fable"}
+agent_opus	{"subagent_type": "general-purpose", "model": "fable"}
+# an omitted model is CLAUDE_CODE_SUBAGENT_MODEL's job (settings.json env) -> silent
+agent_noop	{}
+agent_noop	{"run_in_background": true}
+# an explicitly named non-fable model is kept -> silent
+agent_noop	{"model": "haiku"}
+agent_noop	{"model": "opus"}
+# "fable" elsewhere in the payload passes the raw gate, never the model check
+agent_noop	{"prompt": "fable"}

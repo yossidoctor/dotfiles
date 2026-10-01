@@ -15,7 +15,8 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
-    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1"
+    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
   "attribution": {
     "commit": "",
@@ -137,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/fill-subagent-model.sh"
+            "command": "\"$HOME\"/.claude/hooks/rewrite-fable-subagent.sh"
           }
         ]
       },

@@ -18,7 +18,7 @@
 #                     rewrite and no deny — `allow` alone passes a rewrite
 #   write_deny|write_allow<TAB><file_path><TAB><content>   Write payload
 #   read_deny|read_allow<TAB><file_path>      Read payload (no content)
-#   agent_opus|agent_noop<TAB><tool_input JSON overrides>[<TAB><cwd>]
+#   agent_opus|agent_noop<TAB><tool_input JSON overrides>
 #                     Agent payload: overrides merged over {"subagent_type": "x",
 #                     "prompt": "p"}. agent_opus asserts updatedInput
 #                     model == "opus", agent_noop asserts the hook emits nothing
@@ -115,11 +115,7 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
       fi
       return ;;
     agent_opus|agent_noop)
-      # a relative cwd names a fixture, so it resolves against TESTS_DIR
-      case "$f3" in ""|/*) acwd=$f3 ;; *) acwd="$TESTS_DIR/$f3" ;; esac
-      payload=$(jq -cn --argjson ov "$f2" --arg cwd "$acwd" \
-        '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}
-         + (if $cwd == "" then {} else {cwd: $cwd} end)')
+      payload=$(jq -cn --argjson ov "$f2" '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}')
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
       if [ "$expect" = "agent_noop" ]; then
         [ -z "$out" ] && verdict=agent_noop || verdict="emitted:$out"
