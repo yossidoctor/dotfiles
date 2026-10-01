@@ -22,7 +22,10 @@
 # first from `cswap list --json`: a window resetting within $reset_wait_cap
 # seconds is waited out (plus a margin) and then primed, one resetting later
 # than that is left alone, and one with no window or no fresh usage reading is
-# primed at once. The 5h reset is the account's fiveHour.resetsAt.
+# primed at once. The 5h reset is the account's fiveHour.resetsAt. An account
+# at 100% of sevenDay with extra usage on (a usage.spend block) is skipped
+# until its 7d reset: past the cap its prompts bill that balance and open no
+# window, while one without extra usage is still served on the plan.
 #
 # With the lid closed the Mac runs this in wakes of 10–60 s and sleeps between
 # them whatever caffeinate asserts, so a run can freeze mid-request and resume
@@ -82,7 +85,8 @@ plan=$(cswap list --json | jq -r '
        ((.usage.fiveHour.resetsAt // "")
         | if . == "" then 0
           else (try (sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601) catch 0)
-          end)]
+          end),
+       (if (.usage.sevenDay.pct // 0) >= 100 and .usage.spend then .usage.sevenDay.clock // "?" else "" end)]
     | @tsv')
 if [ -z "$plan" ]; then
     note "no accounts from cswap list --json"
@@ -90,8 +94,13 @@ if [ -z "$plan" ]; then
     exit 1
 fi
 
-primed="" live="" failed=""
-while IFS=$'\t' read -r account reset_at; do
+primed="" live="" billed="" failed=""
+while IFS=$'\t' read -r account reset_at week_reset; do
+    if [ -n "$week_reset" ]; then
+        note "account $account: skipped, 7d used up and extra usage on until $week_reset"
+        billed="$billed $account (until $week_reset)"
+        continue
+    fi
     reset_in=$((reset_at - $(date +%s)))
     if [ "$reset_in" -gt "$reset_wait_cap" ]; then
         note "account $account: skipped, window live until $(date -r "$reset_at" +%H:%M)"
@@ -116,6 +125,7 @@ message=""
 [ -n "$failed" ] && message="$message · failed:$failed"
 [ -n "$primed" ] && message="$message · primed:$primed, resets ~$(date -v+5H +%H:%M)"
 [ -n "$live" ] && message="$message · live:$live"
+[ -n "$billed" ] && message="$message · extra usage:$billed"
 message=${message# · }
 if [ -n "$failed" ]; then
     report "❌ $message"
