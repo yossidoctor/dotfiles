@@ -44,7 +44,7 @@
     ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
     ~/.claude/hooks/enforce-read-over-shell-read.sh: claude/hooks/enforce-read-over-shell-read.sh
-    ~/.claude/hooks/fill-subagent-model.sh: claude/hooks/fill-subagent-model.sh
+    ~/.claude/hooks/rewrite-fable-subagent.sh: claude/hooks/rewrite-fable-subagent.sh
     ~/.claude/hooks/log-permission-denied.sh: claude/hooks/log-permission-denied.sh
     ~/.claude/hooks/audit-docs-on-stop.sh: claude/hooks/audit-docs-on-stop.sh
     ~/.claude/hooks/ask-matt-banner.sh: claude/hooks/ask-matt-banner.sh
