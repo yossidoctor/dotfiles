@@ -10,7 +10,7 @@ Karabiner Cmd+Q / Cmd+W rules (`retry-poke.sh`, off the keystroke). Three
 further failure modes ride the same bug — ghost nodes, phantom tiles, and a
 daemon GC hang — and `reap-ghosts.sh` observes the first, heals the second by
 floating, and `diagnose-gap.sh` (alt-shift-d) tells all of them apart on a
-live gap. Upstream state, with the commands to re-derive it: `UPSTREAM-2026-09.md`.
+live gap.
 
 Scope: the window-close retile bug and the callbacks around it. General
 AeroSpace setup is `aerospace.toml` itself; each helper script's header is

@@ -11,9 +11,7 @@
 
 set -u
 
-. "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
-
-hook_read_raw
+HOOK_INPUT=$(cat)
 case "$HOOK_INPUT" in
   *'"fable"'*) ;;
   *) exit 0 ;;

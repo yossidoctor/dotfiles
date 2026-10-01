@@ -14,7 +14,7 @@
 # own app bundle, so it appears in System Settings › Notifications and can be
 # granted. `osascript display notification` attributes the banner to the
 # calling terminal, which never registers there, and on macOS 26+ exits 0
-# while showing nothing. It stays as the fallback until brew bundle has run.
+# while showing nothing. ./install runs brew bundle before it links this hook.
 
 set -u
 
@@ -30,10 +30,5 @@ hook_parse_input
 message="${HOOK_MESSAGE:-Claude Code}"
 title="Claude — subagent done"
 
-if command -v terminal-notifier >/dev/null; then
-  terminal-notifier -title "$title" -message "$message" -group "claude-${HOOK_SESSION_ID:-default}" >/dev/null 2>&1
-else
-  jsonq() { printf '%s' "$1" | jq -R -s '.'; }
-  osascript -e "display notification $(jsonq "$message") with title $(jsonq "$title")" >/dev/null 2>&1
-fi
+terminal-notifier -title "$title" -message "$message" -group "claude-${HOOK_SESSION_ID:-default}" >/dev/null 2>&1
 exit 0

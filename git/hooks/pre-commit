@@ -18,9 +18,6 @@ set -euo pipefail
 
 root=$(git rev-parse --show-toplevel)
 
-# The run-tests fixture dir and the hook test suite below need no network; the
-# denylist is the one check that is this repo's alone.
-
 case "$root" in "$HOME/dotfiles") ;; *) exit 0 ;; esac
 
 hits=$(git grep --cached -n -i -E '(^|[^a-z])dono([^a-z]|$)|qovery|donohq|@dono\.ai|donofiles' -- . ':!git/hooks/pre-commit') && rc=0 || rc=$?

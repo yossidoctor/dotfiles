@@ -137,16 +137,3 @@
 [include]
 	path = ~/.config/git/local.gitconfig
 	path = ~/.config/git/machine.gitconfig
-
-[alias]
-	st = status
-	co = checkout
-	br = branch
-	cb = checkout -b
-	ci = commit
-	last = log -1 HEAD
-	unstage = reset HEAD --
-	amend = commit --amend --no-edit
-	undo = reset --soft HEAD~1
-	lg = log --color --graph --abbrev-commit --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-	dft = -c diff.external=difft diff

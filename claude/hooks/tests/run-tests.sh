@@ -52,37 +52,15 @@ hook_json() {  # $1=jq filter, remaining args bound as $a1, $a2 -> prints JSON
   jq -cn --arg a1 "${2:-}" --arg a2 "${3:-}" "$1"
 }
 
-# The decision field a hook emits, or the fallback when it emits nothing/garbage.
-hook_field() {  # $1=jq path expression  $2=fallback
-  jq -r "(.hookSpecificOutput | $1) // \"$2\"" 2>/dev/null || printf '%s' "$2"
-}
-
 run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
   local hook="$1" expect="$2" f2="$3" f3="${4:-}" payload out verdict
   case "$expect" in
-    write_deny|write_allow)
-      payload=$(hook_json '{tool_input: {file_path: $a1, content: $a2}}' "$f2" "$(printf '%b' "$f3")")
-      expect=${expect#write_} ;;
-    read_deny|read_allow)
-      payload=$(hook_json '{tool_name: "Read", tool_input: {file_path: $a1}}' "$f2")
-      expect=${expect#read_} ;;
-    allow_bg)
-      payload=$(hook_json '{tool_input: {command: $a1, run_in_background: true}}' "$(printf '%b' "$f2")")
-      expect=allow ;;
-    poll_deny|poll_allow)
-      payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
-      expect=${expect#poll_} ;;
     poll_timeout)
       payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
       got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.timeout // "unset"' 2>/dev/null)
-      [ -n "$got" ] || got=unset
-      [ "$got" = "$f3" ] && verdict=$f3 || verdict="timeout=$got"
-      total=$((total + 1))
-      if [ "$verdict" != "$f3" ]; then
-        fail=$((fail + 1)); echo "FAIL [$hook] expected timeout=$f3 got=$verdict : $f2"
-      fi
-      return ;;
+      expect=$f3
+      [ "$got" = "$f3" ] && verdict=$f3 || verdict="timeout=${got:-unset}" ;;
     bg_forced|bg_none)
       payload=$(hook_json '{tool_name: "Bash", tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
@@ -95,12 +73,7 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
         [ "$got" = "true" ] && verdict=bg_forced || verdict="not-backgrounded:${out:-<empty>}"
       else
         [ "$got" = "unset" ] && verdict=bg_none || verdict="rewritten:${out:-<empty>}"
-      fi
-      total=$((total + 1))
-      if [ "$verdict" != "$expect" ]; then
-        fail=$((fail + 1)); echo "FAIL [$hook] expected=$expect got=$verdict : $f2"
-      fi
-      return ;;
+      fi ;;
     ctx_has|ctx_none)
       out=$(printf '%s' "$f2" | bash "$HOOKS_DIR/$hook")
       got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext // ""' 2>/dev/null)
@@ -108,12 +81,7 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
         [ -z "$got" ] && verdict=ctx_none || verdict="emitted:$got"
       else
         case "$got" in *"$f3"*) verdict=ctx_has ;; *) verdict="missing[$f3] in:${got:-<empty>}" ;; esac
-      fi
-      total=$((total + 1))
-      if [ "$verdict" != "$expect" ]; then
-        fail=$((fail + 1)); echo "FAIL [$hook] expected=$expect got=$verdict"
-      fi
-      return ;;
+      fi ;;
     agent_opus|agent_noop)
       payload=$(jq -cn --argjson ov "$f2" '{tool_name: "Agent", tool_input: ({subagent_type: "x", prompt: "p"} + $ov)}')
       out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
@@ -123,20 +91,29 @@ run_case() {  # $1=hook-file  $2=expect  $3=field2  $4=field3 (cwd or content)
         got=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.model // "unset"' 2>/dev/null || printf 'unset')
         [ -n "$got" ] || got=unset
         [ "$got" = "opus" ] && verdict=$expect || verdict="wrong-model:${out:-<empty>}"
-      fi
-      total=$((total + 1))
-      if [ "$verdict" != "$expect" ]; then
-        fail=$((fail + 1)); echo "FAIL [$hook] expected=$expect got=$verdict : $f2"
-      fi
-      return ;;
+      fi ;;
     *)
-      payload=$(hook_json '{tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
-      [ -n "$f3" ] && payload=$(printf '%s' "$payload" | jq -c --arg c "$f3" '.cwd = $c') ;;
+      case "$expect" in
+        write_deny|write_allow)
+          payload=$(hook_json '{tool_input: {file_path: $a1, content: $a2}}' "$f2" "$(printf '%b' "$f3")")
+          expect=${expect#write_} ;;
+        read_deny|read_allow)
+          payload=$(hook_json '{tool_name: "Read", tool_input: {file_path: $a1}}' "$f2")
+          expect=${expect#read_} ;;
+        allow_bg)
+          payload=$(hook_json '{tool_input: {command: $a1, run_in_background: true}}' "$(printf '%b' "$f2")")
+          expect=allow ;;
+        poll_deny|poll_allow)
+          payload=$(hook_json '{tool_input: {command: $a1, description: "poll wait"}}' "$(printf '%b' "$f2")")
+          expect=${expect#poll_} ;;
+        *)
+          payload=$(hook_json '{tool_input: {command: $a1}}' "$(printf '%b' "$f2")")
+          [ -n "$f3" ] && payload=$(printf '%s' "$payload" | jq -c --arg c "$f3" '.cwd = $c') ;;
+      esac
+      out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
+      verdict=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "allow"' 2>/dev/null)
+      case "$verdict" in deny|ask) ;; *) verdict=allow ;; esac ;;
   esac
-  out=$(printf '%s' "$payload" | bash "$HOOKS_DIR/$hook")
-  verdict=$(printf '%s' "$out" | hook_field '.permissionDecision' allow)
-  [ -n "$verdict" ] || verdict=allow
-  case "$verdict" in deny|ask) ;; *) verdict=allow ;; esac
   total=$((total + 1))
   if [ "$verdict" != "$expect" ]; then
     fail=$((fail + 1))

@@ -27,8 +27,7 @@ CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
 
 . "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
 ensure_swift_bin raise-window || exit 0
-BIN="$SWIFT_BIN"
 
 read -r id fs < <("$AS" list-windows --focused --format '%{window-id} %{window-is-fullscreen}' 2>/dev/null) || exit 0
 [ "${fs:-false}" = "true" ] || exit 0
-"$BIN" "$id" 2>>"$CACHE/raise.log" || true
+"$SWIFT_BIN" "$id" 2>>"$CACHE/raise.log" || true

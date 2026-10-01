@@ -37,16 +37,12 @@ g_stale='◌'
 
 meter_glyphs=('▁' '▂' '▃' '▄' '▅' '▆' '▇' '█')
 glyph_for_pct() {
-  local i=$(( $1 * 8 / 100 )) track="${2:-}"
+  local i=$(( $1 * 8 / 100 ))
   [ "$i" -gt 7 ] && i=7
   [ "$i" -lt 0 ] && i=0
-  if [ -n "$track" ]; then
-    # Closes with 49 (default background) rather than c_off, so the ground stops
-    # at the cell while the caller's foreground carries on into the percentage.
-    printf '%s%s\\033[49m' "${track/38;2;/48;2;}" "${meter_glyphs[i]}"
-  else
-    printf '%s' "${meter_glyphs[i]}"
-  fi
+  # Closes with 49 (default background) rather than c_off, so the ground stops
+  # at the cell while the caller's foreground carries on into the percentage.
+  printf '%s%s\\033[49m' "${2/38;2;/48;2;}" "${meter_glyphs[i]}"
 }
 
 # Prefixes a color rather than replacing it, so the attribute rides whatever

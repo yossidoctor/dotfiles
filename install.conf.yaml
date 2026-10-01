@@ -38,7 +38,6 @@
     ~/.claude/statusline-lib.sh: claude/statusline-lib.sh
     ~/.claude/subagent-statusline.sh: claude/subagent-statusline.sh
     ~/.claude/hooks/hook-lib.sh: claude/hooks/hook-lib.sh
-    ~/.claude/hooks/hook_lib.py: claude/hooks/hook_lib.py
     ~/.claude/hooks/warn-existing-occurrence.sh: claude/hooks/warn-existing-occurrence.sh
     ~/.claude/hooks/enforce-git-add-paths.sh: claude/hooks/enforce-git-add-paths.sh
     ~/.claude/hooks/redirect-symlink-edits.sh: claude/hooks/redirect-symlink-edits.sh

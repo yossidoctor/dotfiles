@@ -64,11 +64,6 @@
 #                     emit the PreToolUse decision JSON and exit 0
 #   additional_context <event-name> <msg>
 #                     emit an additionalContext JSON for the given hook event and exit 0
-#
-# PYTHONDONTWRITEBYTECODE: the python blocks import hook_lib.py through the
-# deployed link, so a compiled cache would land inside the repository.
-
-export PYTHONDONTWRITEBYTECODE=1
 
 hook_read_raw() {
   HOOK_INPUT=$(cat)

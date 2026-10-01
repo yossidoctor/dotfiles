@@ -44,7 +44,7 @@ This repo is the base: shell, terminal, Homebrew, macOS defaults, and the global
 
 The global rules split by reach. `claude/CLAUDE.md` holds the rules that bind on every task and is also appended to the system prompt by the `claude()` wrapper in `zsh/zshrc`. `claude/rules/*.md` (deployed to `~/.claude/rules/`) hold the rules for one surface — code, hot-path scripts, instructional text — each behind a `paths:` frontmatter, so Claude Code loads one only when it touches a matching file.
 
-`docs/claude/instructing-claude.md` is the standing reference behind every rule file here: which channel an instruction reaches Claude through and what each buys, the measured ceiling on simultaneous constraints, which wording helps and which backfires, and why a review must run in a fresh context. Every claim in it cites a primary source. Read it before authoring or rewriting a rule file, a skill, a hook, or an agent definition — it exists so that research is not repeated. `docs/claude/SETUP-AUDIT-2026-09.md` is the dated snapshot of the last whole-setup audit: what was adopted and where it lives, what was rejected and why, what was checked and found right, what is open, each with the command that re-derives it.
+`docs/claude/instructing-claude.md` is the standing reference behind every rule file here: which channel an instruction reaches Claude through and what each buys, the measured ceiling on simultaneous constraints, which wording helps and which backfires, and why a review must run in a fresh context. Every claim in it cites a primary source. Read it before authoring or rewriting a rule file, a skill, a hook, or an agent definition — it exists so that research is not repeated.
 
 ### Script conventions
 
@@ -74,7 +74,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 
 ### Permissions
 
-`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names (`checkout --`, `clean`, `stash drop|clear`, `reset --hard`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk. The `git/config` aliases (`co`, `br`, `ci`) are covered too: the `ask` list names `co --` and `br -D`, and `enforce-git-add-paths.sh` reads `ci` as `commit`.
+`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names (`checkout --`, `clean`, `stash drop|clear`, `reset --hard`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk.
 
 ### Bash-tool environment
 
@@ -83,7 +83,7 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 - `PATH` duplicates `zsh/zshenv` (the SoT): the Bash tool runs a non-interactive zsh that sources zshenv, but the harness's `env.PATH` overrides the PATH zshenv set, so without this key the tool would run on the harness's own PATH. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which a non-interactive tool call never runs.
 - `HOMEBREW_NO_ANALYTICS` mirrors `brew/env.sh`, which only an interactive zsh and `brew/maintenance.sh` source; a Bash-tool `brew` call reads neither.
 - `DISABLE_AUTOUPDATER`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable.
-- `GIT_PAGER` and `PAGER` are `cat`, so no call waits on a pager it has no TTY to page to: git skips its own pager off a TTY, and `cat` covers the tools that do not check.
+- `PAGER` is `cat`, so no call waits on a pager it has no TTY to page to: git skips its own pager off a TTY, and `cat` covers the tools that do not check.
 - `CI` is the switch most CLIs read (npm, gh, pip, jest, vitest): prompts, spinners and colour off, and test runners run once instead of watching. It is broad, so a tool behaving differently under the Bash tool than in a terminal is checked against it first.
 - `NO_COLOR` is the no-color.org convention: ANSI codes off wherever a tool honours it, so output greps clean.
 - `BASH_MAX_OUTPUT_LENGTH` is the character cap on one Bash-tool result before the harness truncates it; `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` the token cap on one Read; `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` the number of tool calls one response may run in parallel. A key the running binary does not name is dead weight here: `strings "$(readlink -f "$(whence -p claude)")" | grep -c <KEY>` is the check (`whence -p`, since `claude` is a zsh function here), and it is what removed `CLAUDE_GIT_SHOW_COMMIT_HASHES`.
@@ -143,7 +143,7 @@ Overrides the agent-panel rows via `subagentStatusLine`. Per row: description le
 Two layers, each its own SoT:
 
 - **Karabiner** (`karabiner/karabiner.json`) — Caps Lock becomes a Hyper modifier; Hyper+letter launches an app. The JSON is the SoT for the launcher map — read its `to` `shell_command`s rather than trusting a copy.
-- **AeroSpace** (`aerospace/aerospace.toml`) — tiling window manager. The toml self-documents monitor layouts, bindings, and app rules in its header, and sets `auto-reload-config`, so AeroSpace reloads itself on every save. Three docs live under `docs/aerospace/`, outside the dir the whole-dir link deploys: `RETILE-DELAY.md` (window-close retile bug, ghost/phantom watchdog, the alt-shift-d diagnose keystroke), `FULLSCREEN-ZORDER.md` (fake-fullscreen buried behind tiles), and `UPSTREAM-2026-09.md` (dated snapshot of upstream releases, open reports, and pending PRs that bear on this config, with the commands to re-derive it); each helper script's header is the SoT for its mechanics. `retile-on-quit-watcher.sh` compiles the watcher into `~/.cache/aerospace/bin` and generates its LaunchAgent plist from `$HOME`.
+- **AeroSpace** (`aerospace/aerospace.toml`) — tiling window manager. The toml self-documents monitor layouts, bindings, and app rules in its header, and sets `auto-reload-config`, so AeroSpace reloads itself on every save. Two docs live under `docs/aerospace/`, outside the dir the whole-dir link deploys: `RETILE-DELAY.md` (window-close retile bug, ghost/phantom watchdog, the alt-shift-d diagnose keystroke) and `FULLSCREEN-ZORDER.md` (fake-fullscreen buried behind tiles); each helper script's header is the SoT for its mechanics. `retile-on-quit-watcher.sh` compiles the watcher into `~/.cache/aerospace/bin` and generates its LaunchAgent plist from `$HOME`.
 
 ### Shell prompt (`starship/starship.toml`)
 

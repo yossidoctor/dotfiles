@@ -7,7 +7,6 @@
     "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "HOMEBREW_NO_ANALYTICS": "1",
-    "GIT_PAGER": "cat",
     "PAGER": "cat",
     "CI": "1",
     "NO_COLOR": "1",
@@ -83,11 +82,7 @@
       "Bash(git * stash drop*)",
       "Bash(git * stash clear*)",
       "Bash(git push * --force-with-lease*)",
-      "Bash(git * push * --force-with-lease*)",
-      "Bash(git co -- *)",
-      "Bash(git * co -- *)",
-      "Bash(git br -D *)",
-      "Bash(git * br -D *)"
+      "Bash(git * push * --force-with-lease*)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [

@@ -75,7 +75,7 @@ tree=$(printf '%s\n' "$snapshot" | /usr/bin/awk 'NF { print $1 }' | sort -u)
 [ -z "$tree" ] && exit 0
 
 tiled=$(printf '%s\n' "$snapshot" | /usr/bin/awk '$3 == "true" && $2 != "floating" { print $1 }' | tr '\n' ' ')
-oracle=$("$CACHE/bin/window-oracle" $tiled 2>/dev/null || true)
+oracle=$("$SWIFT_BIN" $tiled 2>/dev/null || true)
 cg=$(printf '%s\n' "$oracle" | /usr/bin/awk '$1 == "ALL" { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF' | sort -u)
 
 tree_n=$(printf '%s\n' "$tree" | wc -l | tr -d ' ')

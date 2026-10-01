@@ -19,13 +19,7 @@ label="dev.yossidoctor.cswap-auto"
 cswap="$HOME/.local/bin/cswap"
 [ -x "$cswap" ] || exit 0
 
-plist_new=$(cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Label</key>
-	<string>$label</string>
+keys=$(cat <<EOF
 	<key>ProgramArguments</key>
 	<array>
 		<string>$cswap</string>
@@ -43,9 +37,7 @@ plist_new=$(cat <<EOF
 	<string>/dev/null</string>
 	<key>StandardErrorPath</key>
 	<string>$HOME/.claude-swap-backup/auto-stderr.log</string>
-</dict>
-</plist>
 EOF
 )
 
-install_launchagent "$label" "$plist_new"
+install_launchagent "$label" "$keys"
