@@ -13,6 +13,13 @@
 # therefore upgrades under `--no-quit`: a running app is left alone, and serves
 # its old binary until quit by hand.
 #
+# A cask that installs through a .pkg runs `sudo` on every upgrade. With no
+# terminal on stdin and no cached sudo ticket (the daily run), those casks are
+# left out of the upgrade, since the password prompt can only fail there. One
+# marked auto_updates is left to its own updater; any other is named in a warning with the command to run by
+# hand. A terminal run upgrades them all and brings brew's record level with
+# what the app updated itself to.
+#
 # Continues on per-step failure and reports at the end. `brew update` failure
 # is special: it doesn't abort, but flags the run STALE because all later
 # steps would be operating on out-of-date tap metadata.
@@ -58,7 +65,7 @@ upgrade() {
         FAILURES+=("brew upgrade $kind")
         return
     fi
-    left=$(comm -23 <(sort <<<"$outdated") <(brew list --pinned | sort) | paste -sd' ' -)
+    left=$(comm -23 <(sort <<<"$outdated") <({ brew list --pinned; echo "$DEFERRED"; } | sort) | paste -sd' ' -)
     if [ -n "$left" ]; then
         FAILURES+=("brew upgrade $kind: $left")
     else
@@ -86,7 +93,19 @@ upgrade --formula
 echo
 
 echo "→ Upgrading casks (--greedy)..."
-upgrade --cask --greedy --no-quit
+if [ ! -t 0 ] && ! sudo -n true 2>/dev/null; then
+    pkg_casks=$(brew info --cask --json=v2 --installed | jq -c '[.casks[] | select(any(.artifacts[]; has("pkg")))]')
+    DEFERRED=$(jq -r '.[].token' <<<"$pkg_casks")
+    NOT_SELF_UPDATING=$(jq -r '.[] | select(.auto_updates | not) | .token' <<<"$pkg_casks")
+fi
+read -ra CASKS <<<"$(comm -23 <(list_outdated --cask | sort) <(sort <<<"$DEFERRED") | paste -sd' ' -)"
+if [ ${#CASKS[@]} -gt 0 ]; then
+    upgrade --cask --greedy --no-quit "${CASKS[@]}"
+else
+    echo "  (nothing to upgrade unattended)"
+fi
+NEEDS_TERMINAL=$(comm -12 <(list_outdated --cask | sort) <(sort <<<"$NOT_SELF_UPDATING") | paste -sd' ' -)
+[ -n "$NEEDS_TERMINAL" ] && WARNINGS+=("pkg casks need sudo, run in a terminal: brew upgrade --cask $NEEDS_TERMINAL")
 UPGRADED=$(comm -23 <(sort <<<"$OUTDATED_BEFORE") <(list_outdated | sort) | paste -sd' ' -)
 echo
 
