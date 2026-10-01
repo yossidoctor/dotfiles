@@ -33,7 +33,8 @@ while IFS='=' read -r key val; do
 done
 p_lower=$(printf '%s' "$p" | tr '[:upper:]' '[:lower:]')
 
-L=
+root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+L= tree_login=
 for f in "$ID_DIR"/*.sh; do
   [ -f "$f" ] || continue
   URL_PREFIX= GH_LOGIN= TREE=
@@ -41,20 +42,11 @@ for f in "$ID_DIR"/*.sh; do
   case "$p_lower" in
     "$(printf '%s' "$URL_PREFIX" | tr '[:upper:]' '[:lower:]')"/*) L="$GH_LOGIN"; break ;;
   esac
+  if [ -z "$tree_login" ] && [ -n "$TREE" ]; then
+    case "$root" in "$TREE"|"$TREE"/*) tree_login="$GH_LOGIN" ;; esac
+  fi
 done
-
-if [ -z "$L" ]; then
-  root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
-  for f in "$ID_DIR"/*.sh; do
-    [ -f "$f" ] || continue
-    URL_PREFIX= GH_LOGIN= TREE=
-    . "$f"
-    [ -n "$TREE" ] || continue
-    case "$root" in
-      "$TREE"|"$TREE"/*) L="$GH_LOGIN"; break ;;
-    esac
-  done
-fi
+L=${L:-$tree_login}
 
 if [ -z "$L" ]; then
   echo "credential-helper: no identity in $ID_DIR routes URL path '$p' or repo '$root' — add an identity file or set credential.helper per repo" >&2

@@ -51,17 +51,10 @@ if [ -f "$pidfile" ]; then
   esac
 fi
 
-if [ "$mode" = "active" ]; then
-  timeout=14400
-else
-  timeout=1800
-fi
+timeout=1800
+[ "$mode" = active ] && timeout=14400
 
 # -i prevent idle sleep, -s prevent sleep on AC, -w exit when Claude exits, -t bound.
-if [ -n "$claude_pid" ]; then
-  nohup caffeinate -is -w "$claude_pid" -t "$timeout" </dev/null >/dev/null 2>&1 &
-else
-  nohup caffeinate -is -t "$timeout" </dev/null >/dev/null 2>&1 &
-fi
+nohup caffeinate -is ${claude_pid:+-w "$claude_pid"} -t "$timeout" </dev/null >/dev/null 2>&1 &
 echo $! > "$pidfile"
 disown 2>/dev/null || true

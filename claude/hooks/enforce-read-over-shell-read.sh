@@ -141,13 +141,7 @@ if [ -n "${tail_last:-}" ]; then
   [ "$offset" -lt 1 ] && offset=1
 fi
 
-if [ -n "$limit" ]; then
-  hint="Read(file_path=\"$abs\", offset=$offset, limit=$limit)"
-elif [ -n "$offset" ]; then
-  hint="Read(file_path=\"$abs\", offset=$offset)"
-else
-  hint="Read(file_path=\"$abs\")"
-fi
+hint="Read(file_path=\"$abs\"${offset:+, offset=$offset}${limit:+, limit=$limit})"
 
 deny "Use the Read tool to read a file: \`$hint\`. Read takes offset/limit natively and registers the file so a follow-up Edit can target it — a shell read leaves the file unregistered, so the Edit fails. (Pipes, redirects, heredocs, multi-file concatenation, flags beyond a line count, \`sed -i\`, and files under /tmp or a scratchpad are unaffected.)"
 

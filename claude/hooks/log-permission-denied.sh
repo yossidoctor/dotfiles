@@ -15,9 +15,7 @@
 
 set -u
 
-. "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
-
-hook_read_raw
+HOOK_INPUT=$(cat)
 [ -n "$HOOK_INPUT" ] || exit 0
 
 log="${XDG_CACHE_HOME:-$HOME/.cache}/claude/permission-denied.jsonl"

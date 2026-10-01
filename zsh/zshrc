@@ -13,7 +13,7 @@ setopt EXTENDED_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_RE
 
 # Completion. Homebrew's site-functions go on fpath first: the system zsh does
 # not look there, and it is where brew formulae ship their completions (gh,
-# eza, fd, rg, aerospace, uv, …). -C trusts the existing dump instead of
+# fd, rg, aerospace, uv, …). -C trusts the existing dump instead of
 # compaudit-ing every fpath entry per shell (single-user machine; brew owns the
 # dirs); a new fpath dir needs that dump rebuilt once: `rm ~/.zcompdump`.
 # Existence guards throughout: on a fresh machine every new shell works before
@@ -26,19 +26,6 @@ command -v fzf >/dev/null && source <(fzf --zsh)
 
 # Prompt.
 command -v starship >/dev/null && eval "$(starship init zsh)"
-
-# Modern CLI replacements (brew/Brewfile § file & dir tools and § system monitors).
-# Skipped under Claude Code: these change core-command output format, which
-# breaks the agent's tool parsing (e.g. `ls` -> eza swallowed plain output).
-if [[ -z "$CLAUDECODE" ]]; then
-  alias cat='bat --paging=never'
-  alias ls='eza --icons --git --group-directories-first'
-  alias ll='eza -la --icons --git --group-directories-first'
-  alias du='dust'
-  alias df='duf'
-  alias ps='procs'
-fi
-command -v zoxide >/dev/null && eval "$(zoxide init zsh)"   # adds `z` / `zi`; leaves `cd` untouched
 
 # Claude Code reads ~/.claude/CLAUDE.md as a user message, which its own docs
 # call context rather than enforced configuration, with no compliance
@@ -67,9 +54,6 @@ source "$HOME/dotfiles/brew/env.sh"
 # fnm — per-service Node version via .nvmrc; auto-switch on cd
 command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 
-# fzf-tab replaces the completion menu with an fzf fuzzy selector; load after
-# compinit and before syntax highlighting (which must be last of the widget-binders).
-[[ -r "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh" ]] \
-  && source "$BREW_PREFIX/share/fzf-tab/fzf-tab.zsh"
+# Syntax highlighting must be last of the widget-binders.
 [[ -r "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
   && source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

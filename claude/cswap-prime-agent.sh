@@ -32,13 +32,7 @@ for hour in $slot_hours; do
 		</dict>"
 done
 
-plist_new=$(cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Label</key>
-	<string>$label</string>
+keys=$(cat <<EOF
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/zsh</string>
@@ -52,9 +46,7 @@ plist_new=$(cat <<EOF
 	<string>/dev/null</string>
 	<key>StandardErrorPath</key>
 	<string>$HOME/Library/Logs/cswap-prime-agent.log</string>
-</dict>
-</plist>
 EOF
 )
 
-install_launchagent "$label" "$plist_new"
+install_launchagent "$label" "$keys"

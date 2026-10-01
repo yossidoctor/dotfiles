@@ -20,18 +20,11 @@ set -euo pipefail
 label="dev.yossidoctor.retile-on-quit-watcher"
 SWIFT_REBUILT=0
 ensure_swift_bin retile-on-quit-watcher || { echo "retile-on-quit-watcher.swift failed to compile" >&2; exit 1; }
-bin="$SWIFT_BIN"
 
-plist_new=$(cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>Label</key>
-	<string>$label</string>
+keys=$(cat <<EOF
 	<key>ProgramArguments</key>
 	<array>
-		<string>$bin</string>
+		<string>$SWIFT_BIN</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
@@ -41,9 +34,7 @@ plist_new=$(cat <<EOF
 	<string>/dev/null</string>
 	<key>StandardErrorPath</key>
 	<string>/dev/null</string>
-</dict>
-</plist>
 EOF
 )
 
-install_launchagent "$label" "$plist_new" "$SWIFT_REBUILT"
+install_launchagent "$label" "$keys" "$SWIFT_REBUILT"

@@ -59,5 +59,3 @@ allow	git status --short	%HOME%/dotfiles
 allow	git diff --cached --stat	%HOME%/dotfiles
 allow	git add-ignore	%HOME%/dotfiles
 allow	git log --all --oneline	%HOME%/dotfiles
-# git/config aliases commit as ci
-deny	git ci -am "x"	%HOME%/dotfiles

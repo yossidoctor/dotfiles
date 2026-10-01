@@ -6,19 +6,12 @@ tap "felixkratz/formulae", trusted: { formula: "borders" }
 tap "nikitabobko/tap", trusted: { cask: "aerospace" }
 
 # ── shell & prompt ─────────────────────────────────────────────────
-brew "fzf"                          # backs fzf-tab and Ctrl-R/Ctrl-T bindings
-brew "fzf-tab"                      # replaces the zsh completion menu with an fzf fuzzy selector
+brew "fzf"                          # backs the Ctrl-R/Ctrl-T bindings
 brew "starship"                     # cross-shell prompt
-brew "zoxide"                       # frecency-ranked dir jumping — `z X` instead of `cd ~/long/path/X`
 brew "zsh-syntax-highlighting"
 
 # ── file & dir tools ───────────────────────────────────────────────
-brew "bat"                          # syntax-highlighted file printing with line numbers, git gutter, paging
-brew "duf"                          # colorized disk/mount table, grouped sensibly
-brew "dust"                         # visual tree of what's eating disk, sorted, with bars
-brew "eza"                          # colorized listing, icons, tree view, git status per file
 brew "fd"                           # fast find replacement — gitignore-aware, regex by default
-brew "glow"                         # markdown renderer for the terminal
 brew "ripgrep"                      # fast recursive content search — `rg`, gitignore-aware
 
 # ── dev core ───────────────────────────────────────────────────────
@@ -35,7 +28,6 @@ brew "hyperfine"                    # benchmarking with warmup + deviation; SoT 
 brew "jq"                           # JSON query/build — the hook-path JSON tool
 brew "mergiraf"                     # syntax-aware git merge driver — git/config [merge "mergiraf"], git/attributes
 brew "shellcheck"                   # static analysis for the repo's bash scripts
-brew "tlrc"                         # crowd-sourced example-first command help
 
 # ── data & http ────────────────────────────────────────────────────
 brew "duckdb"                       # SQL over CSV/JSON/NDJSON files in place — log and export analysis
@@ -44,10 +36,6 @@ brew "hurl"                         # HTTP requests + assertions as plain-text f
 # ── languages & runtime ────────────────────────────────────────────
 brew "fnm"                          # Fast Node Manager — per-dir Node via .nvmrc (zshrc auto-switch)
 brew "uv"                           # Python package installer / tool runner (claude-swap)
-
-# ── system monitors ────────────────────────────────────────────────
-brew "btop"                         # animated TUI resource monitor
-brew "procs"                        # colorized process listing, tree view, searchable
 
 # ── mac utilities ──────────────────────────────────────────────────
 cask "adguard"                      # system-wide ad / tracker blocker

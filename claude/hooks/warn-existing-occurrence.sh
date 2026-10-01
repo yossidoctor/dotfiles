@@ -30,13 +30,11 @@ set -u
 . "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
 
 hook_read_input
-case "$HOOK_TOOL_NAME" in Edit|Write) ;; *) exit 0 ;; esac
 [ -n "$HOOK_FILE_PATH" ] || exit 0
 
-# The python block below imports hook_lib and reads files, so it is the expensive
-# path; it exits immediately unless the target is behavioral markdown. Gate on the
-# same predicate here (hook_lib.behavioral, plus the .md* extension the block
-# requires) so an ordinary code edit never pays the interpreter start.
+# The python block below reads files, so it is the expensive path. This gate is
+# audit-docs-on-stop.sh's `behavioral` plus the .md* extension, in shell, so an
+# ordinary code edit never pays the interpreter start.
 case "$HOOK_FILE_PATH" in
   *.md|*.mdc|*.mdx) ;;
   *) exit 0 ;;
@@ -49,17 +47,21 @@ case "$real" in
   *) exit 0 ;;
 esac
 
-ctx=$(HOOK_INPUT="$HOOK_INPUT" python3 - "$(dirname "${BASH_SOURCE[0]}")" <<'PY'
+ctx=$(HOOK_INPUT="$HOOK_INPUT" python3 - <<'PY'
 import json, os, re, sys
 
-sys.path.insert(0, sys.argv[1])
-from hook_lib import behavioral, skill_file, PROJECT_DIR
+PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
 
-d = json.loads(os.environ["HOOK_INPUT"])
+def skill_file(name):
+    for tree in (os.path.join(PROJECT_DIR, ".claude", "skills"), os.path.expanduser("~/.claude/skills")):
+        p = os.path.join(tree, name, "SKILL.md")
+        if os.path.isfile(p):
+            return p
+    return None
+
+d =json.loads(os.environ["HOOK_INPUT"])
 ti = d.get("tool_input") or {}
 path = ti.get("file_path") or ""
-if not (path.endswith((".md", ".mdc", ".mdx")) and behavioral(path)):
-    sys.exit(0)
 
 is_edit = d.get("tool_name") == "Edit"
 new = (ti.get("new_string") if is_edit else ti.get("content")) or ""

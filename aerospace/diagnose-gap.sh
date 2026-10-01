@@ -43,11 +43,7 @@ verdict() {
   echo "VERDICT: $1"
   echo "$2"
   if [ "$NOTIFY" = 1 ]; then
-    if [ -x /opt/homebrew/bin/terminal-notifier ]; then
-      /opt/homebrew/bin/terminal-notifier -title "diagnose-gap: $1" -message "$(printf '%s' "$2" | head -c 200)" -group diagnose-gap >/dev/null 2>&1 || true
-    else
-      /usr/bin/osascript -e "display notification \"$(printf '%s' "$2" | head -c 200)\" with title \"diagnose-gap: $1\"" >/dev/null 2>&1 || true
-    fi
+    /opt/homebrew/bin/terminal-notifier -title "diagnose-gap: $1" -message "$(printf '%s' "$2" | head -c 200)" -group diagnose-gap >/dev/null 2>&1 || true
   fi
 }
 
@@ -62,9 +58,8 @@ ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print
 
 . "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
 ensure_swift_bin window-oracle || { echo "diagnose-gap: window-oracle.swift failed to compile" >&2; exit 1; }
-BIN="$SWIFT_BIN"
 
-cg_before=$(ids_of "$("$BIN")" ALL | sort -u)
+cg_before=$(ids_of "$("$SWIFT_BIN")" ALL | sort -u)
 {
   echo "=== diagnose-gap $ts ==="
   echo "--- window-server ids (before any aerospace call) ---"
@@ -72,38 +67,24 @@ cg_before=$(ids_of "$("$BIN")" ALL | sort -u)
 } >> "$LOG"
 
 t0=$(perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
-tree_json=""
-tmp=$(mktemp)
-"$AS" list-windows --all --json > "$tmp" 2>&1 &
-as_pid=$!
-# Ticks of 100 ms are the clock here; one perl at each end measures the call.
-ticks=0
-while kill -0 "$as_pid" 2>/dev/null && [ "$ticks" -lt 50 ]; do
-  sleep 0.1
-  ticks=$((ticks + 1))
-done
-elapsed=$((ticks * 100))
-
-if kill -0 "$as_pid" 2>/dev/null; then
-  kill "$as_pid" 2>/dev/null || true
-  {
-    echo "--- aerospace list-windows: NO RESPONSE after ${elapsed}ms (killed) ---"
-    echo "--- running apps at this moment ---"
-    ps -axo pid,pcpu,state,comm | sort -k2 -rn | head -25
-  } >> "$LOG"
-  rm -f "$tmp"
-  verdict "GC HANG" "Daemon did not answer within 5s — stuck querying an unresponsive app (#1615, docs/aerospace/RETILE-DELAY.md § Failure modes). Top CPU processes captured in $LOG — check which app is hung/spinning right now."
-  exit 0
-fi
-wait "$as_pid" || true
-tree_json=$(cat "$tmp"); rm -f "$tmp"
+tree_json=$(perl -e 'alarm 5; exec @ARGV' "$AS" list-windows --all --json 2>&1) && rc=0 || rc=$?
 now=$(perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
 call_ms=$((now - t0))
 
-tree_ids=$(printf '%s\n' "$tree_json" | /usr/bin/grep -o '"window-id" : [0-9]*' | /usr/bin/grep -o '[0-9]*' | sort -u)
+if [ "$rc" -eq 142 ]; then
+  {
+    echo "--- aerospace list-windows: NO RESPONSE after ${call_ms}ms (killed) ---"
+    echo "--- running apps at this moment ---"
+    ps -axo pid,pcpu,state,comm | sort -k2 -rn | head -25
+  } >> "$LOG"
+  verdict "GC HANG" "Daemon did not answer within 5s — stuck querying an unresponsive app (#1615, docs/aerospace/RETILE-DELAY.md § Failure modes). Top CPU processes captured in $LOG — check which app is hung/spinning right now."
+  exit 0
+fi
+
+tree_ids=$(printf '%s\n' "$tree_json" | jq -r '.[]."window-id"' 2>/dev/null | sort -u)
 ghosts=$(comm -23 <(printf '%s\n' "$tree_ids") <(printf '%s\n' "$cg_before"))
 sleep 0.3
-cg_after=$(ids_of "$("$BIN")" ALL | sort -u)
+cg_after=$(ids_of "$("$SWIFT_BIN")" ALL | sort -u)
 
 {
   echo "--- aerospace tree (call took ${call_ms}ms) ---"
@@ -116,7 +97,7 @@ cg_after=$(ids_of "$("$BIN")" ALL | sort -u)
 
 tiled=$("$AS" list-windows --workspace visible --format '%{window-id} %{window-layout}' 2>/dev/null | /usr/bin/awk '$2 != "floating" { print $1 }' | tr '\n' ' ')
 phantoms=""
-[ -n "${tiled// /}" ] && phantoms=$(ids_of "$("$BIN" $tiled 2>/dev/null || true)" PHANTOM)
+[ -n "${tiled// /}" ] && phantoms=$(ids_of "$("$SWIFT_BIN" $tiled 2>/dev/null || true)" PHANTOM)
 {
   echo "--- phantom tiles (visible-workspace, minimized but still tiled) ---"
   printf '%s\n' "${phantoms:-none}"

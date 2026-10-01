@@ -38,23 +38,11 @@ bind() {
   esac
 }
 
-# ── VS Code: code ──
-for ext in py js ts tsx jsx go rs rb lua zsh sh; do
-  bind "$VSCODE" ".$ext"
-done
-
-# ── VS Code: config ──
-for ext in json yaml yml toml ini conf env; do
-  bind "$VSCODE" ".$ext"
-done
-
-# ── VS Code: markup ──
-for ext in md css scss xml; do
-  bind "$VSCODE" ".$ext"
-done
-
-# ── VS Code: data ──
-for ext in txt log csv tsv sql; do
+# ── VS Code: code, config, markup, data ──
+for ext in py js ts tsx jsx go rs rb lua zsh sh \
+           json yaml yml toml ini conf env \
+           md css scss xml \
+           txt log csv tsv sql; do
   bind "$VSCODE" ".$ext"
 done
 
@@ -66,7 +54,7 @@ for ext in command tool; do
   bind "$GHOSTTY" ".$ext" shell
 done
 
-# ── IINA: video ──
+# ── IINA: video, audio ──
 # `all` claims both roles: LaunchServices resolves LSHandlerRoleAll ahead of
 # LSHandlerRoleViewer, so a viewer-only binding loses to any app holding RoleAll
 # on the UTI — including an uninstalled one, whose claim outlives it.
@@ -76,12 +64,8 @@ done
 # means editing LSHandlers in
 # ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist
 # then `killall lsd` to force a reload.
-for ext in mp4 mkv mov avi webm flv wmv; do
-  bind "$IINA" ".$ext" all
-done
-
-# ── IINA: audio ──
-for ext in mp3 flac wav ogg m4a opus; do
+for ext in mp4 mkv mov avi webm flv wmv \
+           mp3 flac wav ogg m4a opus; do
   bind "$IINA" ".$ext" all
 done
 
