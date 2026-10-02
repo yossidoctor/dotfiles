@@ -182,17 +182,6 @@
           }
         ]
       }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/notify-subagent-done.sh",
-            "async": true
-          }
-        ]
-      }
     ]
   },
   "worktree": {
