@@ -29,10 +29,6 @@
 #                     HOOK_DESCRIPTION (.tool_input.description), HOOK_FILE_PATH
 #                     (.tool_input.file_path, then .tool_input.notebook_path —
 #                     NotebookEdit's own path field — then .tool_response.filePath),
-#                     HOOK_NOTIFICATION_TYPE
-#                     (.notification_type — the Notification payload carries
-#                     the type here; the settings.json matcher is never echoed
-#                     back into the input), HOOK_MESSAGE (.message),
 #                     HOOK_SESSION_ID (.session_id),
 #                     HOOK_CWD (.cwd), HOOK_TRANSCRIPT (.transcript_path),
 #                     HOOK_RUN_IN_BACKGROUND (.tool_input.run_in_background, "true"/"false")
@@ -81,15 +77,13 @@ def var($n; v): $n + "=" + (s(v) | @sh);
 var("HOOK_CMD"; .tool_input.command),
 var("HOOK_DESCRIPTION"; .tool_input.description),
 var("HOOK_FILE_PATH"; .tool_input.file_path // .tool_input.notebook_path // .tool_response.filePath),
-var("HOOK_NOTIFICATION_TYPE"; .notification_type),
-var("HOOK_MESSAGE"; .message),
 var("HOOK_SESSION_ID"; .session_id),
 var("HOOK_CWD"; .cwd),
 var("HOOK_TRANSCRIPT"; .transcript_path),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_NOTIFICATION_TYPE=}"
-  : "${HOOK_MESSAGE=}" "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
+  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}"
+  : "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
 }
 

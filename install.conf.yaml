@@ -47,7 +47,6 @@
     ~/.claude/hooks/log-permission-denied.sh: claude/hooks/log-permission-denied.sh
     ~/.claude/hooks/audit-docs-on-stop.sh: claude/hooks/audit-docs-on-stop.sh
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
-    ~/.claude/hooks/notify-subagent-done.sh: claude/hooks/notify-subagent-done.sh
     # the test harness ships too: a project layer's hook tests exec it here
     ~/.claude/hooks/tests: claude/hooks/tests
     ~/.claude/skills: claude/skills
