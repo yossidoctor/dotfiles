@@ -12,6 +12,11 @@
 # decides whether that is fatal. Sets SWIFT_BIN to the binary's path and
 # SWIFT_REBUILT=1 when this call compiled it. Absolute paths throughout, so it
 # behaves the same from an AeroSpace callback, a LaunchAgent and a terminal.
+#
+# oracle_ids <oracle-output> <ALL|PHANTOM>: the ids on that line of
+# window-oracle's output, one per line; empty when the line is absent.
+
+oracle_ids() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
 ensure_swift_bin() {
   local name="$1" dir cache src bin tmp
