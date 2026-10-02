@@ -29,7 +29,7 @@
 #                     HOOK_DESCRIPTION (.tool_input.description), HOOK_FILE_PATH
 #                     (.tool_input.file_path, then .tool_input.notebook_path —
 #                     NotebookEdit's own path field — then .tool_response.filePath),
-#                     HOOK_TOOL_NAME (.tool_name), HOOK_NOTIFICATION_TYPE
+#                     HOOK_NOTIFICATION_TYPE
 #                     (.notification_type — the Notification payload carries
 #                     the type here; the settings.json matcher is never echoed
 #                     back into the input), HOOK_MESSAGE (.message),
@@ -60,7 +60,7 @@
 #                     it from the start on every ${s:$i:1}, four times the cost.
 #   hook_abspath <path>
 #                     absolutize against HOOK_CWD (leading ~ expanded)
-#   decide <verdict> <reason> / deny <reason> / ask <reason>
+#   decide <verdict> <reason> / deny <reason>
 #                     emit the PreToolUse decision JSON and exit 0
 #   additional_context <event-name> <msg>
 #                     emit an additionalContext JSON for the given hook event and exit 0
@@ -81,7 +81,6 @@ def var($n; v): $n + "=" + (s(v) | @sh);
 var("HOOK_CMD"; .tool_input.command),
 var("HOOK_DESCRIPTION"; .tool_input.description),
 var("HOOK_FILE_PATH"; .tool_input.file_path // .tool_input.notebook_path // .tool_response.filePath),
-var("HOOK_TOOL_NAME"; .tool_name),
 var("HOOK_NOTIFICATION_TYPE"; .notification_type),
 var("HOOK_MESSAGE"; .message),
 var("HOOK_SESSION_ID"; .session_id),
@@ -89,7 +88,7 @@ var("HOOK_CWD"; .cwd),
 var("HOOK_TRANSCRIPT"; .transcript_path),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_TOOL_NAME=}" "${HOOK_NOTIFICATION_TYPE=}"
+  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}" "${HOOK_NOTIFICATION_TYPE=}"
   : "${HOOK_MESSAGE=}" "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
 }
@@ -178,7 +177,6 @@ decide() {  # $1=allow|ask|deny  $2=reason
   exit 0
 }
 deny() { decide deny "$1"; }
-ask()  { decide ask  "$1"; }
 
 additional_context() {  # $1=hookEventName  $2=message
   jq -cn --arg e "$1" --arg m "$2" \
