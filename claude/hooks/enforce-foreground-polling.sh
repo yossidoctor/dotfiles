@@ -110,14 +110,19 @@ esac
 #   - `kubectl get -w` / `--watch`: kubectl's own watch, which never returns.
 #   - `gh run watch`, `gh pr checks --watch`: gh's own blocking waits, in either
 #     argument order.
-if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bkubectl[[:space:]]+get\b[^|;&]*([[:space:]]-w\b|[[:space:]]--watch(-only)?\b)|\bdocker(-compose|[[:space:]]+compose)?[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
-  printf '%s' "$HOOK_INPUT" | jq -c '{hookSpecificOutput: {
+background() {  # $1=reason  $2=additionalContext -> allow with run_in_background=true, exit 0
+  printf '%s' "$HOOK_INPUT" | jq -c --arg r "$1" --arg c "$2" '{hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "allow",
-    permissionDecisionReason: "Backgrounded — a stream off-thread needs no confirmation.",
+    permissionDecisionReason: $r,
     updatedInput: ((.tool_input // {}) + {run_in_background: true}),
-    additionalContext: "Follow stream / watch command moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It streams, so the main thread never blocks on it; output arrives via the completion notification. Drop the follow flag for a one-shot read instead."}}'
+    additionalContext: $c}}'
   exit 0
+}
+
+if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bkubectl[[:space:]]+get\b[^|;&]*([[:space:]]-w\b|[[:space:]]--watch(-only)?\b)|\bdocker(-compose|[[:space:]]+compose)?[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
+  background "Backgrounded — a stream off-thread needs no confirmation." \
+    "Follow stream / watch command moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It streams, so the main thread never blocks on it; output arrives via the completion notification. Drop the follow flag for a one-shot read instead."
 fi
 
 # The rule auditor: a whole `claude -p` session, minutes long, whose verdict is
@@ -126,13 +131,8 @@ fi
 # Command position only — start of input or after a separator, optionally
 # behind `bash` — so a `git add`, `grep` or `cat` naming the file stays put.
 if printf '%s' "$cmd_unq" | grep -qE '(^|[;&|(])[[:space:]]*(bash[[:space:]]+)?([^[:space:];&|]*/)?rule-audit(\.sh)?([[:space:]]|$)'; then
-  printf '%s' "$HOOK_INPUT" | jq -c '{hookSpecificOutput: {
-    hookEventName: "PreToolUse",
-    permissionDecision: "allow",
-    permissionDecisionReason: "Backgrounded — the rule audit is a minutes-long claude -p session.",
-    updatedInput: ((.tool_input // {}) + {run_in_background: true}),
-    additionalContext: "rule-audit.sh moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It runs a fresh claude -p session for minutes; end the turn or keep working, and read its verdict (AUDIT CLEAN / ADVISORY / BLOCKING) off the completion notification. Never wait on it with a sleep."}}'
-  exit 0
+  background "Backgrounded — the rule audit is a minutes-long claude -p session." \
+    "rule-audit.sh moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It runs a fresh claude -p session for minutes; end the turn or keep working, and read its verdict (AUDIT CLEAN / ADVISORY / BLOCKING) off the completion notification. Never wait on it with a sleep."
 fi
 
 exit 0
