@@ -46,11 +46,7 @@ read -r new_ws new_layout < <(printf '%s\n' "$snap" | awk -v id="$new_id" '$1 ==
 [ "${new_ws:-}" = "$fs_ws" ] || exit 0
 
 occupied=$("$AS" list-workspaces --monitor all --format '%{workspace}' 2>/dev/null)
-target=$(awk -v used="$occupied" 'BEGIN {
-  split(used, a, "\n")
-  for (i in a) seen[a[i]] = 1
-  for (n = 1; n <= 9; n++) if (!(n in seen)) { print n; exit }
-}')
+target=$(comm -23 <(seq 9) <(printf '%s\n' "$occupied" | sort) | head -1)
 [ -n "$target" ] || exit 0
 
 "$AS" move-node-to-workspace --window-id "$fs_id" "$target" >/dev/null 2>&1 || exit 0
