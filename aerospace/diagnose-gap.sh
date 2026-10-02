@@ -52,14 +52,12 @@ CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
 ts=$(date '+%Y%m%d-%H%M%S')
 LOG="$CACHE/diagnose-$ts.log"
 mkdir -p "$CACHE/bin"
-ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | while IFS= read -r old; do rm -f "$old"; done
-
-ids_of() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
+ls -t "$CACHE"/diagnose-*.log 2>/dev/null | tail -n +21 | xargs rm -f
 
 . "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
 ensure_swift_bin window-oracle || { echo "diagnose-gap: window-oracle.swift failed to compile" >&2; exit 1; }
 
-cg_before=$(ids_of "$("$SWIFT_BIN")" ALL | sort -u)
+cg_before=$(oracle_ids "$("$SWIFT_BIN")" ALL | sort -u)
 {
   echo "=== diagnose-gap $ts ==="
   echo "--- window-server ids (before any aerospace call) ---"
@@ -84,7 +82,7 @@ fi
 tree_ids=$(printf '%s\n' "$tree_json" | jq -r '.[]."window-id"' 2>/dev/null | sort -u)
 ghosts=$(comm -23 <(printf '%s\n' "$tree_ids") <(printf '%s\n' "$cg_before"))
 sleep 0.3
-cg_after=$(ids_of "$("$SWIFT_BIN")" ALL | sort -u)
+cg_after=$(oracle_ids "$("$SWIFT_BIN")" ALL | sort -u)
 
 {
   echo "--- aerospace tree (call took ${call_ms}ms) ---"
@@ -97,7 +95,7 @@ cg_after=$(ids_of "$("$SWIFT_BIN")" ALL | sort -u)
 
 tiled=$("$AS" list-windows --workspace visible --format '%{window-id} %{window-layout}' 2>/dev/null | /usr/bin/awk '$2 != "floating" { print $1 }' | tr '\n' ' ')
 phantoms=""
-[ -n "${tiled// /}" ] && phantoms=$(ids_of "$("$SWIFT_BIN" $tiled 2>/dev/null || true)" PHANTOM)
+[ -n "${tiled// /}" ] && phantoms=$(oracle_ids "$("$SWIFT_BIN" $tiled 2>/dev/null || true)" PHANTOM)
 {
   echo "--- phantom tiles (visible-workspace, minimized but still tiled) ---"
   printf '%s\n' "${phantoms:-none}"

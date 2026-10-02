@@ -76,7 +76,7 @@ tree=$(printf '%s\n' "$snapshot" | /usr/bin/awk 'NF { print $1 }' | sort -u)
 
 tiled=$(printf '%s\n' "$snapshot" | /usr/bin/awk '$3 == "true" && $2 != "floating" { print $1 }' | tr '\n' ' ')
 oracle=$("$SWIFT_BIN" $tiled 2>/dev/null || true)
-cg=$(printf '%s\n' "$oracle" | /usr/bin/awk '$1 == "ALL" { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF' | sort -u)
+cg=$(oracle_ids "$oracle" ALL | sort -u)
 
 tree_n=$(printf '%s\n' "$tree" | wc -l | tr -d ' ')
 cg_n=0
@@ -95,7 +95,7 @@ if [ -n "$candidates" ] || [ "$tag" != ok ]; then
     "$(printf '%s' "$candidates" | tr '\n' ' ')" >> "$LOG"
 fi
 
-phantoms=$(printf '%s\n' "$oracle" | /usr/bin/awk '$1 == "PHANTOM" { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF')
+phantoms=$(oracle_ids "$oracle" PHANTOM)
 [ -z "$phantoms" ] && exit 0
 
 meta=$("$AS" list-windows --all --format '%{window-id} %{app-name} [%{window-title}] ws=%{workspace}' 2>/dev/null)
