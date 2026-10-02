@@ -1,4 +1,4 @@
-// Window-server + AX oracle for reap-ghosts.sh and diagnose-gap.sh. One
+// Window-server + AX oracle for reap-ghosts.sh. One
 // process, one CGWindowListCopyWindowInfo read, both verdicts — so the ghost
 // answer and the phantom answer describe the same instant and cannot
 // disagree about which windows existed.

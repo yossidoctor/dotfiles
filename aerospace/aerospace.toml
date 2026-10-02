@@ -271,9 +271,9 @@ on-window-detected = [
 
     # Evidence capture for a visibly broken layout (empty half, mis-sized
     # window): one keystroke THE MOMENT it's on screen — verdict arrives as
-    # a macOS notification, full snapshots in ~/.cache/aerospace/. See
-    # diagnose-gap.sh's header for what it distinguishes.
-    alt-shift-d = 'exec-and-forget ~/.config/aerospace/diagnose-gap.sh --notify >/dev/null 2>&1 &'
+    # a macOS notification, evidence in ~/.cache/aerospace/reap.log. See
+    # reap-ghosts.sh's header for what it distinguishes.
+    alt-shift-d = 'exec-and-forget ~/.config/aerospace/reap-ghosts.sh --report >/dev/null 2>&1 &'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'

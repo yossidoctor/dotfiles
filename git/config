@@ -72,7 +72,7 @@
 	directoryRenames = true
 
 # Syntax-aware merges for the languages mergiraf parses; git/attributes
-# assigns the driver per extension. Falls back to git's own merge when unsure.
+# assigns the driver to every path. Falls back to a line merge when unsure.
 [merge "mergiraf"]
 	name = mergiraf
 	driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L

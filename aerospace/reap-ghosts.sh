@@ -20,7 +20,16 @@
 # than the tree has windows, that is oracle failure, not mass window death —
 # the line is tagged ORACLE-SUSPECT and nothing on it is trusted (the exact
 # failure behind the incident: an empty oracle made every window look like
-# a ghost). Read the log after running diagnose-gap.sh (alt-shift-d).
+# a ghost).
+#
+# --report (the alt-shift-d binding in aerospace.toml): the same run, ending
+# in one verdict on stdout and as a terminal-notifier banner (osascript's
+# banner shows nothing on macOS 26+) — PHANTOM, ORACLE SUSPECT, GHOST, SLOW,
+# or CLEAN, where CLEAN means this run's own poke healed a stale layout, or
+# the frames are not being applied. Pressed the moment a gap is on screen,
+# because these states heal before anyone else can look. The snapshot call
+# carries a 5s alarm: a daemon that does not answer is the GC hang, logged
+# with the top CPU processes of that moment, the evidence for which app hung.
 #
 # PHANTOM TILES (auto-healed): a window macOS has minimized but AeroSpace
 # still tiles — its native-minimize detection can stall for minutes on
@@ -57,9 +66,20 @@ set -euo pipefail
 AS=/opt/homebrew/bin/aerospace
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/aerospace"
 LOG="$CACHE/reap.log"
+REPORT=0
+[ "${1:-}" = "--report" ] && REPORT=1
+
+report() {
+  [ "$REPORT" = 1 ] || return 0
+  echo "VERDICT: $1"
+  echo "$2"
+  /opt/homebrew/bin/terminal-notifier -title "reap-ghosts: $1" -message "$(printf '%s' "$2" | head -c 200)" -group reap-ghosts >/dev/null 2>&1 || true
+}
+
+oracle_ids() { printf '%s\n' "$1" | /usr/bin/awk -v k="$2" '$1 == k { $1 = ""; print }' | tr ' ' '\n' | /usr/bin/awk 'NF'; }
 
 . "$(dirname "${BASH_SOURCE[0]}")/swift-lib.sh"
-ensure_swift_bin window-oracle || exit 0
+ensure_swift_bin window-oracle || { report "NO ORACLE" "window-oracle.swift failed to compile."; exit 0; }
 
 # The log grows a line per candidate run for years; past 1MB keep the last
 # 2000 lines, which is weeks of fingerprint at the observed rate.
@@ -68,11 +88,17 @@ if [ -f "$LOG" ] && [ "$(/usr/bin/stat -f%z "$LOG")" -gt 1048576 ]; then
 fi
 
 t0=$(/usr/bin/perl -MTime::HiRes=time -e 'printf "%d", time()*1000')
-snapshot=$("$AS" list-windows --all \
-           --format '%{window-id} %{window-layout} %{workspace-is-visible}' 2>/dev/null)
+snapshot=$(/usr/bin/perl -e 'alarm 5; exec @ARGV' "$AS" list-windows --all \
+           --format '%{window-id} %{window-layout} %{workspace-is-visible}' 2>/dev/null) && rc=0 || rc=$?
 dur=$(($(/usr/bin/perl -MTime::HiRes=time -e 'printf "%d", time()*1000') - t0))
+if [ "$rc" -eq 142 ]; then
+  { printf '%s HANG dur=%sms, top CPU:\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$dur"
+    ps -axo pid,pcpu,state,comm | sort -k2 -rn | head -10; } >> "$LOG"
+  report "GC HANG" "Daemon did not answer within 5s: stuck querying an unresponsive app (docs/aerospace/RETILE-DELAY.md § Daemon GC hang). Top CPU processes are in $LOG."
+  exit 0
+fi
 tree=$(printf '%s\n' "$snapshot" | /usr/bin/awk 'NF { print $1 }' | sort -u)
-[ -z "$tree" ] && exit 0
+[ -z "$tree" ] && { report "NO TREE" "aerospace list-windows answered nothing (exit $rc)."; exit 0; }
 
 tiled=$(printf '%s\n' "$snapshot" | /usr/bin/awk '$3 == "true" && $2 != "floating" { print $1 }' | tr '\n' ' ')
 oracle=$("$SWIFT_BIN" $tiled 2>/dev/null || true)
@@ -96,12 +122,24 @@ if [ -n "$candidates" ] || [ "$tag" != ok ]; then
 fi
 
 phantoms=$(oracle_ids "$oracle" PHANTOM)
-[ -z "$phantoms" ] && exit 0
+if [ -n "$phantoms" ]; then
+  meta=$("$AS" list-windows --all --format '%{window-id} %{app-name} [%{window-title}] ws=%{workspace}' 2>/dev/null)
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
+    "$AS" layout floating --window-id "$id" 2>/dev/null || true
+    printf '%s PHANTOM floated %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" \
+      "$(printf '%s\n' "$meta" | grep "^$id " || printf '%s (no metadata)' "$id")" >> "$LOG"
+  done <<< "$phantoms"
+fi
 
-meta=$("$AS" list-windows --all --format '%{window-id} %{app-name} [%{window-title}] ws=%{workspace}' 2>/dev/null)
-while IFS= read -r id; do
-  [ -n "$id" ] || continue
-  "$AS" layout floating --window-id "$id" 2>/dev/null || true
-  printf '%s PHANTOM floated %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" \
-    "$(printf '%s\n' "$meta" | grep "^$id " || printf '%s (no metadata)' "$id")" >> "$LOG"
-done <<< "$phantoms"
+if [ -n "$phantoms" ]; then
+  report "PHANTOM TILE(S)" "Floated minimized window(s) that still held a tiling slot: $(printf '%s ' $phantoms). If the gap persists: aerospace layout floating --window-id <id>."
+elif [ "${tag#SLOW-}" = ORACLE-SUSPECT ]; then
+  report "ORACLE SUSPECT" "window-oracle saw $cg_n ids against a tree of $tree_n, so nothing on this run is trusted. Press again."
+elif [ -n "$candidates" ]; then
+  report "GHOST NODE(S)" "Tree holds ids the window server doesn't: $(printf '%s ' $candidates). Nothing closes these automatically (docs/aerospace/RETILE-DELAY.md § Ghost node). After confirming an id is dead: aerospace close --window-id <id>."
+elif [ "$dur" -ge 500 ]; then
+  report "SLOW DAEMON (${dur}ms)" "GC-hang territory, but it answered. If the gap just healed, it was a stale layout behind a slow daemon."
+else
+  report "CLEAN (${dur}ms)" "Gap healed = stale layout, fixed by this run. Still visible = frames not applied: alt-shift-semicolon then r."
+fi

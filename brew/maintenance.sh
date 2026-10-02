@@ -167,25 +167,6 @@ fi
 echo
 
 echo "========================================"
-echo "  Post-run inventory"
-echo "========================================"
-echo
-
-echo "→ Pinned formulae (intentionally held back):"
-PINNED=$(brew list --pinned)
-[ -n "$PINNED" ] && echo "$PINNED" || echo "  (none)"
-echo
-
-echo "→ Casks tracked as :latest (brew has no version info):"
-LATEST_CASKS=$(brew list --cask --versions | awk '$2=="latest"{print $1}')
-[ -n "$LATEST_CASKS" ] && echo "$LATEST_CASKS" || echo "  (none)"
-echo
-
-echo "→ Started services (restart any whose formula was upgraded):"
-brew services list | awk 'NR==1 || $2=="started"'
-echo
-
-echo "========================================"
 echo "  Upgraded: ${UPGRADED:-nothing}"
 if [ "$STALE" -eq 1 ]; then
     echo "  ⚠️  STALE METADATA: brew update failed"

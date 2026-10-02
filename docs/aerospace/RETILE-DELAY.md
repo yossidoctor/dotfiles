@@ -9,7 +9,7 @@ workaround is to poke the daemon from every signal a close can emit:
 Karabiner Cmd+Q / Cmd+W rules (`retry-poke.sh`, off the keystroke). Three
 further failure modes ride the same bug — ghost nodes, phantom tiles, and a
 daemon GC hang — and `reap-ghosts.sh` observes the first, heals the second by
-floating, and `diagnose-gap.sh` (alt-shift-d) tells all of them apart on a
+floating, and with `--report` (alt-shift-d) tells all of them apart on a
 live gap.
 
 Scope: the window-close retile bug and the callbacks around it. General
@@ -95,11 +95,9 @@ once classified every unfocused window as a ghost and closed four live ones
 in one pass. Layout-changing remediation is the allowed class; anything
 stronger than logging is designed with the user before it ships.
 
-**`diagnose-gap.sh` (alt-shift-d).** Captures the moment a gap is visible
-and delivers a verdict as a macOS notification: GC HANG (daemon did not
-answer within 5s), GHOST NODE(S), PHANTOM TILE(S), or NO GHOSTS, DAEMON FAST
-(stale layout, or frames not applied). These states heal before anyone else
-can look, so the user captures them.
+**`reap-ghosts.sh --report` (alt-shift-d).** The same run, pressed the moment
+a gap is visible, ending in a verdict notification; the header lists them.
+These states heal before anyone else can look, so the user captures them.
 
 ## Failure modes
 
