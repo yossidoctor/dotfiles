@@ -111,10 +111,6 @@ echo "== file references (.sh / .md cited in skills) =="
 grep -rnoE '`[a-z0-9_-]+\.(sh|md)`' "${SKILL_TREES[@]}" 2>/dev/null \
   | sed -E 's/^(.*):`([a-z0-9_-]+\.(sh|md))`$/\1\t\2/' \
   | while IFS=$'\t' read -r loc ref; do
-      case "$ref" in
-        script.sh|example.sh|foo.sh|bar.sh|name.sh|"<name>".sh) continue ;;
-        notes.md|CONTEXT.md) continue ;;
-      esac
       file_exists "$ref" || echo "  BROKEN  $loc  ->  $ref  (no such file in tree)"
     done > "$TMP/rep_files"
 if [ -s "$TMP/rep_files" ]; then cat "$TMP/rep_files"; fail=1; else echo "  ok — all file refs resolve"; fi
