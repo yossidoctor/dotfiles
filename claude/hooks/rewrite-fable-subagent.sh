@@ -4,7 +4,7 @@
 # original input is carried through with only that field overwritten).
 #
 # An omitted model is not this hook's case: settings.json `env` sets
-# CLAUDE_CODE_SUBAGENT_MODEL=opus, which the harness applies when neither the
+# CLAUDE_CODE_SUBAGENT_MODEL, which the harness applies when neither the
 # dispatch nor the agent definition names a model. An agent definition's own
 # `model:` still wins over both. A fork ignores the field, so rewriting one is
 # harmless. Silent when nothing needs changing.
