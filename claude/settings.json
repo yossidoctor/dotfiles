@@ -244,14 +244,6 @@
   "feedbackDrafts": "off",
   "alwaysThinkingEnabled": false,
   "effortLevel": "medium",
-  "modelSettings": {
-    "claude-opus-5-5": {
-      "effortLevel": "medium"
-    },
-    "claude-fable-5-1": {
-      "effortLevel": "xhigh"
-    }
-  },
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "askUserQuestionTimeout": "never",
