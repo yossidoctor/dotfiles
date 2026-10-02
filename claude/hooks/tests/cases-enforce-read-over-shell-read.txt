@@ -64,6 +64,14 @@ allow	sed 's/foo/bar/' %HOME%/proj/x/y.py	%HOME%
 deny	cat ~/proj/docs/knowledgebase/workflows.md; echo ====; ls ~/proj/docs/knowledgebase/ | grep -i workflow	%HOME%
 deny	cat %HOME%/proj/x/y.py && echo done	%HOME%
 deny	sed -n '1,10p' %HOME%/proj/x/y.py && echo done	%HOME%
+# a leading cd is followed, and a relative operand resolves against it
+deny	cd %HOME%/proj/title-council && cat app/agents/x.py	%HOME%
+deny	cd ~/proj && cd x && sed -n '40,80p' y.py	%HOME%
+deny	cd %HOME%/proj; head -50 x/y.py	%HOME%
+allow	cd %HOME%/proj && cat x/y.py | grep foo	%HOME%
+allow	cd %HOME%/proj && git status	%HOME%
+allow	cd /tmp && cat x.log	%HOME%
+allow	cd $DIR && cat y.py	%HOME%
 
 # --- allowed: a read feeding a pipe or a redirect sends the bytes to a filter
 #     or a file, not into the transcript ---

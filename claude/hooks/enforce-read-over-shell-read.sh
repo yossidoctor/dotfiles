@@ -8,8 +8,8 @@
 # Blocked : a `sed -n` line-range print, a `cat`/`bat`/`less`/`more`, or a
 #           `head`/`tail` carrying at most a line count, whose single operand is a
 #           file under a real project tree — including when it leads a `;`- or
-#           `&&`-sequenced command, since the bytes land in the transcript either
-#           way. The deny maps the count onto Read: `head -N` is `limit=N`,
+#           `&&`-sequenced command or follows a `cd <dir> &&`, since the bytes
+#           land in the transcript either way. The deny maps the count onto Read: `head -N` is `limit=N`,
 #           `tail -n +K` is `offset=K`, and `tail -N` is an offset counted back
 #           from `wc -l`, so a `tail -N` of a file that does not exist passes.
 #           Also `rg -r`, whose flag means something other than what the grep
@@ -64,10 +64,20 @@ case "$cmd_shape" in
 esac
 
 # A whole-file read is still a whole-file read when other work is sequenced after
-# it, so judge the FIRST stage rather than the command as a whole. A read feeding
+# it, or when a `cd <dir>` leads it, so judge the first stage past any leading
+# `cd`s, with relative operands resolved against the last of them. A read feeding
 # a pipe or a redirect is genuinely different — the bytes go to a filter or a
 # file, not into the transcript — so those two operators still pass everything.
-stage=$(printf '%s' "$cmd_flat" | sed -E 's/[;&]+.*$//')
+rest=$cmd_flat
+while :; do
+  stage=$(printf '%s' "$rest" | sed -E 's/[;&]+.*$//')
+  dir=$(printf '%s' "$stage" | sed -nE 's/^[[:space:]]*cd[[:space:]]+([^[:space:]]+)[[:space:]]*$/\1/p' | strip_quotes)
+  [ -n "$dir" ] || break
+  case "$dir" in *'$'*|*'*'*|*'`'*|-*) exit 0 ;; esac
+  HOOK_CWD=$(hook_abspath "$dir")
+  printf '%s' "$rest" | grep -qE '[;&]' || exit 0
+  rest=$(printf '%s' "$rest" | sed -E 's/^[^;&]*[;&]+//')
+done
 [ -z "$stage" ] && exit 0
 printf '%s' "$stage" | grep -qE '[|><]' && exit 0
 cmd_flat=$stage
