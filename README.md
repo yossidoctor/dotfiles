@@ -76,7 +76,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 
 ### Bash-tool environment
 
-Every key under `env` in `claude/settings.json` is exported into each Bash-tool subprocess, so the object carries values only; the reasons live here.
+Every key under `env` in `claude/settings.json` is exported into each Bash-tool and hook subprocess, so the object carries values only; the reasons live here.
 
 - `PATH` duplicates `zsh/zshenv` (the SoT): the Bash tool runs a non-interactive zsh that sources zshenv, but the harness's `env.PATH` overrides the PATH zshenv set, so without this key the tool would run on the harness's own PATH. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which a non-interactive tool call never runs.
 - `HOMEBREW_NO_ANALYTICS` mirrors `brew/env.sh`, which only an interactive zsh and `brew/maintenance.sh` source; a Bash-tool `brew` call reads neither.
@@ -88,6 +88,7 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 - `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
 - `CLAUDE_CODE_SUBAGENT_MODEL` is the model a subagent launches on when neither the dispatch nor its agent definition names one; without it the subagent inherits the session's model, Fable included. A definition's own `model:` still wins, which `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` would override.
 - `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.
+- `PONYTAIL_DEFAULT_MODE` is the level the ponytail plugin's SessionStart hook activates (`off`/`lite`/`full`/`ultra`). It outranks `~/.config/ponytail/config.json`, so `/ponytail default <mode>` writes a file this key overrides: change the level here.
 
 ### Statusline (`claude/statusline-command.sh`)
 

@@ -15,7 +15,8 @@
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "50000",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "PONYTAIL_DEFAULT_MODE": "full"
   },
   "attribution": {
     "commit": "",
@@ -89,7 +90,7 @@
       "/Users/yossidoctor/dotfiles"
     ]
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "availableModels": [
     "fable",
     "opus",
@@ -222,6 +223,14 @@
   "feedbackDrafts": "off",
   "alwaysThinkingEnabled": false,
   "effortLevel": "medium",
+  "modelSettings": {
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "askUserQuestionTimeout": "never",
