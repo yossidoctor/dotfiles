@@ -30,6 +30,7 @@
     ~/.config/daily.d/10-brew-maintenance: brew/maintenance.sh
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/rule-audit: scripts/rule-audit.sh
+    ~/.local/bin/claude: claude/stable-launcher.sh
     ~/.claude/CLAUDE.md: claude/CLAUDE.md
     ~/.claude/settings.json: claude/settings.json
     ~/.claude/keybindings.json: claude/keybindings.json
@@ -49,6 +50,7 @@
     ~/.config/gh: gh
     ~/.config/ghostty: ghostty
     ~/.config/karabiner: karabiner
+    ~/.hammerspoon: hammerspoon
     ~/.config/starship.toml: starship/starship.toml
 
 - shell:
