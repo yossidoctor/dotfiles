@@ -51,6 +51,7 @@ brew "terminal-notifier"            # notification banners from scripts; ships a
 cask "aerospace"                    # i3-style tiling window manager
 cask "bettercmdtab"
 cask "betterdisplay"
+cask "hammerspoon"                  # quits listed apps when their last window closes (hammerspoon/init.lua)
 brew "borders"                      # JankyBorders — colored outline on the AeroSpace-focused window
 
 # ── gui apps ───────────────────────────────────────────────────────
