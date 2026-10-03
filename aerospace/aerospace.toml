@@ -91,11 +91,11 @@ automatically-unhide-macos-hidden-apps = false
 # --focused` is a second call per focus change, and each further call cancels
 # the daemon's heavy refresh once more (docs/aerospace/RETILE-DELAY.md § Root cause);
 # it stays because `--all` carries no focus field, so the raise cannot read its
-# answer off the snapshot. reap-ghosts.sh observes ghost nodes and floats
-# phantom tiles (its header is the SoT; it never closes a window);
+# answer off the snapshot. reap-ghosts.sh floats phantom tiles (its header
+# is the SoT; it never closes a window);
 # raise-fullscreen.sh keeps a focused fake-fullscreen window on top (Hyper+f
 # binding below). Mechanisms, failure modes, and the retile-on-quit-watcher
-# LaunchAgent: docs/aerospace/RETILE-DELAY.md. A visible gap: alt-shift-d.
+# LaunchAgent: docs/aerospace/RETILE-DELAY.md.
 on-focus-changed = [
     'exec-and-forget ~/.config/aerospace/reap-ghosts.sh >/dev/null 2>&1 &',
     'exec-and-forget ~/.config/aerospace/raise-fullscreen.sh >/dev/null 2>&1 &',
@@ -268,12 +268,6 @@ on-window-detected = [
     alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
     alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
     alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
-
-    # Evidence capture for a visibly broken layout (empty half, mis-sized
-    # window): one keystroke THE MOMENT it's on screen — verdict arrives as
-    # a macOS notification, evidence in ~/.cache/aerospace/reap.log. See
-    # reap-ghosts.sh's header for what it distinguishes.
-    alt-shift-d = 'exec-and-forget ~/.config/aerospace/reap-ghosts.sh --report >/dev/null 2>&1 &'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'

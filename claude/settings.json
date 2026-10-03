@@ -6,7 +6,6 @@
     "DISABLE_AUTOUPDATER": "1",
     "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",
-    "HOMEBREW_NO_ANALYTICS": "1",
     "PAGER": "cat",
     "CI": "1",
     "NO_COLOR": "1",
@@ -63,7 +62,8 @@
       "Bash(git push * --delete *)",
       "Bash(git push * -d *)",
       "Bash(git * push * --delete *)",
-      "Bash(git * push * -d *)"
+      "Bash(git * push * -d *)",
+      "Bash(rg -r*)"
     ],
     "ask": [
       "Bash(git branch -D *)",
@@ -105,55 +105,6 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/enforce-foreground-polling.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/enforce-read-over-shell-read.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/enforce-git-add-paths.sh",
-            "if": "Bash(git *)"
-          }
-        ]
-      },
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/rewrite-fable-subagent.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/redirect-symlink-edits.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/warn-existing-occurrence.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PermissionDenied": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/log-permission-denied.sh",
-            "async": true
           }
         ]
       }
@@ -176,10 +127,6 @@
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/caffeinate-claude.sh linger",
             "async": true
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/audit-docs-on-stop.sh"
           }
         ]
       }
@@ -258,8 +205,7 @@
   "agentPushNotifEnabled": true,
   "autoMode": {
     "allow": [
-      "$defaults",
-      "`git commit --no-verify` in ~/dotfiles or the private config layer (the repo `readlink -f ~/.config/git/local.gitconfig` resolves into) when the user has asked to skip or bypass the rule-audit gate. Those two are the user's solo config repos with no CI, and the pre-commit rule-audit is the user's own review step, which the user may waive."
+      "$defaults"
     ]
   }
 }

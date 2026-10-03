@@ -2,7 +2,6 @@
 paths:
   - "**/*.{py,ts,tsx,js,jsx,mjs,cjs,sh,bash,zsh,swift,go,rs,java,kt,rb,sql}"
   - "**/install"
-  - "**/hooks/pre-commit"
   - "**/README.md"
 ---
 

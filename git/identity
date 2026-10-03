@@ -1,8 +1,3 @@
 [user]
 	email = yossidoctor98@gmail.com
 	signingkey = ~/.config/git/signing/personal.pub
-
-# Scoped to ~/dotfiles via the includeIf in gitconfig (the only ~/dotfiles gitdir).
-# git/hooks/pre-commit runs the commit gates — see README § Commit gate.
-[core]
-	hooksPath = ~/dotfiles/git/hooks

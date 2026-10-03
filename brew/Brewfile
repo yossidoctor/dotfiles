@@ -23,7 +23,6 @@ brew "git"                          # version control
 brew "git-delta"                    # syntax-highlighted, side-by-side git diff pager
 brew "git-absorb"                   # routes staged fixup hunks into the commits that introduced the lines
 brew "git-filter-repo"              # history rewriting — path/blob removal across all commits
-brew "gitleaks"                     # secret scan over the staged diff — git/hooks/pre-commit runs it
 brew "hyperfine"                    # benchmarking with warmup + deviation; SoT for any timing claim
 brew "jq"                           # JSON query/build — the hook-path JSON tool
 brew "mergiraf"                     # syntax-aware git merge driver — git/config [merge "mergiraf"], git/attributes

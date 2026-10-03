@@ -43,8 +43,6 @@
 # Runs daily as a job of mac/daily.sh, whose end banner
 # is the closing outcome line written to $DAILY_SUMMARY.
 
-. "$HOME/dotfiles/brew/env.sh"
-
 # A step's verdict is its own exit status, never that of the `tail` trimming
 # its output.
 set -o pipefail
