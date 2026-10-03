@@ -130,6 +130,18 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|elicitation_dialog|elicitation_url_dialog|agent_needs_input",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.message // \"Claude needs your input\"' | { read -r m; /opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"$m\" -sound default; } 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
     ]
   },
   "worktree": {
@@ -194,7 +206,7 @@
   "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
-  "preferredNotifChannel": "ghostty",
+  "preferredNotifChannel": "terminal_bell",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,
   "autoContinueAtUsageLimit": false,
