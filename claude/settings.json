@@ -137,7 +137,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.message // \"Claude needs your input\"' | { read -r m; /opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"$m\" -sound default; } 2>/dev/null || true",
+            "command": "jq -r 'if (.message // \"\" | test(\"AskUserQuestion|question\"; \"i\")) then \"Claude has a question for you\" else (.message // \"Claude needs your input\") end' | { read -r m; /opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"$m\" -sound default; } 2>/dev/null || true",
             "async": true
           }
         ]
