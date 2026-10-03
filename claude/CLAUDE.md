@@ -34,7 +34,7 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 - **Git identity comes from git config.** A tree's email is `git config -f <scope file> user.email`; the mechanism is `~/dotfiles/README.md` § Git identity & credentials. `# userEmail` names the Claude account, which is no git identity — using it as one commits under the wrong author.
 - **A named skill is loaded with `Skill`.** Locating it on disk reads the file without registering the skill.
 - **A `cd` chains with `&&`** — a failed `cd` otherwise runs the next command wherever you happened to be.
-- **Before touching a hook or an install step, read the conventions.** `~/dotfiles/README.md` § Script conventions (bash 3.2, idempotent `shell:` steps, case files) and the `hook-lib.sh` header (payload parsing, live symlinked hooks).
+- **Before touching a hook or an install step, read the conventions.** `~/dotfiles/README.md` § Script conventions (bash 3.2, idempotent `shell:` steps) and the `hook-lib.sh` header (payload parsing, live symlinked hooks).
 
 ## Shell commands
 

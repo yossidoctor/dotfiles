@@ -49,8 +49,6 @@ claude() {
   fi
 }
 
-source "$HOME/dotfiles/brew/env.sh"
-
 # fnm — per-service Node version via .nvmrc; auto-switch on cd
 command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 

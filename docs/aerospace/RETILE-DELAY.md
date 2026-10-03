@@ -8,9 +8,7 @@ workaround is to poke the daemon from every signal a close can emit:
 `retile-on-quit-watcher` LaunchAgent (app-termination notification), and the
 Karabiner Cmd+Q / Cmd+W rules (`retry-poke.sh`, off the keystroke). Three
 further failure modes ride the same bug — ghost nodes, phantom tiles, and a
-daemon GC hang — and `reap-ghosts.sh` observes the first, heals the second by
-floating, and with `--report` (alt-shift-d) tells all of them apart on a
-live gap.
+daemon GC hang — and `reap-ghosts.sh` heals the second by floating.
 
 Scope: the window-close retile bug and the callbacks around it. General
 AeroSpace setup is `aerospace.toml` itself; each helper script's header is
@@ -76,28 +74,18 @@ window or app anywhere to receive focus, where no focus event fires at all.
 
 **Karabiner Cmd+Q and Cmd+W rules (`karabiner/karabiner.json`).** Send the
 real keystroke through, then run `retry-poke.sh`: two pokes at 0 and 200ms,
-backgrounded so Karabiner's event chain never waits, then the log-only
-reaper so the zero-focus-event case still gets observed. A keystroke and an
+backgrounded so Karabiner's event chain never waits, then the phantom
+healer so the zero-focus-event case still gets it. A keystroke and an
 OS notification are independent signals; redundant pokes cost one extra
 ~14ms socket call and nothing else.
 
 **`reap-ghosts.sh` (`on-focus-changed`, `exec-on-workspace-change`, tail of
-`retry-poke.sh`).** Observation for ghosts, auto-heal for phantoms; header is
-the SoT. Ghost detection uses window-server ground truth: AeroSpace window
-ids are CGWindowIDs (every `list-windows` id appears as a `kCGWindowNumber`),
-so a tree id absent from `CGWindowListCopyWindowInfo(.optionAll)` is a dead
-node whatever its title. It logs candidates to `~/.cache/aerospace/reap.log`,
-times every daemon answer and tags slow ones `SLOW`, and tags a run whose
-oracle returns fewer ids than the tree holds `ORACLE-SUSPECT`, trusting
-nothing on that run. **It never closes, kills, or minimizes a window.**
-Close-based reaping is banned: an empty oracle read as "no windows exist"
-once classified every unfocused window as a ghost and closed four live ones
-in one pass. Layout-changing remediation is the allowed class; anything
-stronger than logging is designed with the user before it ships.
-
-**`reap-ghosts.sh --report` (alt-shift-d).** The same run, pressed the moment
-a gap is visible, ending in a verdict notification; the header lists them.
-These states heal before anyone else can look, so the user captures them.
+`retry-poke.sh`).** Auto-heal for phantoms; header is the SoT. **It never
+closes, kills, or minimizes a window.** Close-based reaping is banned: an
+empty oracle read as "no windows exist" once classified every unfocused
+window as a ghost and closed four live ones in one pass. Layout-changing
+remediation is the allowed class; anything stronger is designed with the
+user before it ships.
 
 ## Failure modes
 
@@ -109,7 +97,7 @@ Only `close --window-id` removes it (`reload-config` and
 `flatten-workspace-tree` do not). Observed ghosts are transient: across six
 weeks of `reap.log` (3976 lines, 887 runs with candidates) the longest-lived
 id appeared in 7 consecutive runs, and most cleared within ~80ms on their
-own, faster than any callback reacts. Ghosts are logged, never closed.
+own, faster than any callback reacts. Ghosts are never closed.
 
 **Phantom tile.** A window the user minimized stays `h_tiles` in the tree,
 holding a slot at full alpha with `kCGWindowIsOnscreen == false` and AX
@@ -129,13 +117,12 @@ application on a system. If any of the applications doesn't respond,
 AeroSpace infinitely waits for the application and cannot proceed further."*
 This fits the multi-second stalls that reproduce on no schedule and that no
 callback wiring changes: the poke arrives in ~90ms and the daemon does not
-act on it. `reap.log` shows the fingerprint as consecutive `SLOW` runs
-(worst observed 7531ms) with a ghost pair riding them. Evidence that would
+act on it (worst observed answer 7531ms). Evidence that would
 confirm a specific hang: `aerospace debug-windows` or Activity Monitor open
 at the moment of the stall, showing which app is unresponsive.
 
-**Frames not applied.** The tree is right while the screen is wrong, with
-clean-tree `reap.log` runs throughout: the daemon is not applying frames,
+**Frames not applied.** The tree is right while the screen is wrong: the
+daemon is not applying frames,
 consistent with the GC hang, or a phantom tile. Recovery: alt-shift-semicolon
 then `r` (`flatten-workspace-tree`).
 
@@ -165,8 +152,8 @@ no test here can see.
 
 ## If a stall resurfaces
 
-Press alt-shift-d while the gap is visible and read the verdict. Do not add
-a poller or re-litigate AX. Check whether the closing app was the only window
+Open `aerospace debug-windows` or Activity Monitor while the gap is visible.
+Do not add a poller or re-litigate AX. Check whether the closing app was the only window
 on the system: that is the one case with no focus event, and it needs a
 signal other than focus-change or termination. A window-removed event in
 `aerospace subscribe`, if a release ever ships one, replaces every workaround

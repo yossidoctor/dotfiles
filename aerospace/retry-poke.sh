@@ -1,6 +1,6 @@
 #!/bin/bash
 # Poke AeroSpace twice (now and at 200ms) after a Cmd+W/Cmd+Q keystroke, then
-# run the ghost/phantom watchdog.
+# run the phantom-tile healer.
 #
 # Every aerospace CLI call is a light refresh session in the daemon: it
 # forces the pending frame relayout (the stale-layout half of

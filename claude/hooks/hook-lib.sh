@@ -1,7 +1,6 @@
 #!/bin/bash
 # hook-lib.sh — shared prologue for the hooks in this directory.
-# Sourced by the sibling hooks; not a hook itself (the test harness discovers
-# only cases-<hook>.txt, so this file needs no case file).
+# Sourced by the sibling hooks; not a hook itself.
 #
 # Interpreter startup is the dominant cost of the hook layer (~/.claude/rules/
 # hot-path-scripts.md § A script on a hot path spends nothing before it knows it
@@ -15,8 +14,7 @@
 # Every hook here is deployed as a symlink into this repo, so an edit runs on the
 # very next tool call of the editing session and a broken edit bricks that tool
 # at once; settings.json registrations snapshot at session start, so a new hook
-# needs a new session. Case files hold the banned patterns as text, so they are
-# written with Write/Edit — a Bash heredoc is denied by the hook under test.
+# needs a new session.
 #
 # Provides:
 #   hook_read_raw     read the hook payload from stdin -> HOOK_INPUT, nothing else.
@@ -26,11 +24,8 @@
 #   hook_parse_input  HOOK_INPUT -> the fields below via one jq pass
 #   hook_read_input   hook_read_raw + hook_parse_input, for hooks with no raw gate
 #                     HOOK_CMD (.tool_input.command),
-#                     HOOK_DESCRIPTION (.tool_input.description), HOOK_FILE_PATH
-#                     (.tool_input.file_path, then .tool_input.notebook_path —
-#                     NotebookEdit's own path field — then .tool_response.filePath),
-#                     HOOK_SESSION_ID (.session_id),
-#                     HOOK_CWD (.cwd), HOOK_TRANSCRIPT (.transcript_path),
+#                     HOOK_DESCRIPTION (.tool_input.description),
+#                     HOOK_SESSION_ID (.session_id), HOOK_CWD (.cwd),
 #                     HOOK_RUN_IN_BACKGROUND (.tool_input.run_in_background, "true"/"false")
 #   hook_command_shape [sep]
 #                     HOOK_CMD -> stdout in matchable form: heredoc bodies dropped
@@ -58,8 +53,6 @@
 #                     absolutize against HOOK_CWD (leading ~ expanded)
 #   decide <verdict> <reason> / deny <reason>
 #                     emit the PreToolUse decision JSON and exit 0
-#   additional_context <event-name> <msg>
-#                     emit an additionalContext JSON for the given hook event and exit 0
 
 hook_read_raw() {
   HOOK_INPUT=$(cat)
@@ -76,14 +69,12 @@ def s(v): (v // "") | if type == "string" then . else "" end;
 def var($n; v): $n + "=" + (s(v) | @sh);
 var("HOOK_CMD"; .tool_input.command),
 var("HOOK_DESCRIPTION"; .tool_input.description),
-var("HOOK_FILE_PATH"; .tool_input.file_path // .tool_input.notebook_path // .tool_response.filePath),
 var("HOOK_SESSION_ID"; .session_id),
 var("HOOK_CWD"; .cwd),
-var("HOOK_TRANSCRIPT"; .transcript_path),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}" "${HOOK_FILE_PATH=}"
-  : "${HOOK_SESSION_ID=}" "${HOOK_CWD=}" "${HOOK_TRANSCRIPT=}"
+  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}"
+  : "${HOOK_SESSION_ID=}" "${HOOK_CWD=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
 }
 
@@ -171,9 +162,3 @@ decide() {  # $1=allow|ask|deny  $2=reason
   exit 0
 }
 deny() { decide deny "$1"; }
-
-additional_context() {  # $1=hookEventName  $2=message
-  jq -cn --arg e "$1" --arg m "$2" \
-    '{hookSpecificOutput: {hookEventName: $e, additionalContext: $m}}'
-  exit 0
-}
