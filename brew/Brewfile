@@ -43,6 +43,7 @@ brew "duti"                         # set macOS default apps per file type / URL
 cask "karabiner-elements"           # low-level keyboard remapping
 cask "notunes"                      # blocks Apple Music from auto-launching
 brew "terminal-notifier"            # notification banners from scripts; ships as an app bundle macOS can grant, which osascript from a terminal cannot be
+brew "ffmpeg"                       # frame sheets from aerospace/test-harness.sh screen recordings
 # Raycast runs from its Beta channel ("Raycast Beta.app", installed from raycast.com);
 # no cask ships that channel and `cask "raycast"` would add a second, stable copy.
 # It owns ⌘Space: mac/defaults.sh unbinds Spotlight, mac/disable-spotlight.sh stops the indexer.

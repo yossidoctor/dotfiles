@@ -79,7 +79,7 @@
                         ]
                     },
                     {
-                        "description": "Cmd+Q → quit app, then poke AeroSpace twice over 200ms (retry-poke.sh, backup for retile-on-quit-watcher LaunchAgent, see docs/aerospace/RETILE-DELAY.md)",
+                        "description": "Cmd+Q → quit app, then poke AeroSpace twice over 200ms (retry-poke.sh, backup for Hammerspoon's app-termination poke, see docs/aerospace/RETILE-DELAY.md)",
                         "manipulators": [
                             {
                                 "from": {
