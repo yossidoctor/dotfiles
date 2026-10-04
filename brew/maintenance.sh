@@ -107,17 +107,6 @@ NEEDS_TERMINAL=$(comm -12 <(list_outdated --cask | sort) <(sort <<<"$NOT_SELF_UP
 UPGRADED=$(comm -23 <(sort <<<"$OUTDATED_BEFORE") <(list_outdated | sort) | paste -sd' ' -)
 echo
 
-echo "→ Checking for missing dependencies (informational)..."
-# Non-zero exit = found missing deps, not a script failure.
-MISSING_OUTPUT=$(brew missing)
-if [ -n "$MISSING_OUTPUT" ]; then
-    echo "$MISSING_OUTPUT"
-    WARNINGS+=("brew missing: found missing dependencies")
-else
-    echo "  (none)"
-fi
-echo
-
 echo "→ Removing unused dependencies..."
 brew autoremove || FAILURES+=("brew autoremove")
 echo

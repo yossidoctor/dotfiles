@@ -6,9 +6,7 @@
 #     (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`,
 #     `journalctl -f`, `gh run watch`, `gh pr checks --watch`) — the output is
 #     what's wanted, off-thread is where it belongs, so the call is normalized
-#     rather than refused. `rule-audit.sh` rides the same rewrite: it is one
-#     `claude -p` session that runs for minutes, and held on the main thread it
-#     leaves the session unreachable until the audit returns.
+#     rather than refused.
 #   - DENIED: a bare `sleep >=10` and sleep-loops. Backgrounding a wait yields
 #     nothing to consume, and a poll loop off-thread still burns a subprocess
 #     per tick — `ScheduleWakeup` and `Monitor` are the mechanisms that replace
@@ -35,7 +33,7 @@ set -u
 # cwd, the description and the session id alongside the command.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*|*rule-audit*) ;;
+  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
@@ -123,16 +121,6 @@ background() {  # $1=reason  $2=additionalContext -> allow with run_in_backgroun
 if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bkubectl[[:space:]]+get\b[^|;&]*([[:space:]]-w\b|[[:space:]]--watch(-only)?\b)|\bdocker(-compose|[[:space:]]+compose)?[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
   background "Backgrounded — a stream off-thread needs no confirmation." \
     "Follow stream / watch command moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It streams, so the main thread never blocks on it; output arrives via the completion notification. Drop the follow flag for a one-shot read instead."
-fi
-
-# The rule auditor: a whole `claude -p` session, minutes long, whose verdict is
-# the output. Backgrounded, the turn stays free and the verdict arrives with the
-# completion notice.
-# Command position only — start of input or after a separator, optionally
-# behind `bash` — so a `git add`, `grep` or `cat` naming the file stays put.
-if printf '%s' "$cmd_unq" | grep -qE '(^|[;&|(])[[:space:]]*(bash[[:space:]]+)?([^[:space:];&|]*/)?rule-audit(\.sh)?([[:space:]]|$)'; then
-  background "Backgrounded — the rule audit is a minutes-long claude -p session." \
-    "rule-audit.sh moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It runs a fresh claude -p session for minutes; end the turn or keep working, and read its verdict (AUDIT CLEAN / ADVISORY / BLOCKING) off the completion notification. Never wait on it with a sleep."
 fi
 
 exit 0
