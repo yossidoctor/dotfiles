@@ -7,30 +7,45 @@ hs.uploadCrashData(false)
 -- `hs -c '<lua>'` from a shell; aerospace.toml's Hyper+f binding uses it.
 require("hs.ipc")
 
+-- Quit these when their last window closes. macOS sends no event for that
+-- (the app stays frontmost with zero windows), so a timer looks, but only
+-- while one of them is running: an app-launch event starts it and the sweep
+-- stops it once none is left. IINA quits on its own (quitWhenNoOpenedWindow
+-- in mac/defaults.sh).
 local quitOnLastWindowApps = {
-  "com.apple.Preview",
-  "com.apple.TextEdit",
-  "com.apple.calculator",
-  "us.zoom.xos",
-  "com.apple.Passwords",
-  "com.colliderli.iina",
+  ["com.apple.Preview"] = true,
+  ["com.apple.TextEdit"] = true,
+  ["com.apple.calculator"] = true,
+  ["us.zoom.xos"] = true,
+  ["com.apple.Passwords"] = true,
 }
 
 local hadWindow = {}
 
-quitOnLastWindow = hs.timer.doEvery(0.25, function()
-  for _, bundleID in ipairs(quitOnLastWindowApps) do
+quitOnLastWindow = hs.timer.new(0.25, function()
+  local running = false
+  for bundleID in pairs(quitOnLastWindowApps) do
     local app = hs.application.applicationsForBundleID(bundleID)[1]
     if not app then
       hadWindow[bundleID] = nil
     elseif #app:allWindows() > 0 then
-      hadWindow[bundleID] = true
+      running, hadWindow[bundleID] = true, true
     elseif hadWindow[bundleID] then
       hadWindow[bundleID] = nil
       app:kill()
+    else
+      running = true
     end
   end
+  if not running then quitOnLastWindow:stop() end
 end)
+
+quitOnLastWindowLauncher = hs.application.watcher.new(function(_, event, app)
+  if event == hs.application.watcher.launched and quitOnLastWindowApps[app and app:bundleID() or ""] then
+    quitOnLastWindow:start()
+  end
+end):start()
+quitOnLastWindow:start()
 
 -- AeroSpace watchdogs for upstream bugs on macOS 27 (no retile on window
 -- close #1615, stalled minimize detection, fake fullscreen with no z-order):
