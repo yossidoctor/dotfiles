@@ -30,7 +30,7 @@
 set -euo pipefail
 
 cmd="${1:-}"; name="${2:-}"
-[ -n "$cmd" ] && [ -n "$name" ] || { sed -n '2,12p' "$0" >&2; exit 2; }
+[ -n "$name" ] || cmd=usage
 dir="${AEROSPACE_TEST_DIR:-/tmp/aerospace-tests}"
 log="$dir/$name.input.log"
 HS=/opt/homebrew/bin/hs
@@ -48,8 +48,8 @@ hs_call() {
   fi
   tail -n 1 "$tmp"; rm -f "$tmp"
 }
-
-displays=$(hs_call 'return #hs.screen.allScreens()')
+now() { date +%s.%N | cut -c1-14; }
+displays() { hs_call 'return #hs.screen.allScreens()'; }
 
 case "$cmd" in
   start)
@@ -58,32 +58,30 @@ case "$cmd" in
     hs_call "
       _aeroTestLog = io.open('$log', 'a'); _aeroTestLog:setvbuf('no')
       local t = hs.eventtap.event.types
-      local names = { [t.keyDown]='keyDown', [t.mouseMoved]='mouseMoved', [t.leftMouseDown]='leftMouseDown', [t.rightMouseDown]='rightMouseDown', [t.scrollWheel]='scrollWheel' }
       _aeroTestTap = hs.eventtap.new({ t.keyDown, t.mouseMoved, t.leftMouseDown, t.rightMouseDown, t.scrollWheel }, function(e)
-        _aeroTestLog:write(string.format('%.3f %s\n', hs.timer.secondsSinceEpoch(), names[e:getType()] or e:getType()))
+        _aeroTestLog:write(string.format('%.3f %s\n', hs.timer.secondsSinceEpoch(), t[e:getType()]))
         return false
       end):start()
       return 'tap on'" >/dev/null
-    for d in $(seq 1 "$displays"); do
+    n=$(displays)
+    for d in $(seq 1 "$n"); do
       screencapture -v -V "$seconds" -x -D "$d" "$dir/$name.$d.mov" >/dev/null 2>&1 &
     done
-    printf '%s START %s displays=%s seconds=%s\n' "$(date +%s.%N | cut -c1-14)" "$name" "$displays" "$seconds" >> "$log"
+    printf '%s START %s displays=%s seconds=%s\n' "$(now)" "$name" "$n" "$seconds" >> "$log"
     ;;
   snap)
     label="${3:?label}"
-    for d in $(seq 1 "$displays"); do
+    for d in $(seq 1 "$(displays)"); do
       screencapture -x -D "$d" "$dir/$name.$label.$d.png"
     done
-    printf '%s SNAP %s\n' "$(date +%s.%N | cut -c1-14)" "$label" >> "$log"
+    printf '%s SNAP %s\n' "$(now)" "$label" >> "$log"
     ;;
   stop)
     hs_call "if _aeroTestTap then _aeroTestTap:stop(); _aeroTestTap = nil end; if _aeroTestLog then _aeroTestLog:close(); _aeroTestLog = nil end; return 'tap off'" >/dev/null
-    printf '%s STOP\n' "$(date +%s.%N | cut -c1-14)" >> "$log"
+    printf '%s STOP\n' "$(now)" >> "$log"
     "$AS" workspace 1 >/dev/null 2>&1 || true
     hs_call 'hs.notify.new({ title = "TEST DONE", informativeText = "AeroSpace test finished, the Mac is yours" }):send(); return 1' >/dev/null
-    started=$(awk '/ START /{print $1; exit}' "$log"); budget=$(awk '/ START /{sub("seconds=", "", $NF); print $NF; exit}' "$log")
-    remaining=$(awk -v s="$started" -v b="$budget" -v now="$(date +%s)" 'BEGIN{r = s + b - now; if (r < 0) r = 0; printf "%d", r}')
-    echo "test-harness: waiting ${remaining}s for the recording to finish (fixed ${budget}s budget)"
+    echo "test-harness: waiting for the $(awk '/ START /{sub("seconds=", "", $NF); print $NF; exit}' "$log")s recording to finish"
     while pgrep -f "screencapture -v .* $dir/$name\." >/dev/null; do sleep 1; done
     ;;
   frames)
@@ -103,5 +101,5 @@ case "$cmd" in
     rm -f -- "$dir/$name".*.mov "$dir/$name".*.png "$log"
     echo "test-harness: $name discarded, $(ls -A "$dir" | wc -l | tr -d ' ') files left in $dir"
     ;;
-  *) sed -n '2,12p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,14p' "$0" >&2; exit 2 ;;
 esac
