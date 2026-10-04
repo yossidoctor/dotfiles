@@ -25,8 +25,8 @@
 # aerospace.toml (Finder, Calculator, Mail, IINA, …) therefore exempt
 # themselves, and so does any window AeroSpace floats on its own.
 #
-# Never closes, kills, or minimizes — the invariant reap-ghosts.sh states and
-# docs/aerospace/RETILE-DELAY.md records the incident behind.
+# Never closes, kills, or minimizes — the invariant docs/aerospace/RETILE-DELAY.md
+# states, with the incident behind it.
 set -euo pipefail
 
 AS=/opt/homebrew/bin/aerospace

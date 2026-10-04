@@ -106,7 +106,9 @@ defaults write com.apple.WindowManager EnableTiledWindowMargins -bool false
 # hidden · default 0.2
 # Seconds AppKit animates a window resize and a sheet dropping from a title bar.
 # AppKit only: SwiftUI-drawn windows ignore it. Takes effect at next login.
-defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
+# Disabled: native animations are on trial; the key is deleted live, so
+# re-enabling this line is all it takes to bring the override back.
+# defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
 
 # hidden · default 0.5
 # Seconds of hovering a window title before its draggable document icon appears.
@@ -120,7 +122,8 @@ defaults write NSGlobalDomain NSWindowShouldDragOnGesture -bool true
 # hidden · default on
 # Master switch for AppKit's window open/close/zoom animations. AppKit only.
 # Takes effect at next login.
-defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
+# Disabled: native animations are on trial, same as NSWindowResizeTime above.
+# defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 
 # Desktop & Dock › Dock › "Window title bar double-click action" · default Zoom
 # UI label → key value: Fill → Fill, Zoom → Maximize, Minimize → Minimize,

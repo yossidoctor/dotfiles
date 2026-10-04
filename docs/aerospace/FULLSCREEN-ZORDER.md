@@ -6,9 +6,10 @@ so the fullscreened window can end up rendered BEHIND tiled siblings that
 macOS raised more recently. The fix is an explicit raise (AXRaise + app
 activate — the identical pair AeroSpace itself uses in its one and only
 raise path) right after the Hyper+f toggle and on every focus event that lands
-on a fullscreen window. See `raise-fullscreen.sh`'s header for mechanics and
-`raise-window.swift` for the raise itself; wiring is the Hyper+f binding and
-the second `on-focus-changed` entry in `aerospace.toml`.
+on a fullscreen window. The raise is `aerospaceRaiseFullscreen` in
+`hammerspoon/init.lua` (`hs.window:raise()` + `hs.application:activate()`),
+run from Hammerspoon's `windowFocused` event and, since the toggle moves no
+focus, from the Hyper+f binding in `aerospace.toml` through `hs -c`.
 
 ## Root cause, verified against AeroSpace source (0.21.3-Beta era, main)
 
@@ -49,16 +50,15 @@ why the fix activates too).
 
 ## The fix and its residual gap
 
-`raise-fullscreen.sh` no-ops unless the FOCUSED window is fullscreen, so:
-no focus theft (it activates the app already owning focus), floating
-windows can still be focused over a fullscreen one, and the upstream
-exit-on-tiling-focus design is untouched. Residual gap: a burial with zero
-subsequent focus events sits until the next one — deliberate; continuous
-polling is rejected on cost grounds (docs/aerospace/RETILE-DELAY.md
-§ Rejected approaches). If that gap bites in practice, the two
-upstream-sanctioned alternatives are a `macos-native-fullscreen` binding
-(real Space, physically unoccludable, costs the Space animation) or the
-accordion setup above.
-
-Failures of the raise itself append to `~/.cache/aerospace/raise.log`
-(silent log = raise never failed).
+`aerospaceRaiseFullscreen` no-ops unless AeroSpace's FOCUSED window is
+fullscreen (`list-windows --focused`, which doubles as the #1615 retile
+poke), so: no focus theft (it activates the app already owning focus),
+floating windows can still be focused over a fullscreen one, and the
+upstream exit-on-tiling-focus design is untouched. Verified 2026-10-04 with
+two TextEdit windows: `hs.window:raise()` on the buried one puts it back at
+`hs.window.orderedWindows()[1]`. Residual gap: a burial with zero subsequent
+focus events sits until the next one — deliberate; continuous polling is
+rejected on cost grounds (docs/aerospace/RETILE-DELAY.md § Rejected
+approaches). If that gap bites in practice, the two upstream-sanctioned
+alternatives are a `macos-native-fullscreen` binding (real Space, physically
+unoccludable, costs the Space animation) or the accordion setup above.
