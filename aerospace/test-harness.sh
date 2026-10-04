@@ -9,8 +9,8 @@
 #   test-harness.sh stop  <name>             tap off, workspace 1, "TEST DONE" banner,
 #                                            waits for the recordings to finish
 #   test-harness.sh verdict <name>           input events during the run; CLEAN or TOUCHED
-#   test-harness.sh frames  <name>           contact sheets from the recordings, 2 frames/s,
-#                                            12 frames (6s) per sheet, for review with an image reader
+#   test-harness.sh frames  <name> [fps] [tile]   contact sheets from the recordings, default
+#                                            2 frames/s tiled 4x3 (6s per sheet), for an image reader
 #   test-harness.sh discard <name>           delete the run's recordings, stills, sheets and log
 #
 # Files: $AEROSPACE_TEST_DIR/<name>.<display>.mov, <name>.<label>.<display>.png,
@@ -87,9 +87,10 @@ case "$cmd" in
     while pgrep -f "screencapture -v .* $dir/$name\." >/dev/null; do sleep 1; done
     ;;
   frames)
+    fps="${3:-2}"; tile="${4:-4x3}"
     for mov in "$dir/$name".*.mov; do
-      d=${mov##*.}; d=${mov%.mov}; d=${d##*.}
-      ffmpeg -loglevel error -y -i "$mov" -vf "fps=2,scale=640:-1,tile=4x3" "$dir/$name.sheet.$d.%02d.png"
+      d=${mov%.mov}; d=${d##*.}
+      ffmpeg -loglevel error -y -i "$mov" -vf "fps=$fps,scale=640:-1,tile=$tile" "$dir/$name.sheet.$d.%02d.png"
     done
     ls -- "$dir/$name".sheet.*.png
     ;;

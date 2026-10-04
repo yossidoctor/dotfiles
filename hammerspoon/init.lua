@@ -94,7 +94,16 @@ end)
 -- stale event from before a workspace switch cannot drag focus back. The
 -- Hyper+f binding in aerospace.toml calls this via `hs -c` too, since the
 -- toggle itself moves no focus.
+-- A new window's first focus waits 400ms: every CLI call forces a daemon
+-- refresh, and aerospace/extract-fullscreen-pair.sh needs the ~100ms after
+-- detection in which the old window still reads as fullscreen (measured
+-- 2026-10-04: 0/3 extractions with the call immediate, 2/2 without it).
+local lastWindowCreated = 0
+aerospaceWindows:subscribe(hs.window.filter.windowCreated, function() lastWindowCreated = hs.timer.secondsSinceEpoch() end)
 function aerospaceRaiseFullscreen()
+  if hs.timer.secondsSinceEpoch() - lastWindowCreated < 0.4 then
+    hs.timer.doAfter(0.4, aerospaceRaiseFullscreen); return
+  end
   aerospace({ "list-windows", "--focused", "--format", "%{window-id} %{window-is-fullscreen}" }, function(out)
     local id, fullscreen = out:match("^(%d+) (%S+)")
     if not id then return end
