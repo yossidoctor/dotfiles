@@ -32,20 +32,12 @@ quitOnLastWindow = hs.timer.doEvery(0.25, function()
   end
 end)
 
--- AeroSpace watchdogs. On macOS Tahoe and later AeroSpace (0.21.3-Beta) does
--- not retile when a window closes (upstream #1615), its native-minimize
--- detection can stall so a minimized window keeps its tile as an empty gap,
--- and its fake `fullscreen` only resizes, so a fullscreen window can sit
--- behind tiled siblings. Every `aerospace` CLI call forces the daemon's
--- pending relayout, so each handler below is a poke off an event macOS does
--- deliver here: app termination, minimize, unminimize, focus. Window-close
--- itself never reaches Hammerspoon on this macOS (hs.window.filter's
--- windowDestroyed fires only at app quit), which is why the Karabiner
--- Cmd+W/Cmd+Q rules (aerospace/retry-poke.sh) stay. Mechanisms and
--- measurements: docs/aerospace/RETILE-DELAY.md, docs/aerospace/FULLSCREEN-ZORDER.md.
--- No AeroSpace handler below closes, kills or minimizes a window (the
--- 2026-07-29 incident invariant): the only mutations are `layout
--- floating/tiling` and a raise.
+-- AeroSpace watchdogs for upstream bugs on macOS 27 (no retile on window
+-- close #1615, stalled minimize detection, fake fullscreen with no z-order):
+-- every `aerospace` CLI call forces the daemon's pending relayout, so each
+-- handler is a poke off an event macOS does deliver. Mechanisms and
+-- measurements: docs/aerospace/RETILE-DELAY.md, FULLSCREEN-ZORDER.md.
+-- No handler here closes, kills or minimizes a window (2026-07-29 invariant).
 local AEROSPACE = "/opt/homebrew/bin/aerospace"
 
 local function aerospace(args, onOutput)
@@ -68,7 +60,7 @@ aerospaceWindows:subscribe(hs.window.filter.windowMinimized, function(w)
   hs.timer.doAfter(1, function()
     if not w:isMinimized() then return end
     aerospace({ "list-windows", "--all", "--format", "%{window-id} %{window-layout}" }, function(out)
-      local layout = out:match("^" .. id .. " (%S+)") or out:match("\n" .. id .. " (%S+)")
+      local layout = ("\n" .. out):match("\n" .. id .. " (%S+)")
       if layout and layout ~= "floating" then
         floatedPhantoms[id] = true
         aerospace({ "layout", "floating", "--window-id", tostring(id) })
@@ -84,20 +76,15 @@ aerospaceWindows:subscribe(hs.window.filter.windowUnminimized, function(w)
   end
 end)
 
--- On every focus change: read AeroSpace's focused window (the read doubles as
--- the retile poke that fixes #1615 when a close hands focus to the survivor).
--- If it is AeroSpace-fullscreen, put it on top: AXRaise plus app activation,
--- the pair AeroSpace's own focus path uses. If it is not the window macOS
--- focused (a restored window takes macOS focus that AeroSpace never records,
--- so fullscreen and every other command then hit the neighbour), hand
--- AeroSpace the macOS one. The macOS side is re-read at callback time so a
--- stale event from before a workspace switch cannot drag focus back. The
--- Hyper+f binding in aerospace.toml calls this via `hs -c` too, since the
--- toggle itself moves no focus.
--- A new window's first focus waits 400ms: every CLI call forces a daemon
--- refresh, and aerospace/extract-fullscreen-pair.sh needs the ~100ms after
--- detection in which the old window still reads as fullscreen (measured
--- 2026-10-04: 0/3 extractions with the call immediate, 2/2 without it).
+-- Every focus change: the `list-windows --focused` read is the #1615 retile
+-- poke; a fullscreen focused window is raised (AeroSpace never manages
+-- z-order); and when macOS and AeroSpace disagree on the focused window (a
+-- restored window takes macOS focus AeroSpace never records) AeroSpace gets
+-- the macOS one, re-read at callback time so a stale event cannot drag focus
+-- back. A new window's first focus waits 400ms: extract-fullscreen-pair.sh
+-- needs the ~100ms after detection in which the old window still reads as
+-- fullscreen (2026-10-04: 0/3 extractions with the call immediate, 2/2 without).
+-- aerospace.toml's Hyper+f binding calls this via `hs -c`.
 local lastWindowCreated = 0
 aerospaceWindows:subscribe(hs.window.filter.windowCreated, function() lastWindowCreated = hs.timer.secondsSinceEpoch() end)
 function aerospaceRaiseFullscreen()
