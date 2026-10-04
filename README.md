@@ -62,7 +62,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 
 | Event | Hook |
 |---|---|
-| `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) and the minutes-long `rule-audit.sh` to run off-thread; denies foreground sleeps and sleep-loops. |
+| `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) to run off-thread; denies foreground sleeps and sleep-loops. |
 | `UserPromptSubmit` | `caffeinate-claude.sh` — keeps macOS awake while Claude works. |
 | `Stop` | `caffeinate-claude.sh` — 30-min post-turn linger. |
 

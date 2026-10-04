@@ -29,7 +29,6 @@
     ~/.config/daily.d/00-cswap-prime: claude/cswap-prime.sh
     ~/.config/daily.d/10-brew-maintenance: brew/maintenance.sh
     ~/.hushlogin: shell/hushlogin
-    ~/.local/bin/rule-audit: scripts/rule-audit.sh
     ~/.local/bin/claude: claude/stable-launcher.sh
     ~/.claude/CLAUDE.md: claude/CLAUDE.md
     ~/.claude/settings.json: claude/settings.json
