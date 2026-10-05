@@ -7,10 +7,12 @@
 #
 # Excluded: the work tree, whose node_modules, .venv and build output are
 # hundreds of thousands of files rewritten on every install and searched by
-# ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade; and
+# ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade;
 # Linear's Electron cache, which alone was 263k of the first full index's
-# 368k items. Hidden folders (~/.cache, ~/.npm, ~/.claude, .git, .venv),
-# ~/Library/Caches, ~/.Trash and the TCC-protected ~/Library/Mail, Messages
+# 368k items; and the Command Line Tools' SDK headers under
+# /Library/Developer, 91k static items nobody searches from Finder. Hidden
+# folders (~/.cache, ~/.npm, ~/.claude, .git, .venv), ~/Library/Caches,
+# ~/.Trash and the TCC-protected ~/Library/Mail, Messages
 # and Containers are skipped by Spotlight's own rules and need no entry; Mail
 # and Messages index their own content through CoreSpotlight instead.
 #
@@ -21,17 +23,18 @@
 # .metadata_never_index marker is ignored on this macOS too. The one writer
 # is System Settings › Spotlight › Search Privacy. This script therefore
 # turns indexing on, reads the live list, and when it differs from the one
-# above says exactly what to add and remove there, exiting 1 so ./install
-# (which guards it with `|| true`) shows the message without aborting.
+# above says exactly what to add and remove there, exiting 1. ./install runs
+# it last, with a TTY for sudo, so that message is the last thing on screen.
 # Entries whose folder no longer exists are ignored: the sheet hides them,
 # so they cannot be removed, and they exclude nothing.
-# Reading the list needs sudo; run by hand:  sudo bash mac/spotlight.sh
+# Reading the list needs sudo; by hand:  sudo bash mac/spotlight.sh
 set -uo pipefail
 
 exclusions=(
   "$HOME/Dono"
   /opt/homebrew
   "$HOME/Library/Application Support/Linear"
+  /Library/Developer
 )
 
 volume=/System/Volumes/Data
