@@ -6,10 +6,9 @@
 #
 # Excluded: the work tree, whose node_modules, .venv and build output are
 # hundreds of thousands of files rewritten on every install and searched by
-# ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade; Xcode's
-# simulators and SDKs; Steam's game files. Hidden folders (~/.cache, ~/.npm,
-# ~/.claude, .git, .venv), ~/Library/Caches and ~/.Trash are skipped by
-# Spotlight's own rules and need no entry.
+# ripgrep, never Finder; and Homebrew's prefix, rewritten on every upgrade.
+# Hidden folders (~/.cache, ~/.npm, ~/.claude, .git, .venv), ~/Library/Caches
+# and ~/.Trash are skipped by Spotlight's own rules and need no entry.
 #
 # This list is the whole list: the volume's VolumeConfiguration.plist, which
 # System Settings › Spotlight › Search Privacy also shows, is rewritten to
@@ -24,8 +23,6 @@ set -uo pipefail
 exclusions=(
   "$HOME/Dono"
   /opt/homebrew
-  /Library/Developer
-  "$HOME/Library/Application Support/Steam"
 )
 
 plist=/System/Volumes/Data/.Spotlight-V100/VolumeConfiguration.plist
