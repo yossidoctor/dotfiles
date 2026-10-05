@@ -349,6 +349,10 @@ defaults write "$SAFARI" UniversalSearchEnabled -bool false
 # Inverted key: true suppresses the live completions fetched from the search engine.
 defaults write "$SAFARI" SuppressSearchSuggestions -bool true
 
+# Safari › Settings › Search › "Preload Top Hit in the background" · default on
+# No page fetched before it is chosen.
+defaults write "$SAFARI" PreloadTopHit -bool false
+
 # Safari › Settings › Advanced › "Use advanced tracking and fingerprinting protection" · default "in Private Browsing"
 # Both true = "in all browsing": strips click IDs (gclid, fbclid) from links
 # and blocks known tracker loads everywhere. Breaks the odd analytics-gated site.
@@ -400,11 +404,35 @@ defaults write com.apple.AppStore InAppReviewEnabled -int 0
 defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Advertising
+# Privacy — advertising, analytics and online suggestions. The two switches
+# with no user-writable key (Share Mac Analytics, Share with App Developers)
+# are root-owned plist writes at the end of ./install; the toggles with no key
+# at all are listed there under "Needs you"; Spotlight's internet results are
+# mac/profiles/privacy-restrictions.mobileconfig.
 # ─────────────────────────────────────────────────────────────────────────────
 # Privacy & Security › Apple Advertising › "Personalized Ads" · default on
 # Apple's ads in App Store, News and Stocks are not targeted from account data.
 defaults write com.apple.AdLib allowApplePersonalizedAdvertising -int 0
+
+# Privacy & Security › Analytics & Improvements › "Improve Siri & Dictation" · default on
+# 2 = opted out: no Siri or Dictation audio and transcripts kept for review.
+# Independent of the Siri on/off switch.
+defaults write com.apple.assistant.support "Siri Data Sharing Opt-In Status" -int 2
+
+# Spotlight › "Help Apple Improve Search" · default on
+# 2 = opted out: Safari, Siri, Spotlight, Look Up and #images queries are not
+# stored by Apple.
+defaults write com.apple.assistant.support "Search Queries Data Sharing Status" -int 2
+
+# Privacy & Security › Analytics & Improvements › "Improve Assistive Voice Features" · default on
+# No Voice Control and Vocal Shortcuts audio donated. The domain carries the
+# TCC attribute, so this is one of the writes the counter below may report.
+defaults write com.apple.Accessibility AXSAudioDonationSiriImprovementEnabled -bool false
+
+# hidden · default off
+# Look Up (three-finger tap, Force click) consults only local dictionaries;
+# the query plus a rotating identifier is not sent to Apple's suggestion service.
+defaults write com.apple.lookup.shared LookupSuggestionsDisabled -bool true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Image Capture

@@ -14,14 +14,24 @@ brew bundle check --file "$BASEDIR/brew/Brewfile" >/dev/null 2>&1 \
 
 dotbot -d "$BASEDIR" -c "$BASEDIR/install.conf.yaml" "$@"
 
-# Last on screen: what this install cannot do by itself. mac/spotlight.sh
-# needs sudo and may need a Search Privacy edit, so it runs here with a TTY
-# rather than as a dotbot step, whose output and stdin dotbot suppresses.
+# Steps that need sudo or a TTY run here, after dotbot, whose shell steps get
+# neither (output and stdin suppressed). Privacy & Security › Analytics &
+# Improvements › "Share Mac Analytics" and "Share with App Developers" live in
+# a root-owned plist; the rest of the privacy switches are in mac/defaults.sh.
+dmh="/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist"
+sudo defaults write "$dmh" AutoSubmit -bool false && sudo defaults write "$dmh" ThirdPartyDataSubmit -bool false \
+  || echo "install: analytics sharing not switched off (sudo refused); rerun ./install with a TTY"
+
+# Last on screen: what no script can do.
 echo
 echo "== Needs you =="
 bash "$BASEDIR/mac/spotlight.sh" 2>&1 | grep -v "Indexing enabled" | sed 's/^/  /' || true
 plutil -p "/Library/Managed Preferences/$USER/com.apple.applicationaccess.plist" 2>/dev/null | grep -q '"allowSpotlightInternetResults" => false' \
-  || echo "  Spotlight profile: open mac/profiles/spotlight-no-internet-results.mobileconfig, then System Settings › General › Device Management › Install"
+  || echo "  Privacy profile: open mac/profiles/privacy-restrictions.mobileconfig, then System Settings › General › Device Management › Install"
 echo "  GitHub: add ~/.config/git/signing/personal.pub as a Signing key on each account"
 echo "  Accessibility: allow Hammerspoon, AeroSpace and Karabiner when each first asks"
 echo "  Claude accounts: cswap add <name> for each one"
+echo "  Toggles with no key: Privacy & Security › Analytics & Improvements › Share iCloud Analytics off;"
+echo "    Spotlight › Show Related Content off; Location Services › System Services › Details › Suggestions & Search"
+echo "    and Significant Locations off; Photos › Settings › General › Enhanced Visual Search off;"
+echo "    Safari › Settings › Advanced › Allow Highlights to share web addresses with Apple off"
