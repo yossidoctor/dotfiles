@@ -130,7 +130,7 @@ Overrides the agent-panel rows via `subagentStatusLine`. Per row: description le
 
 ### macOS defaults
 
-`mac/defaults.sh` writes Dock, animation, keyboard, Finder, screenshot prefs via `defaults write`. `mac/disable-spotlight.sh` disables Spotlight indexing via `mdutil` because Raycast handles indexing — run from `./install` guarded by `|| true` since it needs sudo (read the script for the exact flags). `mac/duti.sh` binds default apps per file type (e.g. `*.json` → VS Code); unknown UTIs warn, don't abort. Apps with no `defaults` surface are carried as whole plists under `mac/plists/`: `mac/plist-restore.sh` reinstalls one on `./install`, `mac/plist-export.sh <domain> <plist>` re-exports it by hand after changing the app.
+`mac/defaults.sh` writes Dock, animation, keyboard, Finder, screenshot prefs via `defaults write`. `mac/spotlight.sh` keeps Spotlight indexing on with the work tree and the Homebrew prefix excluded, writing the same list System Settings › Spotlight › Search Privacy shows — run from `./install` guarded by `|| true` since it needs sudo (its header carries the why). `mac/duti.sh` binds default apps per file type (e.g. `*.json` → VS Code); unknown UTIs warn, don't abort. Apps with no `defaults` surface are carried as whole plists under `mac/plists/`: `mac/plist-restore.sh` reinstalls one on `./install`, `mac/plist-export.sh <domain> <plist>` re-exports it by hand after changing the app.
 
 ### Keyboard & window management
 
