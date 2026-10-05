@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The privacy switches that answer to no preference key on macOS 27,
+	     as Apple's Restrictions payload. Installed by hand: open the file,
+	     then System Settings › General › Device Management › Install.
+	     ./install lists it under "Needs you" until the keys show up in
+	     /Library/Managed Preferences.
+	     allowSpotlightInternetResults: Spotlight shows local results only; the
+	     Wikipedia cards, news and web-search rows (Siri Suggestions) ignore
+	     every switch in the Spotlight pane. Verified on 27.0.1.
+	     The allow*Summary/Genmoji/ImagePlayground/WritingTools/Transcription/
+	     ExternalIntelligence keys pin Apple Intelligence off: macOS 27 has no
+	     master switch for it, and each of these can send text or images to
+	     Apple's Private Cloud Compute. Deprecated by Apple in 26.4 in favour
+	     of MDM-only keys, still honoured (NIST mSCP rules for 27.0). -->
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.applicationaccess</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>PayloadIdentifier</key>
+			<string>dev.yossidoctor.privacy.restrictions</string>
+			<key>PayloadUUID</key>
+			<string>95057D81-E519-4284-ADA1-103C972E00DB</string>
+			<key>PayloadDisplayName</key>
+			<string>Privacy restrictions</string>
+			<key>allowSpotlightInternetResults</key>
+			<false/>
+			<key>allowWritingTools</key>
+			<false/>
+			<key>allowGenmoji</key>
+			<false/>
+			<key>allowImagePlayground</key>
+			<false/>
+			<key>allowMailSummary</key>
+			<false/>
+			<key>allowMailSmartReplies</key>
+			<false/>
+			<key>allowSafariSummary</key>
+			<false/>
+			<key>allowNotesTranscription</key>
+			<false/>
+			<key>allowNotesTranscriptionSummary</key>
+			<false/>
+			<key>allowExternalIntelligenceIntegrations</key>
+			<false/>
+			<key>allowExternalIntelligenceIntegrationsSignIn</key>
+			<false/>
+		</dict>
+	</array>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+	<key>PayloadIdentifier</key>
+	<string>dev.yossidoctor.privacy</string>
+	<key>PayloadUUID</key>
+	<string>9283920E-2510-4949-AF85-614C13B9C84A</string>
+	<key>PayloadDisplayName</key>
+	<string>Privacy restrictions</string>
+	<key>PayloadDescription</key>
+	<string>Spotlight shows local results only (no Siri Suggestions, Wikipedia, news or web search), and Apple Intelligence features that reach Apple's servers stay off: Writing Tools, Genmoji, Image Playground, Mail and Safari summaries, Notes transcription, ChatGPT integration. Local search, files and apps are unaffected.</string>
+	<key>PayloadOrganization</key>
+	<string>dotfiles</string>
+	<key>PayloadScope</key>
+	<string>User</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+</dict>
+</plist>
