@@ -13,3 +13,13 @@ brew bundle check --file "$BASEDIR/brew/Brewfile" >/dev/null 2>&1 \
   || brew bundle --file "$BASEDIR/brew/Brewfile" --quiet
 
 dotbot -d "$BASEDIR" -c "$BASEDIR/install.conf.yaml" "$@"
+
+# Last on screen: what this install cannot do by itself. mac/spotlight.sh
+# needs sudo and may need a Search Privacy edit, so it runs here with a TTY
+# rather than as a dotbot step, whose output and stdin dotbot suppresses.
+echo
+echo "== Needs you =="
+bash "$BASEDIR/mac/spotlight.sh" 2>&1 | grep -v "Indexing enabled" | sed 's/^/  /' || true
+echo "  GitHub: add ~/.config/git/signing/personal.pub as a Signing key on each account"
+echo "  Accessibility: allow Hammerspoon, AeroSpace and Karabiner when each first asks"
+echo "  Claude accounts: cswap add <name> for each one"
