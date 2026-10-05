@@ -183,6 +183,12 @@ on-window-detected = [
     # "Can't parse modifiers".
     cmd-alt-ctrl-shift-f = ['fullscreen', 'exec-and-forget /opt/homebrew/bin/hs -c "aerospaceRaiseFullscreen()" >/dev/null 2>&1']
 
+    # Hyper + Space: float the focused window out of the tiles, or tile a
+    # floating one back in. The way back for a window Hammerspoon floated as a
+    # phantom while it was minimized, or one AeroSpace read as a dialog.
+    # See: https://nikitabobko.github.io/AeroSpace/commands#layout
+    cmd-alt-ctrl-shift-space = 'layout floating tiling'
+
     # Swallow the macOS "Hide application" shortcuts so an accidental cmd-h never
     # hides a window out of the tiling tree. Empty binding = key does nothing.
     # Complements 'automatically-unhide-macos-hidden-apps = false' above, which
