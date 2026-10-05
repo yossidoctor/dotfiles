@@ -65,30 +65,49 @@ aerospaceAppWatcher = hs.application.watcher.new(function(_, event)
   if event == hs.application.watcher.terminated then aerospace({ "list-windows", "--all" }) end
 end):start()
 
--- Phantom tile: a window still tiled 1s after macOS minimized it. Float it so
--- its slot collapses; a window AeroSpace already took out of the tree is not
--- in the list and is left alone. Floated windows are re-tiled on restore.
+local noteLog = (os.getenv("XDG_CACHE_HOME") or (os.getenv("HOME") .. "/.cache")) .. "/aerospace/hammerspoon.log"
+local function note(...)
+  local f = io.open(noteLog, "a")
+  if f then f:write(os.date("%Y-%m-%dT%H:%M:%S"), " ", table.concat({ ... }, " "), "\n"); f:close() end
+end
+
+-- Phantom tile: a minimized window AeroSpace still tiles. Float it so its
+-- slot collapses, re-tile it on restore. Checked 1s after a minimize and, as
+-- long as any window is minimized, on every focus change too: AeroSpace has
+-- been seen to put a minimized window back into the tree hours after the
+-- minimize, with no event to catch it (Safari, 2026-10-05). The minimized
+-- set comes from the minimize/unminimize/destroy events, so the scan costs
+-- one `list-windows` call and no Accessibility queries.
+aerospaceMinimized = {}
 local floatedPhantoms = {}
-aerospaceWindows:subscribe(hs.window.filter.windowMinimized, function(w)
-  local id = w:id()
-  if not id then return end
-  hs.timer.doAfter(1, function()
-    if not w:isMinimized() then return end
-    aerospace({ "list-windows", "--all", "--format", "%{window-id} %{window-layout}" }, function(out)
-      local layout = ("\n" .. out):match("\n" .. id .. " (%S+)")
+local function floatPhantoms()
+  if next(aerospaceMinimized) == nil then return end
+  aerospace({ "list-windows", "--all", "--format", "%{window-id} %{window-layout} %{app-name}" }, function(out)
+    for id in pairs(aerospaceMinimized) do
+      local layout, app = ("\n" .. out):match("\n" .. id .. " (%S+) ([^\n]*)")
       if layout and layout ~= "floating" then
         floatedPhantoms[id] = true
         aerospace({ "layout", "floating", "--window-id", tostring(id) })
+        note("phantom", tostring(id), app, "was", layout, "-> floating")
       end
-    end)
+    end
   end)
-end)
-aerospaceWindows:subscribe(hs.window.filter.windowUnminimized, function(w)
+end
+aerospaceWindows:subscribe(hs.window.filter.windowMinimized, function(w)
   local id = w:id()
-  if id and floatedPhantoms[id] then
-    floatedPhantoms[id] = nil
+  if not id then return end
+  aerospaceMinimized[id] = true
+  hs.timer.doAfter(1, floatPhantoms)
+end)
+aerospaceWindows:subscribe({ hs.window.filter.windowUnminimized, hs.window.filter.windowDestroyed }, function(w, _, event)
+  local id = w:id()
+  if not id then return end
+  aerospaceMinimized[id] = nil
+  if floatedPhantoms[id] and event == hs.window.filter.windowUnminimized then
     aerospace({ "layout", "tiling", "--window-id", tostring(id) })
+    note("restored phantom", tostring(id), "-> tiling")
   end
+  floatedPhantoms[id] = nil
 end)
 
 -- Every focus change: the `list-windows --focused` read is the #1615 retile
@@ -110,12 +129,14 @@ function aerospaceRaiseFullscreen()
     local id, fullscreen = out:match("^(%d+) (%S+)")
     if not id then return end
     local w = hs.window.get(tonumber(id))
-    if fullscreen == "true" and w then w:raise(); w:application():activate(); return end
+    if fullscreen == "true" and w then w:raise(); w:application():activate(); note("raised fullscreen", id); return end
     local front = hs.window.focusedWindow()
     local frontId = front and front:isStandard() and front:id()
     if frontId and frontId ~= tonumber(id) then
       aerospace({ "focus", "--window-id", tostring(frontId) })
+      note("focus resync", id, "->", tostring(frontId), front:application():name())
     end
   end)
+  floatPhantoms()
 end
 aerospaceWindows:subscribe(hs.window.filter.windowFocused, aerospaceRaiseFullscreen)

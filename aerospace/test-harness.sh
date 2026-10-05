@@ -6,8 +6,8 @@
 #
 #   test-harness.sh start <name> <seconds>   input tap on, one recording per display
 #   test-harness.sh snap  <name> <label>     still of every display, for review
-#   test-harness.sh stop  <name>             tap off, workspace 1, "TEST DONE" banner,
-#                                            waits for the recordings to finish
+#   test-harness.sh stop  <name>             tap off, back to the workspace the run started
+#                                            on, "TEST DONE" banner, waits for the recordings
 #   test-harness.sh verdict <name>           input events during the run; CLEAN or TOUCHED
 #   test-harness.sh frames  <name> [fps] [tile]   contact sheets from the recordings, default
 #                                            2 frames/s tiled 4x3 (6s per sheet), for an image reader
@@ -22,8 +22,9 @@
 # <seconds> to the run and `stop` waits the remainder, saying how long.
 # Every recording is deleted with `discard` once reviewed; nothing here is
 # kept. The input tap runs inside Hammerspoon through `hs -c` (hs.ipc is
-# loaded by hammerspoon/init.lua), stills are `screencapture -x`, and `frames`
-# is the one step that needs ffmpeg (brew/Brewfile). The `hs` bridge has been seen to stop
+# loaded by hammerspoon/init.lua), stills are `screencapture -x`, the banner
+# is terminal-notifier with a sound (brew/Brewfile; Hammerspoon's own
+# hs.notify never showed), and `frames` is the one step that needs ffmpeg. The `hs` bridge has been seen to stop
 # answering (observed 2026-10-04 after a run was killed mid-call), so every
 # call here is given 5s and then fails loud with the recovery command, instead
 # of hanging the run.
@@ -67,7 +68,7 @@ case "$cmd" in
     for d in $(seq 1 "$n"); do
       screencapture -v -V "$seconds" -x -D "$d" "$dir/$name.$d.mov" >/dev/null 2>&1 &
     done
-    printf '%s START %s displays=%s seconds=%s\n' "$(now)" "$name" "$n" "$seconds" >> "$log"
+    printf '%s START %s displays=%s seconds=%s ws=%s\n' "$(now)" "$name" "$n" "$seconds" "$("$AS" list-workspaces --focused)" >> "$log"
     ;;
   snap)
     label="${3:?label}"
@@ -79,9 +80,9 @@ case "$cmd" in
   stop)
     hs_call "if _aeroTestTap then _aeroTestTap:stop(); _aeroTestTap = nil end; if _aeroTestLog then _aeroTestLog:close(); _aeroTestLog = nil end; return 'tap off'" >/dev/null
     printf '%s STOP\n' "$(now)" >> "$log"
-    "$AS" workspace 1 >/dev/null 2>&1 || true
-    hs_call 'hs.notify.new({ title = "TEST DONE", informativeText = "AeroSpace test finished, the Mac is yours" }):send(); return 1' >/dev/null
-    echo "test-harness: waiting for the $(awk '/ START /{sub("seconds=", "", $NF); print $NF; exit}' "$log")s recording to finish"
+    "$AS" workspace "$(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^ws=/) {sub("ws=", "", $i); print $i}; exit}' "$log")" >/dev/null 2>&1 || true
+    terminal-notifier -title "TEST DONE" -message "AeroSpace test finished, the Mac is yours" -sound Glass >/dev/null 2>&1 || true
+    echo "test-harness: waiting for the $(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^seconds=/) {sub("seconds=", "", $i); print $i}; exit}' "$log")s recording to finish"
     while pgrep -f "screencapture -v .* $dir/$name\." >/dev/null; do sleep 1; done
     ;;
   frames)
