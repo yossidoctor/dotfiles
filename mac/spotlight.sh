@@ -10,7 +10,9 @@
 # ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade;
 # Linear's Electron cache, which alone was 263k of the first full index's
 # 368k items; and the Command Line Tools' SDK headers under
-# /Library/Developer, 91k static items nobody searches from Finder. Hidden
+# /Library/Developer, 91k static items nobody searches from Finder; and the
+# Music library, installed fonts and app logs, which have their own apps
+# (Music, Font Book, Console) and nothing a Finder search is for. Hidden
 # folders (~/.cache, ~/.npm, ~/.claude, .git, .venv), ~/Library/Caches,
 # ~/.Trash and the TCC-protected ~/Library/Mail, Messages
 # and Containers are skipped by Spotlight's own rules and need no entry; Mail
@@ -35,6 +37,9 @@ exclusions=(
   /opt/homebrew
   "$HOME/Library/Application Support/Linear"
   /Library/Developer
+  "$HOME/Music"
+  "$HOME/Library/Fonts"
+  "$HOME/Library/Logs"
 )
 
 volume=/System/Volumes/Data
