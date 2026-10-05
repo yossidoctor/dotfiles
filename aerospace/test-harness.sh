@@ -22,9 +22,11 @@
 # <seconds> to the run and `stop` waits the remainder, saying how long.
 # Every recording is deleted with `discard` once reviewed; nothing here is
 # kept. The input tap runs inside Hammerspoon through `hs -c` (hs.ipc is
-# loaded by hammerspoon/init.lua), stills are `screencapture -x`, the banner
-# is terminal-notifier with a sound (brew/Brewfile; Hammerspoon's own
-# hs.notify never showed), and `frames` is the one step that needs ffmpeg. The `hs` bridge has been seen to stop
+# loaded by hammerspoon/init.lua), stills are `screencapture -x`, the end
+# signal is an on-screen hs.alert overlay plus a chime, which no Notification
+# Center setting can hide (banners only reached Notification Center here),
+# with a terminal-notifier entry for the record; `frames` is the one step
+# that needs ffmpeg. The `hs` bridge has been seen to stop
 # answering (observed 2026-10-04 after a run was killed mid-call), so every
 # call here is given 5s and then fails loud with the recovery command, instead
 # of hanging the run.
@@ -81,7 +83,9 @@ case "$cmd" in
     hs_call "if _aeroTestTap then _aeroTestTap:stop(); _aeroTestTap = nil end; if _aeroTestLog then _aeroTestLog:close(); _aeroTestLog = nil end; return 'tap off'" >/dev/null
     printf '%s STOP\n' "$(now)" >> "$log"
     "$AS" workspace "$(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^ws=/) {sub("ws=", "", $i); print $i}; exit}' "$log")" >/dev/null 2>&1 || true
-    terminal-notifier -title "TEST DONE" -message "AeroSpace test finished, the Mac is yours" -sound Glass >/dev/null 2>&1 || true
+    hs_call 'hs.alert.show("TEST DONE — the Mac is yours", { textSize = 36, fadeOutDuration = 1 }, hs.screen.mainScreen(), 6); return 1' >/dev/null
+    afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &
+    terminal-notifier -title "TEST DONE" -message "AeroSpace test finished, the Mac is yours" >/dev/null 2>&1 || true
     echo "test-harness: waiting for the $(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^seconds=/) {sub("seconds=", "", $i); print $i}; exit}' "$log")s recording to finish"
     while pgrep -f "screencapture -v .* $dir/$name\." >/dev/null; do sleep 1; done
     ;;

@@ -112,8 +112,10 @@ on-window-detected = [
     # without a fullscreen button. Safari was observed floating instead of
     # tiling, so force tiling on detect to keep it in the layout.
     { if = 'test %{app-bundle-id} = com.apple.Safari', run = 'layout tiling' },
-    # TextEdit's first window at launch is read the same way and floats
-    # underneath the tiles, invisible until a gap opens (recorded 2026-10-04).
+    # TextEdit's launch window reports AXDialog for its first ~170ms and
+    # AXStandardWindow after; AeroSpace classifies at detection, so when it
+    # looks early the window floats underneath the tiles, invisible until a
+    # gap opens (measured 2026-10-05: 2 of 3 AppleScript-driven launches).
     { if = 'test %{app-bundle-id} = com.apple.TextEdit', run = 'layout tiling' },
 
     # Transient/dialog-style apps float instead of tiling.
