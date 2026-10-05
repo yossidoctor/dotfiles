@@ -56,7 +56,7 @@
     - ['mkdir -p ~/.config/git/signing && { [ -f ~/.config/git/signing/personal ] || ssh-keygen -q -t ed25519 -N "" -C "git signing (personal)" -f ~/.config/git/signing/personal; }', Generate the personal git signing key (machine-local; add the .pub to GitHub as a Signing key)]
     - ['k=~/.config/git/signing/personal.pub; f=~/.config/git/allowed_signers; grep -qsF "$(cut -d" " -f2 "$k")" "$f" || printf "%s %s\n" "$(git config -f git/identity user.email)" "$(cut -d" " -f1,2 "$k")" >> "$f"', Register the personal signing key in the machine-local allowed_signers]
     - [bash mac/defaults.sh || true, Apply macOS system defaults (a TCC-refused write is reported and retried next run)]
-    - [bash mac/disable-spotlight.sh || true, Disable Spotlight indexing (needs sudo; skipped if it fails)]
+    - [bash mac/spotlight.sh || true, Spotlight indexing on with the work tree and Homebrew excluded (needs sudo; skipped if it fails)]
     - [bash mac/duti.sh, Apply duti file-type bindings]
     - [bash mac/login-items.sh || true, Register Open-at-Login items (needs System Events automation permission; retried next run if denied)]
     - [bash mac/daily-agent.sh, Install/refresh the daily-jobs LaunchAgent]

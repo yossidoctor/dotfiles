@@ -14,7 +14,7 @@
 # TMHelperAgent); a key absent from every binary is a no-op and is not here.
 # mru-spaces is the one exception, kept on the strength of its Settings toggle.
 #
-# Spotlight indexing is disabled in mac/disable-spotlight.sh (needs sudo).
+# Spotlight indexing and its exclusions are mac/spotlight.sh (needs sudo).
 #
 # The stamp records this script's own hash after a fully-successful run, so an
 # unchanged re-run skips everything — including the Transmission quit and the
