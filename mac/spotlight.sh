@@ -7,9 +7,12 @@
 #
 # Excluded: the work tree, whose node_modules, .venv and build output are
 # hundreds of thousands of files rewritten on every install and searched by
-# ripgrep, never Finder; and Homebrew's prefix, rewritten on every upgrade.
-# Hidden folders (~/.cache, ~/.npm, ~/.claude, .git, .venv), ~/Library/Caches
-# and ~/.Trash are skipped by Spotlight's own rules and need no entry.
+# ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade; and
+# Linear's Electron cache, which alone was 263k of the first full index's
+# 368k items. Hidden folders (~/.cache, ~/.npm, ~/.claude, .git, .venv),
+# ~/Library/Caches, ~/.Trash and the TCC-protected ~/Library/Mail, Messages
+# and Containers are skipped by Spotlight's own rules and need no entry; Mail
+# and Messages index their own content through CoreSpotlight instead.
 #
 # The list cannot be written from a script: the indexer keeps its master copy
 # under /private/var/db/Spotlight-V100, unreadable even to root, and
@@ -28,6 +31,7 @@ set -uo pipefail
 exclusions=(
   "$HOME/Dono"
   /opt/homebrew
+  "$HOME/Library/Application Support/Linear"
 )
 
 volume=/System/Volumes/Data
