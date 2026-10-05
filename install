@@ -20,6 +20,8 @@ dotbot -d "$BASEDIR" -c "$BASEDIR/install.conf.yaml" "$@"
 echo
 echo "== Needs you =="
 bash "$BASEDIR/mac/spotlight.sh" 2>&1 | grep -v "Indexing enabled" | sed 's/^/  /' || true
+plutil -p "/Library/Managed Preferences/$USER/com.apple.applicationaccess.plist" 2>/dev/null | grep -q '"allowSpotlightInternetResults" => false' \
+  || echo "  Spotlight profile: open mac/profiles/spotlight-no-internet-results.mobileconfig, then System Settings › General › Device Management › Install"
 echo "  GitHub: add ~/.config/git/signing/personal.pub as a Signing key on each account"
 echo "  Accessibility: allow Hammerspoon, AeroSpace and Karabiner when each first asks"
 echo "  Claude accounts: cswap add <name> for each one"
