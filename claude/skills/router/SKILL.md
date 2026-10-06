@@ -17,9 +17,9 @@ HOST       ~/.ssh/config            Host router / HostName <gateway> / User <adm
 ROUTER     Administration › System  Enable SSH: LAN Only · Authorized Keys: contents of ~/.ssh/router.pub
 ```
 
-`<gateway>` is `route -n get default | awk '/gateway/{print $2}'` at setup time; `~/.ssh/config` is the one place the admin user and that address are written, and this skill writes neither.
+`<gateway>` is `route -n get default | awk '/gateway/{print $NF}'` at setup time; `~/.ssh/config` is the one place the admin user and that address are written, and this skill writes neither.
 
-Every call is `ssh router '<commands>'`. A command that restarts the radios (`service restart_wireless`, `reboot`) kills the session mid-output; that is expected, and the result is read with a fresh `ssh` afterwards. When the permission classifier refuses an `ssh router` call, hand the exact `ssh router '…'` line to the user to run with the `!` prefix, since it lands in the transcript either way.
+Every call is `ssh router '<commands>'`. A command that restarts the radios (`service restart_wireless`, `reboot`) kills the session mid-output; that is expected, so the write, the restart, `until ssh -o ConnectTimeout=3 router true; do sleep 3; done`, and the read-back go in one Bash call with `run_in_background: true`, whose exit notification is the wake signal (a foreground sleep loop is refused by a hook). When the permission classifier refuses an `ssh router` call, hand the exact `ssh router '…'` line to the user to run with the `!` prefix, since it lands in the transcript either way.
 
 Completion: `ssh router uptime` returns a line.
 
@@ -29,8 +29,8 @@ Half of "the router is slow" is the client. First the LAN itself: `ipconfig geti
 
 ```
 system_profiler SPAirPortDataType | sed -n '/Current Network Information/,/Other Local/p' | grep -E 'PHY|Channel|Signal|Transmit Rate|MCS'
-ifconfig en0 | awk '/ether/{print $2}'; networksetup -listallhardwareports | grep -A2 'Wi-Fi' | grep Ethernet
-ping -c 10 -i 0.2 $(route -n get default | awk '/gateway/{print $2}') | tail -1; ping -c 10 -i 0.2 1.1.1.1 | tail -1
+ifconfig en0 | awk '/ether/{print $NF}'; networksetup -listallhardwareports | grep -A2 'Wi-Fi' | grep Ethernet
+ping -c 10 -i 0.2 $(route -n get default | awk '/gateway/{print $NF}') | tail -1; ping -c 10 -i 0.2 1.1.1.1 | tail -1
 ifconfig en0 | grep inet6 | grep -v fe80
 ```
 
@@ -63,7 +63,7 @@ How to read it, in the order that finds root causes fastest:
 - **`uptime`** is the only proof a reboot happened. A user who "restarted the router" and an uptime of days did not.
 - **`wl1_channel=0`** is Auto on 5 GHz. With `acs_dfs=1` the radio can land on any DFS channel its region list allows, and each landing runs a **CAC**: `[DfsCacNormalStart] CAC 65 seconds start . Disable MAC TX` in `dmesg`. The whole 5 GHz network is silent for that minute, every device drops, and it recurs on every hop. This is the outage that looks like "slow Wi‑Fi".
 - **`smart_connect_x=1`** forces `wl1_channel=0` regardless of what the UI shows, and its band-steering daemon `roamast` decides which band a phone lands on. Turning it off keeps one SSID as long as `wl0_ssid` and `wl1_ssid` already match.
-- **`NOT_ROBUST_UNICAST_FRAME` spam** with `wl*_mfp=1` (Protected Management Frames "Capable") is the MediaTek driver logging Apple clients' unprotected management frames. It is noise, not a drop, unless a `deauth`/`kick` line for the same client sits beside it. `mfp=0` silences the log and has no other measured effect.
+- **`NOT_ROBUST_UNICAST_FRAME` spam** with `wl*_mfp=1` (Protected Management Frames "Capable") is the MediaTek driver logging Apple clients' unprotected management frames. It is noise, not a drop, unless a `deauth`/`kick` line for the same client sits beside it. At about one line a second it rotates `/jffs/syslog.log` within an hour, so the log of a drop is gone before anyone reads it; `mfp=0` silences it and has no other measured effect.
 - **`nf_conntrack_count`** near `max`, or `top` idle under 30%, is a saturated router; a torrent client with an open port and hundreds of peers is the usual writer. Below a few thousand entries the router is not the bottleneck.
 - **`wan0_upnp_enable`** is the live UPnP flag; the bare `upnp_enable` key is legacy and reads 0 either way.
 - **`wl*_bss_enabled`** for `.1 .2 .3` are guest networks; each enabled one is a second beacon on the same radio.
@@ -73,18 +73,19 @@ Completion: one named root cause with the `dmesg` line or nvram value that prove
 
 ## 4 · Change with read-back
 
-Every key about to be written is read first, so a restore is one command. Writes are `nvram set k=v` … `nvram commit`, then the restart the change needs, then a fresh read of the same keys. Anything less is an unverified claim.
+Every key about to be written is read first, so a restore is one command. Writes are `nvram set k=v` … `nvram commit`, then the restart the change needs, then a fresh read of the same keys. A channel is also read from the radio, `iwconfig rai0 | grep -o 'Channel=[0-9]*'` (`ra0` for 2.4 GHz), because nvram keeps a channel the region forbids while the radio falls back to another. Anything less is an unverified claim. A numeric key's labels live in the UI page that writes it: `grep -n <key without wlN_> /www/Advanced_*.asp`, the `Rawifi_support` branch for this MediaTek driver.
 
 ```
 CHANGE                            KEYS                                        THEN
 -------------------------------   -----------------------------------------   ------------------------
 fixed non-DFS 5 GHz channel       wl1_channel=<lowest of the scanned block>   service restart_wireless
                                   wl1_nctrlsb=lower  acs_dfs=0
-5 GHz width                       wl1_bw  (numeric mapping: change it once     service restart_wireless
-                                  in Wireless › General, read the key back)
-Smart Connect off                 smart_connect_x=0                           reboot
+auto non-DFS 5 GHz channel        wl1_channel=0  acs_dfs=0                    service restart_wireless
+width                             wl0_bw  wl1_bw  (labels: bwsDesc in         service restart_wireless
+                                  Advanced_Wireless_Content.asp)
+Smart Connect on / off            smart_connect_x=1|0                         reboot
 PMF                               wl0_mfp  wl1_mfp  (1 Capable, 0 off)        service restart_wireless
-2.4 GHz channel                   wl0_channel=1|6|11                          service restart_wireless
+2.4 GHz channel                   wl0_channel=0|1|6|11                        service restart_wireless
 IPv6 Native / off                 ipv6_service=dhcp6 | disabled               reboot
 UPnP                              wan0_upnp_enable  wan_upnp_enable  (1|0)    reboot
 firmware check                    /usr/sbin/webs_update.sh; sleep 8;          none
