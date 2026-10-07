@@ -18,7 +18,7 @@ adb -s <ip>:5555 shell '<command>' </dev/null
 
 `adb shell` forwards the caller's stdin to the box (`adb --help`: `-n: don't read from stdin`), so a call inside a loop or script takes `</dev/null` or `-n`. The host key is `~/.android/adbkey`; the box shows an "Allow USB debugging?" prompt the first time a key connects, and the user accepts it on the TV. ADB setup, ports, persistence and what the shell user may do: [platform.md](references/platform.md).
 
-The box has no Ethernet port ([hardware.md](references/hardware.md)), so network ADB runs over its Wi‑Fi: turning Wi‑Fi off, changing network or rebooting ends the ADB session. Restoring the listener: [platform.md § ADB](references/platform.md#adb).
+The box has no Ethernet port ([hardware.md](references/hardware.md)), so network ADB runs over its Wi‑Fi: turning Wi‑Fi off, changing network or rebooting ends the ADB session. After a reboot the user re-enables Wireless debugging on the TV before `adb connect` works again ([platform.md § ADB](references/platform.md#adb)).
 
 ## Making a change
 
