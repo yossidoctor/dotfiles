@@ -30,6 +30,10 @@ keybind = shift+up=goto_split:up
 keybind = shift+down=goto_split:down
 # No shift+enter override: Ghostty reports the chord through the kitty keyboard
 # protocol, and claude/keybindings.json binds it to chat:newline there.
+# No Cmd+T: a macOS native tab is a separate window that AeroSpace tiles beside
+# its siblings (AeroSpace #68), so a new tab leaves an empty tile; Cmd+N opens
+# a window instead.
+keybind = super+t=unbind
 
 # ── Mouse ─────────────────────────────────────────────────────────────────────
 mouse-scroll-multiplier = 0.35

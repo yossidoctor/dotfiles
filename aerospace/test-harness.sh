@@ -1,21 +1,26 @@
 #!/bin/bash
 # test-harness.sh — screen recording, stills and an input log around an
 # AeroSpace test run, so a result is checked in pixels and a run the user
-# touched is detected instead of reported. Protocol: brief the user (what,
-# stay off the Mac, seconds, end screen) and get a yes before `start`.
+# touched is detected instead of reported. `start` runs only after the
+# user's yes to a brief, per aerospace/CLAUDE.md.
 #
-#   test-harness.sh start <name> <seconds>   input tap on, one recording per display
+#   test-harness.sh start <name> <seconds>   input tap on, one recording per display, window list saved
 #   test-harness.sh snap  <name> <label>     still of every display, for review
-#   test-harness.sh stop  <name>             tap off, back to the workspace the run started
-#                                            on, "TEST DONE" banner, waits for the recordings
+#   test-harness.sh stop  <name>             tap off, back to the workspace the run started on,
+#                                            window list diffed against start's, "TEST DONE" banner
+#                                            (naming a difference), waits for the recordings
 #   test-harness.sh verdict <name>           input events during the run; CLEAN or TOUCHED
 #   test-harness.sh frames  <name> [fps] [tile]   contact sheets from the recordings, default
 #                                            2 frames/s tiled 4x3 (6s per sheet), for an image reader
 #   test-harness.sh discard <name>           delete the run's recordings, stills, sheets and log
 #
 # Files: $AEROSPACE_TEST_DIR/<name>.<display>.mov, <name>.<label>.<display>.png,
-# <name>.sheet.<display>.<nn>.png, <name>.input.log (default dir
-# /tmp/aerospace-tests). The input log carries a timestamp and the event type
+# <name>.sheet.<display>.<nn>.png, <name>.input.log, <name>.windows (default dir
+# /tmp/aerospace-tests). The window diff is the end-screen check
+# aerospace/CLAUDE.md requires: it reads AeroSpace's list rather than trusting
+# the run to know what it opened, so a tab or window the run lost track of
+# still shows up, as a `>` line, before the banner tells the user the Mac is
+# theirs. The input log carries a timestamp and the event type
 # only (keyDown, mouseMoved, leftMouseDown, rightMouseDown, scrollWheel), never
 # a key code. Recordings are `screencapture -v -V <seconds>`: fixed length, no
 # early stop (SIGINT is ignored, and a killed recorder writes no file), so size
@@ -53,11 +58,13 @@ hs_call() {
 }
 now() { date +%s.%N | cut -c1-14; }
 displays() { hs_call 'return #hs.screen.allScreens()'; }
+windows() { "$AS" list-windows --all --format '%{window-id} %{app-name} %{workspace} %{window-layout}' | sort; }
 
 case "$cmd" in
   start)
     seconds="${3:?seconds}"
     mkdir -p "$dir"; : > "$log"
+    windows > "$dir/$name.windows"
     hs_call "
       _aeroTestLog = io.open('$log', 'a'); _aeroTestLog:setvbuf('no')
       local t = hs.eventtap.event.types
@@ -83,9 +90,18 @@ case "$cmd" in
     hs_call "if _aeroTestTap then _aeroTestTap:stop(); _aeroTestTap = nil end; if _aeroTestLog then _aeroTestLog:close(); _aeroTestLog = nil end; return 'tap off'" >/dev/null
     printf '%s STOP\n' "$(now)" >> "$log"
     "$AS" workspace "$(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^ws=/) {sub("ws=", "", $i); print $i}; exit}' "$log")" >/dev/null 2>&1 || true
-    hs_call 'hs.alert.show("TEST DONE — the Mac is yours", { textSize = 36, fadeOutDuration = 1 }, hs.screen.mainScreen(), 6); return 1' >/dev/null
+    changed=$(diff "$dir/$name.windows" <(windows) | grep '^[<>]' || true)
+    if [ -z "$changed" ]; then
+      echo "test-harness: windows match the start"
+      banner="the Mac is yours"
+    else
+      echo "test-harness: windows differ from the start (< at start, > now):"
+      printf '%s\n' "$changed"
+      banner="windows differ from the start, see the report"
+    fi
+    hs_call "hs.alert.show('TEST DONE — $banner', { textSize = 36, fadeOutDuration = 1 }, hs.screen.mainScreen(), 6); return 1" >/dev/null
     afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &
-    terminal-notifier -title "TEST DONE" -message "AeroSpace test finished, the Mac is yours" >/dev/null 2>&1 || true
+    terminal-notifier -title "TEST DONE" -message "AeroSpace test finished, $banner" >/dev/null 2>&1 || true
     echo "test-harness: waiting for the $(awk '/ START /{for (i=1;i<=NF;i++) if ($i ~ /^seconds=/) {sub("seconds=", "", $i); print $i}; exit}' "$log")s recording to finish"
     while pgrep -f "screencapture -v .* $dir/$name\." >/dev/null; do sleep 1; done
     ;;
@@ -103,8 +119,8 @@ case "$cmd" in
       echo "TOUCHED: $(printf '%s\n' "$events" | wc -l | tr -d ' ') input events during $name"; printf '%s\n' "$events"; exit 1; fi
     ;;
   discard)
-    rm -f -- "$dir/$name".*.mov "$dir/$name".*.png "$log"
+    rm -f -- "$dir/$name".*.mov "$dir/$name".*.png "$log" "$dir/$name.windows"
     echo "test-harness: $name discarded, $(ls -A "$dir" | wc -l | tr -d ' ') files left in $dir"
     ;;
-  *) sed -n '2,14p' "$0" >&2; exit 2 ;;
+  *) sed -n '2,15p' "$0" >&2; exit 2 ;;
 esac
