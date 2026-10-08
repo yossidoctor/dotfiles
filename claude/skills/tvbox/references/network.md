@@ -20,7 +20,7 @@ cmd wifi list-scan-results                                  nearby networks (BSS
 cmd wifi is-verbose-logging                                 verbose Wi‑Fi logging state
 ```
 
-`Security type` numbers follow `WifiConfiguration.SECURITY_TYPE_*` (0 open, 1 WEP, 2 PSK/WPA2, 4 SAE/WPA3, …) ([WifiConfiguration.java](https://android.googlesource.com/platform/packages/modules/Wifi/+/refs/heads/android14-release/framework/java/android/net/wifi/WifiConfiguration.java)). `Wi-Fi standard: 6` is 802.11ax. The frequency converts to a channel n by its band's centre formula: 2.4 GHz = 2407 + 5n MHz (channel 14 = 2484 MHz), 5 GHz = 5000 + 5n MHz, 6 GHz = 5950 + 5n MHz ([List of WLAN channels](https://en.wikipedia.org/wiki/List_of_WLAN_channels)). `cmd wifi set-verbose-logging enabled|disabled` switches verbose Wi‑Fi logging; `dumpsys wifi | grep -i 'verbose logging'` shows the state.
+`Security type` numbers follow `WifiConfiguration.SECURITY_TYPE_*` (0 open, 1 WEP, 2 PSK/WPA2, 4 SAE/WPA3, …) ([WifiConfiguration.java](https://android.googlesource.com/platform/packages/modules/Wifi/+/refs/heads/android14-release/framework/java/android/net/wifi/WifiConfiguration.java)). `Wi-Fi standard: 6` is 802.11ax. The frequency converts to a channel by the formulas in the [router skill's regulatory.md](../../router/references/regulatory.md#channel-numbering). `cmd wifi set-verbose-logging enabled|disabled` switches verbose Wi‑Fi logging; `dumpsys wifi | grep -i 'verbose logging'` shows the state.
 
 `cmd wifi list-networks` lists saved networks with their ids; adding one is not open to the shell on Android 14 ([commands.md § wifi](commands.md#wifi)), so networks are added on the TV, and `forget-network <id>` takes an id from that list.
 

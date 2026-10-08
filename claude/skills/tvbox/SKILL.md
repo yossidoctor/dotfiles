@@ -9,7 +9,7 @@ Documentation for an Android 14 Google TV box controlled over ADB without root, 
 
 ## Reaching the box
 
-The box's LAN address comes from the router's DHCP client list. ADB runs over the network on TCP 5555:
+The box's LAN address comes from the router's DHCP leases (`ssh router 'grep -i <box MAC prefix> /var/lib/misc/dnsmasq.leases'`) or from the reservation list ([router skill, wan-lan.md § DHCP](../router/references/wan-lan.md#dhcp)). ADB runs over the network on TCP 5555:
 
 ```
 adb connect <ip>:5555
