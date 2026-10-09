@@ -16,6 +16,8 @@ adb connect <ip>:5555
 adb -s <ip>:5555 shell '<command>' </dev/null
 ```
 
+`adb connect` and `adb shell` block for minutes when nothing listens on the port. `nc -z -G 3 <ip> 5555` answers within 3 seconds and runs once at each point where the listener can be gone: the first adb call of a session or task, after rebooting the box, and after a router Wi‑Fi restart (which turns the box's Wireless debugging off). An open port means the adb calls that follow run plain; a closed port means the box is off or Wireless debugging needs re-enabling on the TV, which the user does.
+
 `adb shell` forwards the caller's stdin to the box (`adb --help`: `-n: don't read from stdin`), so a call inside a loop or script takes `</dev/null` or `-n`. The host key is `~/.android/adbkey`; the box shows an "Allow USB debugging?" prompt the first time a key connects, and the user accepts it on the TV. ADB setup, ports, persistence and what the shell user may do: [platform.md](references/platform.md).
 
 The box has no Ethernet port ([hardware.md](references/hardware.md)), so network ADB runs over its Wi‑Fi: turning Wi‑Fi off, changing network or rebooting ends the ADB session. After a reboot the user re-enables Wireless debugging on the TV before `adb connect` works again ([platform.md § ADB](references/platform.md#adb)).
