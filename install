@@ -32,6 +32,6 @@ echo "  GitHub: add ~/.config/git/signing/personal.pub as a Signing key on each 
 echo "  Accessibility: allow Hammerspoon, AeroSpace and Karabiner when each first asks"
 echo "  Claude accounts: cswap add <name> for each one"
 echo "  Toggles with no key: Privacy & Security › Analytics & Improvements › Share iCloud Analytics off;"
-echo "    Spotlight › Show Related Content off; Location Services › System Services › Details › Suggestions & Search"
+echo "    Location Services › System Services › Details › Suggestions & Search"
 echo "    and Significant Locations off; Photos › Settings › General › Enhanced Visual Search off;"
 echo "    Safari › Settings › Advanced › Allow Highlights to share web addresses with Apple off"

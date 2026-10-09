@@ -324,6 +324,43 @@ defaults write com.apple.finder ShowRecentTags -bool false
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Spotlight — what the search window shows. Indexing and its exclusions are
+# mac/spotlight.sh. Each pane toggle that is off is one entry in
+# EnabledPreferenceRules — an app's bundle id, a file kind as Domain.<KIND>, a
+# system source as System.<name>, Show Related Content as
+# Custom.relatedContents — and a toggle that is on has no entry, so the array
+# is the whole off-list and a write replaces it. The pane's own writes take
+# effect with no relaunch.
+# ─────────────────────────────────────────────────────────────────────────────
+# Spotlight › "Show Related Content" · default on
+# Spotlight › Results from Apps › each app · default on
+# Spotlight › Results from System › "iPhone Apps" · default on
+# No Apple-partner content, no content from the listed apps (Books is
+# iBooksX, Calendar iCal, Contacts AddressBook, Messages MobileSMS, Phone
+# mobilephone), no iPhone apps. Notes, Reminders, System Settings and the
+# Apps, Files, Folders and Menu Items sources stay on.
+defaults write com.apple.Spotlight EnabledPreferenceRules -array \
+  Custom.relatedContents \
+  com.apple.AppStore com.apple.iBooksX com.apple.calculator com.apple.iCal \
+  com.apple.AddressBook com.apple.Dictionary com.apple.games com.apple.mail \
+  com.apple.Maps com.apple.MobileSMS com.apple.Music com.apple.mobilephone \
+  com.apple.Photos com.apple.podcasts com.apple.Safari com.apple.shortcuts \
+  com.apple.stocks com.apple.tips com.apple.VoiceMemos net.whatsapp.WhatsApp \
+  System.iphoneApps
+
+# Spotlight › Results from System › Files ⓘ › Documents (each kind) · default on
+# Spotlight › Results from System › Files ⓘ › Hidden File Types · default none
+# Every file kind shown. The pane derives this UTI list from the kind toggles
+# (Movies off puts public.movie and its siblings here) and rewrites it only
+# when one is flipped, so a list from a macOS whose pane had the kind toggles
+# outlives the upgrade; this empties it.
+defaults write com.apple.Spotlight DisabledUTTypes -array
+
+# Spotlight › "Results from Clipboard" · default off until the first ⌘4 Clipboard search's Allow prompt
+# No clipboard history kept by Spotlight.
+defaults write com.apple.Spotlight PasteboardHistoryEnabled -bool false
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Networking
 # ─────────────────────────────────────────────────────────────────────────────
 # hidden · default off
