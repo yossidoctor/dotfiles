@@ -529,7 +529,7 @@ killall Transmission 2>/dev/null || true
 # "Port is open") when the router offers neither UPnP nor NAT-PMP.
 TRANSMISSION=org.m0k.transmission
 # Transmission › Settings › Transfers › Adding › "Default location:" (chosen folder) · default ~/Downloads
-defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Downloads"
+defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Movies"
 # Transmission › Settings › Transfers › Adding › "Default location:" popup · default "Same as torrent file" (false)
 # true selects the fixed folder above (PrefsController.mm setDownloadLocation:).
 defaults write "$TRANSMISSION" DownloadLocationConstant -bool true
