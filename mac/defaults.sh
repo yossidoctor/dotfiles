@@ -159,20 +159,13 @@ defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
 # Keyboard › Keyboard Shortcuts… › Spotlight › "Show Finder search window" (⌥⌘Space, id 65) · default on
 # Both unbound: Raycast owns ⌘Space. enabled=false is what turns a shortcut
 # off; parameters are [ASCII code, virtual keycode, modifier mask] and
-# 65535 = "no key". A bare `defaults write` can't author this nested dict, so
-# PlistBuddy does it; Delete-then-Add is idempotent and Delete fails harmlessly
-# on a fresh domain. activateSettings -u reloads the bindings without a logout.
-shk_domain="$HOME/Library/Preferences/com.apple.symbolichotkeys.plist"
+# 65535 = "no key". The write goes through `defaults` (cfprefsd), never
+# PlistBuddy on the file: cfprefsd holds the domain cached and writes it back
+# over a direct file edit, dropping `enabled`. activateSettings -u reloads the
+# bindings without a logout.
 for id in 64 65; do
-  /usr/libexec/PlistBuddy "$shk_domain" >/dev/null 2>&1 \
-    -c "Delete :AppleSymbolicHotKeys:$id" \
-    -c "Add :AppleSymbolicHotKeys:$id:enabled bool false" \
-    -c "Add :AppleSymbolicHotKeys:$id:value:type string standard" \
-    -c "Add :AppleSymbolicHotKeys:$id:value:parameters array" \
-    -c "Add :AppleSymbolicHotKeys:$id:value:parameters:0 integer 65535" \
-    -c "Add :AppleSymbolicHotKeys:$id:value:parameters:1 integer 65535" \
-    -c "Add :AppleSymbolicHotKeys:$id:value:parameters:2 integer 0" \
-    || true
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" \
+    '<dict><key>enabled</key><false/><key>value</key><dict><key>type</key><string>standard</string><key>parameters</key><array><integer>65535</integer><integer>65535</integer><integer>0</integer></array></dict></dict>'
 done
 /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u 2>/dev/null || true
 
