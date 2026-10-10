@@ -6,71 +6,72 @@ tap "felixkratz/formulae", trusted: { formula: "borders" }
 tap "nikitabobko/tap", trusted: { cask: "aerospace" }
 
 # ── shell & prompt ─────────────────────────────────────────────────
-brew "fzf"                          # backs the Ctrl-R/Ctrl-T bindings
-brew "starship"                     # cross-shell prompt
-brew "zsh-syntax-highlighting"
+brew "fzf"                          # fuzzy finder; backs the Ctrl-R/Ctrl-T bindings
+brew "starship"                     # cross-shell prompt (starship/starship.toml)
+brew "zsh-syntax-highlighting"      # colors commands as you type
 
 # ── file & dir tools ───────────────────────────────────────────────
-brew "fd"                           # fast find replacement — gitignore-aware, regex by default
-brew "ripgrep"                      # fast recursive content search — `rg`, gitignore-aware
+brew "fd"                           # fast find replacement, gitignore-aware
+brew "ripgrep"                      # fast recursive content search (`rg`), gitignore-aware
 
 # ── dev core ───────────────────────────────────────────────────────
 brew "ast-grep"                     # structural code search/rewrite by syntax-tree pattern
-brew "difftastic"                   # AST-aware structural diff — on-demand alongside delta for refactor/reformat noise
-brew "dotbot"                       # dotfiles symlink bootstrapper
+brew "difftastic"                   # syntax-aware diff; on demand alongside delta for refactor/reformat noise
+brew "dotbot"                       # runs install.conf.yaml: this repo's symlinks and install steps
 brew "gh"                           # GitHub CLI
 brew "git"                          # version control
 brew "git-delta"                    # syntax-highlighted, side-by-side git diff pager
 brew "git-absorb"                   # routes staged fixup hunks into the commits that introduced the lines
 brew "git-filter-repo"              # history rewriting — path/blob removal across all commits
-brew "hyperfine"                    # benchmarking with warmup + deviation; SoT for any timing claim
-brew "jq"                           # JSON query/build — the hook-path JSON tool
-brew "mergiraf"                     # syntax-aware git merge driver — git/config [merge "mergiraf"], git/attributes
+brew "hyperfine"                    # command benchmarking with warmup + deviation; SoT for any timing claim
+brew "jq"                           # JSON query/build; the hook-path JSON tool
+brew "mergiraf"                     # syntax-aware git merge driver (git/config, git/attributes)
 brew "shellcheck"                   # static analysis for the repo's bash scripts
 
-# ── data & http ────────────────────────────────────────────────────
-brew "duckdb"                       # SQL over CSV/JSON/NDJSON files in place — log and export analysis
-brew "hurl"                         # HTTP requests + assertions as plain-text files, CI exit codes
-
 # ── languages & runtime ────────────────────────────────────────────
-brew "fnm"                          # Fast Node Manager — per-dir Node via .nvmrc (zshrc auto-switch)
+brew "fnm"
 brew "python"
-brew "uv"                           # Python package installer / tool runner (claude-swap)
+brew "uv"
 
 # ── mac utilities ──────────────────────────────────────────────────
-cask "adguard"                      # system-wide ad / tracker blocker
-cask "appcleaner"                   # uninstaller that also removes app support files
-brew "duti"                         # set macOS default apps per file type / URL scheme
-cask "karabiner-elements"           # low-level keyboard remapping
-cask "notunes"                      # blocks Apple Music from auto-launching
-brew "terminal-notifier"            # notification banners from scripts; ships as an app bundle macOS can grant, which osascript from a terminal cannot be
-brew "ffmpeg"                       # frame sheets from aerospace/test-harness.sh screen recordings
+cask "adguard"
+cask "android-platform-tools"
+cask "appcleaner"
+brew "duti"
+cask "karabiner-elements"
+cask "notunes"
+brew "terminal-notifier"
+brew "ffmpeg"
 # Raycast runs from its Beta channel ("Raycast Beta.app", installed from raycast.com);
 # no cask ships that channel and `cask "raycast"` would add a second, stable copy.
 # It owns ⌘Space: mac/defaults.sh unbinds the Spotlight hotkeys (the index itself stays on, mac/spotlight.sh).
 
 # ── window management ──────────────────────────────────────────────
-cask "aerospace"                    # i3-style tiling window manager
+cask "aerospace"
 cask "bettercmdtab"
 cask "betterdisplay"
-cask "hammerspoon"                  # quits listed apps when their last window closes (hammerspoon/init.lua)
-brew "borders"                      # JankyBorders — colored outline on the AeroSpace-focused window
+cask "hammerspoon"
+brew "borders"
 
 # ── gui apps ───────────────────────────────────────────────────────
-cask "affinity"                     # Affinity photo/design suite
 cask "claude-code@latest"
 cask "expressvpn"
-cask "font-jetbrains-mono-nerd-font" # JetBrains Mono + Nerd Font glyphs
-cask "ghostty"                      # GPU-accelerated terminal emulator
-cask "iina"                         # media player (mpv-based); prefs in mac/defaults.sh
+cask "font-jetbrains-mono-nerd-font"
+cask "ghostty"
+cask "iina"
 cask "linear"
 cask "slack"
 cask "spotify"
-cask "stremio"                      # media streaming client
-cask "transmission"                 # BitTorrent client
+cask "stremio"
+cask "transmission"
 cask "visual-studio-code"
 cask "whatsapp"
 cask "zoom"
+
+# ── app store (mas installs these; needs an App Store sign-in) ──────
+brew "mas"
+mas "SponsorBlock", id: 1573461917
+mas "UnTrap", id: 1637438059
 
 # ── vscode extensions (vscode/settings.json configures these) ──────
 vscode "davidanson.vscode-markdownlint"
@@ -80,4 +81,4 @@ vscode "ms-python.python"
 vscode "ms-python.vscode-pylance"
 vscode "ms-python.vscode-python-envs"
 vscode "tamasfe.even-better-toml"
-vscode "zhuangtongfa.material-theme"  # One Dark Pro
+vscode "zhuangtongfa.material-theme"
