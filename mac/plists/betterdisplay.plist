@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppleTextDirection</key>
+	<false/>
+	<key>NSForceRightToLeftWritingDirection</key>
+	<false/>
 	<key>NSStatusItem VisibleCC Item-0</key>
 	<false/>
 	<key>NSWindow Frame Settings</key>
@@ -16,6 +20,8 @@
 	<false/>
 	<key>activationPriority@DisplayGroup:-1001</key>
 	<integer>0</integer>
+	<key>airPlay@Display:12</key>
+	<false/>
 	<key>airPlay@Display:2</key>
 	<false/>
 	<key>airPlay@Display:3</key>
@@ -24,8 +30,6 @@
 	<false/>
 	<key>airPlay@Display:6</key>
 	<false/>
-	<key>airPlay@Display:7</key>
-	<true/>
 	<key>airPlay@Display:9</key>
 	<true/>
 	<key>allowAppleHardwareBrightness@Display:2</key>
@@ -38,6 +42,8 @@
 	<false/>
 	<key>allowCrashReporting</key>
 	<false/>
+	<key>allowDDC@Display:12</key>
+	<false/>
 	<key>allowDDC@Display:3</key>
 	<true/>
 	<key>allowHardwareBrightness@Display:2</key>
@@ -48,8 +54,14 @@
 	<true/>
 	<key>allowLicensing</key>
 	<false/>
+	<key>allowSoftwareAdjustments@Display:12</key>
+	<false/>
 	<key>appAlreadyLaunched</key>
 	<true/>
+	<key>appDisconnected@Display:12</key>
+	<false/>
+	<key>appDisconnected@Display:13</key>
+	<false/>
 	<key>appDisconnected@Display:2</key>
 	<false/>
 	<key>appDisconnected@Display:3</key>
@@ -58,9 +70,11 @@
 	<false/>
 	<key>appDisconnected@Display:6</key>
 	<false/>
-	<key>appDisconnected@Display:7</key>
-	<false/>
 	<key>appDisconnected@Display:9</key>
+	<false/>
+	<key>appleCapable@Display:12</key>
+	<false/>
+	<key>appleCapable@Display:13</key>
 	<false/>
 	<key>appleCapable@Display:2</key>
 	<true/>
@@ -70,9 +84,11 @@
 	<false/>
 	<key>appleCapable@Display:6</key>
 	<false/>
-	<key>appleCapable@Display:7</key>
-	<false/>
 	<key>appleCapable@Display:9</key>
+	<false/>
+	<key>appleMade@Display:12</key>
+	<false/>
+	<key>appleMade@Display:13</key>
 	<false/>
 	<key>appleMade@Display:2</key>
 	<true/>
@@ -82,9 +98,9 @@
 	<false/>
 	<key>appleMade@Display:6</key>
 	<false/>
-	<key>appleMade@Display:7</key>
-	<false/>
 	<key>appleMade@Display:9</key>
+	<false/>
+	<key>appleVisionPro@Display:12</key>
 	<false/>
 	<key>appleVisionPro@Display:2</key>
 	<false/>
@@ -93,8 +109,6 @@
 	<key>appleVisionPro@Display:5</key>
 	<false/>
 	<key>appleVisionPro@Display:6</key>
-	<false/>
-	<key>appleVisionPro@Display:7</key>
 	<false/>
 	<key>appleVisionPro@Display:9</key>
 	<false/>
@@ -105,7 +119,11 @@
 	<key>audioKeyboardControl</key>
 	<string>displayWithAudioDeviceNameMatch</string>
 	<key>buildNumber</key>
-	<integer>50105</integer>
+	<integer>53700</integer>
+	<key>builtIn@Display:12</key>
+	<false/>
+	<key>builtIn@Display:13</key>
+	<false/>
 	<key>builtIn@Display:2</key>
 	<true/>
 	<key>builtIn@Display:3</key>
@@ -114,10 +132,10 @@
 	<false/>
 	<key>builtIn@Display:6</key>
 	<false/>
-	<key>builtIn@Display:7</key>
-	<false/>
 	<key>builtIn@Display:9</key>
 	<false/>
+	<key>canChangeOrientation@Display:12</key>
+	<true/>
 	<key>canChangeOrientation@Display:2</key>
 	<true/>
 	<key>canChangeOrientation@Display:3</key>
@@ -126,8 +144,6 @@
 	<true/>
 	<key>canChangeOrientation@Display:6</key>
 	<true/>
-	<key>canChangeOrientation@Display:7</key>
-	<false/>
 	<key>canChangeOrientation@Display:9</key>
 	<false/>
 	<key>codeList@_registration_DDCController-DDCController@Display:3</key>
@@ -160,6 +176,10 @@
 	<string></string>
 	<key>codeList@volume-DDCController@Display:3</key>
 	<string></string>
+	<key>colorProfilesSupported@Display:12</key>
+	<true/>
+	<key>colorProfilesSupported@Display:13</key>
+	<true/>
 	<key>colorProfilesSupported@Display:2</key>
 	<false/>
 	<key>colorProfilesSupported@Display:3</key>
@@ -168,9 +188,11 @@
 	<true/>
 	<key>colorProfilesSupported@Display:6</key>
 	<true/>
-	<key>colorProfilesSupported@Display:7</key>
-	<true/>
 	<key>colorProfilesSupported@Display:9</key>
+	<true/>
+	<key>colorTableCapable@Display:12</key>
+	<true/>
+	<key>colorTableCapable@Display:13</key>
 	<true/>
 	<key>colorTableCapable@Display:2</key>
 	<true/>
@@ -180,10 +202,12 @@
 	<true/>
 	<key>colorTableCapable@Display:6</key>
 	<true/>
-	<key>colorTableCapable@Display:7</key>
-	<false/>
 	<key>colorTableCapable@Display:9</key>
 	<false/>
+	<key>configuredPotentialEDR@Display:12</key>
+	<real>1</real>
+	<key>configuredPotentialEDR@Display:13</key>
+	<real>1</real>
 	<key>configuredPotentialEDR@Display:2</key>
 	<real>16</real>
 	<key>configuredPotentialEDR@Display:3</key>
@@ -192,9 +216,11 @@
 	<real>1</real>
 	<key>configuredPotentialEDR@Display:6</key>
 	<real>1</real>
-	<key>configuredPotentialEDR@Display:7</key>
-	<real>1</real>
 	<key>configuredPotentialEDR@Display:9</key>
+	<real>1</real>
+	<key>configuredReferenceEDR@Display:12</key>
+	<real>1</real>
+	<key>configuredReferenceEDR@Display:13</key>
 	<real>1</real>
 	<key>configuredReferenceEDR@Display:2</key>
 	<real>1</real>
@@ -204,10 +230,12 @@
 	<real>1</real>
 	<key>configuredReferenceEDR@Display:6</key>
 	<real>1</real>
-	<key>configuredReferenceEDR@Display:7</key>
-	<real>1</real>
 	<key>configuredReferenceEDR@Display:9</key>
 	<real>1</real>
+	<key>connected@Display:12</key>
+	<false/>
+	<key>connected@Display:13</key>
+	<false/>
 	<key>connected@Display:2</key>
 	<true/>
 	<key>connected@Display:3</key>
@@ -216,29 +244,27 @@
 	<false/>
 	<key>connected@Display:6</key>
 	<false/>
-	<key>connected@Display:7</key>
-	<false/>
 	<key>connected@Display:9</key>
 	<false/>
+	<key>currentColorProfileURL@Display:12</key>
+	<string>file:///Library/ColorSync/Profiles/Displays/SAMSUNG-24DAF199-5788-4551-A470-5AFC9D840D5E.icc</string>
 	<key>currentColorProfileURL@Display:3</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20U3421WE-C42CFEB5-8E61-4144-99CC-376D8A141A4B.icc</string>
 	<key>currentColorProfileURL@Display:5</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20S2722QC-21B39054-D0E6-41DD-BE9E-91202156F561.icc</string>
 	<key>currentColorProfileURL@Display:6</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20S2722QC-576774A3-3759-422E-A895-066B212AD25E.icc</string>
-	<key>currentColorProfileURL@Display:7</key>
-	<string>file:///System/Library/CoreServices/Resources/Profiles/HD%20709-A.icc</string>
 	<key>currentColorProfileURL@Display:9</key>
 	<string>file:///System/Library/CoreServices/Resources/Profiles/HD%20709-A.icc</string>
 	<key>customNits@Display:3</key>
 	<false/>
 	<key>ddcBacklightOffWhenCombinedDimmedToZero@Display:3</key>
 	<false/>
+	<key>ddcConfigurationNoticeDismissed@Display:12</key>
+	<true/>
 	<key>ddcConfigurationNoticeDismissed@Display:2</key>
 	<true/>
 	<key>ddcConfigurationNoticeDismissed@Display:3</key>
-	<true/>
-	<key>ddcConfigurationNoticeDismissed@Display:7</key>
 	<true/>
 	<key>ddcConfigurationNoticeDismissed@Display:9</key>
 	<true/>
@@ -246,6 +272,10 @@
 	<string>[{"priority":1,"id":1,"iconName":"input_displayport","ddc2ab":false,"value":15,"description":"DisplayPort 1"},{"priority":1,"id":2,"iconName":"input_displayport","ddc2ab":false,"value":16,"description":"DisplayPort 2"},{"priority":1,"id":3,"iconName":"input_hdmi","ddc2ab":false,"value":17,"description":"HDMI 1"},{"priority":1,"id":4,"iconName":"input_hdmi","ddc2ab":false,"value":18,"description":"HDMI 2"},{"priority":1,"id":5,"iconName":"input_hdmi","ddc2ab":false,"value":19,"description":"HDMI 3"},{"priority":1,"id":6,"iconName":"input_usbc","ddc2ab":false,"value":25,"description":"USB-C \/ TB 1"},{"priority":1,"id":7,"iconName":"input_usbc","ddc2ab":false,"value":26,"description":"USB-C \/ TB 2"},{"priority":1,"id":8,"iconName":"input_usbc","ddc2ab":false,"value":27,"description":"USB-C \/ TB 3"},{"priority":1,"id":9,"iconName":"input_usbc","ddc2ab":false,"value":49,"description":"USB-C \/ TB 4"},{"priority":2,"id":10,"iconName":"input_dvi","ddc2ab":false,"value":3,"description":"DVI 1"},{"priority":2,"id":11,"iconName":"input_dvi","ddc2ab":false,"value":4,"description":"DVI 2"},{"priority":2,"id":12,"iconName":"input_vga","ddc2ab":false,"value":1,"description":"VGA 1"},{"priority":2,"id":13,"iconName":"input_vga","ddc2ab":false,"value":2,"description":"VGA 2"},{"priority":3,"id":14,"iconName":"input_displayport","ddc2ab":true,"value":208,"description":"DisplayPort 1 (LG alt)"},{"priority":3,"id":15,"iconName":"input_displayport","ddc2ab":true,"value":209,"description":"DP 2 \/ USB-C (LG alt)"},{"priority":3,"id":16,"iconName":"input_usbc","ddc2ab":true,"value":210,"description":"USB-C (LG alt)"},{"priority":3,"id":17,"iconName":"input_hdmi","ddc2ab":true,"value":144,"description":"HDMI 1 (LG alt)"},{"priority":3,"id":18,"iconName":"input_hdmi","ddc2ab":true,"value":145,"description":"HDMI 2 (LG alt)"},{"priority":0,"id":19,"iconName":"input_component","ddc2ab":false,"value":5,"description":"Composite 1 (Legacy)"},{"priority":0,"id":20,"iconName":"input_component","ddc2ab":false,"value":6,"description":"Composite 2 (Legacy)"},{"priority":0,"id":21,"iconName":"input_svideo","ddc2ab":false,"value":7,"description":"S-Video 1 (Legacy)"},{"priority":0,"id":22,"iconName":"input_svideo","ddc2ab":false,"value":8,"description":"S-Video 2 (Legacy)"},{"priority":0,"id":23,"iconName":"input_tuner","ddc2ab":false,"value":9,"description":"Tuner 1 (Legacy)"},{"priority":0,"id":24,"iconName":"input_tuner","ddc2ab":false,"value":10,"description":"Tuner 2 (Legacy)"},{"priority":0,"id":25,"iconName":"input_tuner","ddc2ab":false,"value":11,"description":"Tuner 3 (Legacy)"},{"priority":0,"id":26,"iconName":"input_component","ddc2ab":false,"value":12,"description":"Component 1 (Legacy)"},{"priority":0,"id":27,"iconName":"input_component","ddc2ab":false,"value":13,"description":"Component 2 (Legacy)"},{"priority":0,"id":28,"iconName":"input_component","ddc2ab":false,"value":14,"description":"Component 3 (Legacy)"},{"priority":0,"id":29,"iconName":"","ddc2ab":false,"value":20,"description":"Other 1"},{"priority":0,"id":30,"iconName":"","ddc2ab":false,"value":21,"description":"Other 2"},{"priority":0,"id":31,"iconName":"","ddc2ab":false,"value":22,"description":"Other 3"},{"priority":0,"id":32,"iconName":"","ddc2ab":false,"value":23,"description":"Other 4"},{"priority":0,"id":33,"iconName":"","ddc2ab":false,"value":24,"description":"Other 5"},{"priority":0,"id":34,"iconName":"","ddc2ab":false,"value":28,"description":"Other 6"},{"priority":0,"id":35,"iconName":"","ddc2ab":false,"value":29,"description":"Other 7"},{"priority":0,"id":36,"iconName":"","ddc2ab":false,"value":30,"description":"Other 8"},{"priority":0,"id":37,"iconName":"","ddc2ab":false,"value":31,"description":"Other 9"},{"priority":0,"id":38,"iconName":"","ddc2ab":false,"value":32,"description":"Other 10"},{"priority":0,"id":39,"iconName":"","ddc2ab":false,"value":33,"description":"Other 11"},{"priority":0,"id":40,"iconName":"","ddc2ab":false,"value":34,"description":"Other 12"}]</string>
 	<key>ddcUseCustomInputSources@Display:3</key>
 	<false/>
+	<key>defaultBitsPerSample@Display:12</key>
+	<integer>10</integer>
+	<key>defaultBitsPerSample@Display:13</key>
+	<integer>10</integer>
 	<key>defaultBitsPerSample@Display:2</key>
 	<integer>10</integer>
 	<key>defaultBitsPerSample@Display:3</key>
@@ -254,10 +284,12 @@
 	<integer>10</integer>
 	<key>defaultBitsPerSample@Display:6</key>
 	<integer>10</integer>
-	<key>defaultBitsPerSample@Display:7</key>
-	<integer>8</integer>
 	<key>defaultBitsPerSample@Display:9</key>
 	<integer>8</integer>
+	<key>defaultHeight@Display:12</key>
+	<integer>1080</integer>
+	<key>defaultHeight@Display:13</key>
+	<integer>1080</integer>
 	<key>defaultHeight@Display:2</key>
 	<integer>982</integer>
 	<key>defaultHeight@Display:3</key>
@@ -266,10 +298,12 @@
 	<integer>1080</integer>
 	<key>defaultHeight@Display:6</key>
 	<integer>1080</integer>
-	<key>defaultHeight@Display:7</key>
-	<integer>1080</integer>
 	<key>defaultHeight@Display:9</key>
 	<integer>1080</integer>
+	<key>defaultIsHiDPI@Display:12</key>
+	<false/>
+	<key>defaultIsHiDPI@Display:13</key>
+	<true/>
 	<key>defaultIsHiDPI@Display:2</key>
 	<true/>
 	<key>defaultIsHiDPI@Display:3</key>
@@ -278,22 +312,26 @@
 	<true/>
 	<key>defaultIsHiDPI@Display:6</key>
 	<true/>
-	<key>defaultIsHiDPI@Display:7</key>
-	<false/>
 	<key>defaultIsHiDPI@Display:9</key>
 	<false/>
+	<key>defaultModeNumber@Display:12</key>
+	<integer>77</integer>
+	<key>defaultModeNumber@Display:13</key>
+	<integer>96</integer>
 	<key>defaultModeNumber@Display:2</key>
 	<integer>54</integer>
 	<key>defaultModeNumber@Display:3</key>
-	<integer>146</integer>
+	<integer>156</integer>
 	<key>defaultModeNumber@Display:5</key>
 	<integer>96</integer>
 	<key>defaultModeNumber@Display:6</key>
 	<integer>96</integer>
-	<key>defaultModeNumber@Display:7</key>
-	<integer>12</integer>
 	<key>defaultModeNumber@Display:9</key>
 	<integer>12</integer>
+	<key>defaultRefreshRate@Display:12</key>
+	<integer>60</integer>
+	<key>defaultRefreshRate@Display:13</key>
+	<integer>60</integer>
 	<key>defaultRefreshRate@Display:2</key>
 	<integer>120</integer>
 	<key>defaultRefreshRate@Display:3</key>
@@ -302,10 +340,12 @@
 	<integer>60</integer>
 	<key>defaultRefreshRate@Display:6</key>
 	<integer>60</integer>
-	<key>defaultRefreshRate@Display:7</key>
-	<integer>60</integer>
 	<key>defaultRefreshRate@Display:9</key>
 	<integer>60</integer>
+	<key>defaultRefreshString@Display:12</key>
+	<string>60Hz</string>
+	<key>defaultRefreshString@Display:13</key>
+	<string>60Hz</string>
 	<key>defaultRefreshString@Display:2</key>
 	<string>ProMotion</string>
 	<key>defaultRefreshString@Display:3</key>
@@ -314,10 +354,12 @@
 	<string>60Hz</string>
 	<key>defaultRefreshString@Display:6</key>
 	<string>60Hz</string>
-	<key>defaultRefreshString@Display:7</key>
-	<string>60Hz</string>
 	<key>defaultRefreshString@Display:9</key>
 	<string>60Hz</string>
+	<key>defaultWidth@Display:12</key>
+	<integer>1920</integer>
+	<key>defaultWidth@Display:13</key>
+	<integer>1920</integer>
 	<key>defaultWidth@Display:2</key>
 	<integer>1512</integer>
 	<key>defaultWidth@Display:3</key>
@@ -326,8 +368,6 @@
 	<integer>1920</integer>
 	<key>defaultWidth@Display:6</key>
 	<integer>1920</integer>
-	<key>defaultWidth@Display:7</key>
-	<integer>1920</integer>
 	<key>defaultWidth@Display:9</key>
 	<integer>1920</integer>
 	<key>dimBrightnessOnLock@Display:2</key>
@@ -335,19 +375,21 @@
 	<key>dimBrightnessOnLock@Display:3</key>
 	<true/>
 	<key>displayConfigurationId</key>
-	<integer>172</integer>
+	<integer>556</integer>
+	<key>displayConfigurationId@Display:12</key>
+	<integer>1125</integer>
+	<key>displayConfigurationId@Display:13</key>
+	<integer>1463</integer>
 	<key>displayConfigurationId@Display:2</key>
-	<integer>172</integer>
+	<integer>556</integer>
 	<key>displayConfigurationId@Display:3</key>
-	<integer>162</integer>
+	<integer>520</integer>
 	<key>displayConfigurationId@Display:5</key>
-	<integer>140</integer>
+	<integer>426</integer>
 	<key>displayConfigurationId@Display:6</key>
-	<integer>141</integer>
-	<key>displayConfigurationId@Display:7</key>
-	<integer>70</integer>
+	<integer>426</integer>
 	<key>displayConfigurationId@Display:9</key>
-	<integer>137</integer>
+	<integer>418</integer>
 	<key>displayIsTV_overrideUndo@v4268m41349</key>
 	<integer>0</integer>
 	<key>displayModeMenuActiveFilterTagIds@Display:2</key>
@@ -361,19 +403,23 @@
 	<key>displayName_overrideUndo@v4268m41349</key>
 	<string></string>
 	<key>displayTagIDs</key>
-	<string>[2,3,5,6,7,9]</string>
+	<string>[2,3,5,6,9]</string>
+	<key>factoryColorProfileURL@Display:12</key>
+	<string>file:///Library/ColorSync/Profiles/Displays/SAMSUNG-24DAF199-5788-4551-A470-5AFC9D840D5E.icc</string>
 	<key>factoryColorProfileURL@Display:3</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20U3421WE-C42CFEB5-8E61-4144-99CC-376D8A141A4B.icc</string>
 	<key>factoryColorProfileURL@Display:5</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20S2722QC-21B39054-D0E6-41DD-BE9E-91202156F561.icc</string>
 	<key>factoryColorProfileURL@Display:6</key>
 	<string>file:///Library/ColorSync/Profiles/Displays/DELL%20S2722QC-576774A3-3759-422E-A895-066B212AD25E.icc</string>
-	<key>factoryColorProfileURL@Display:7</key>
-	<string>file:///System/Library/CoreServices/Resources/Profiles/HD%20709-A.icc</string>
 	<key>factoryColorProfileURL@Display:9</key>
 	<string>file:///System/Library/CoreServices/Resources/Profiles/HD%20709-A.icc</string>
 	<key>glassOSDShadow</key>
 	<true/>
+	<key>hasAutoBrightness@Display:12</key>
+	<false/>
+	<key>hasAutoBrightness@Display:13</key>
+	<false/>
 	<key>hasAutoBrightness@Display:2</key>
 	<true/>
 	<key>hasAutoBrightness@Display:3</key>
@@ -382,9 +428,11 @@
 	<false/>
 	<key>hasAutoBrightness@Display:6</key>
 	<false/>
-	<key>hasAutoBrightness@Display:7</key>
-	<false/>
 	<key>hasAutoBrightness@Display:9</key>
+	<false/>
+	<key>hasHDR@Display:12</key>
+	<false/>
+	<key>hasHDR@Display:13</key>
 	<false/>
 	<key>hasHDR@Display:2</key>
 	<false/>
@@ -394,10 +442,12 @@
 	<false/>
 	<key>hasHDR@Display:6</key>
 	<false/>
-	<key>hasHDR@Display:7</key>
-	<false/>
 	<key>hasHDR@Display:9</key>
 	<false/>
+	<key>hasHiDPI@Display:12</key>
+	<true/>
+	<key>hasHiDPI@Display:13</key>
+	<true/>
 	<key>hasHiDPI@Display:2</key>
 	<true/>
 	<key>hasHiDPI@Display:3</key>
@@ -406,10 +456,12 @@
 	<true/>
 	<key>hasHiDPI@Display:6</key>
 	<true/>
-	<key>hasHiDPI@Display:7</key>
-	<true/>
 	<key>hasHiDPI@Display:9</key>
 	<true/>
+	<key>hasNotch@Display:12</key>
+	<false/>
+	<key>hasNotch@Display:13</key>
+	<false/>
 	<key>hasNotch@Display:2</key>
 	<true/>
 	<key>hasNotch@Display:3</key>
@@ -418,9 +470,9 @@
 	<false/>
 	<key>hasNotch@Display:6</key>
 	<false/>
-	<key>hasNotch@Display:7</key>
-	<false/>
 	<key>hasNotch@Display:9</key>
+	<false/>
+	<key>hasUnderscanSupport@Display:12</key>
 	<false/>
 	<key>hasUnderscanSupport@Display:2</key>
 	<false/>
@@ -430,26 +482,28 @@
 	<false/>
 	<key>hasUnderscanSupport@Display:6</key>
 	<false/>
-	<key>hasUnderscanSupport@Display:7</key>
-	<false/>
 	<key>hasUnderscanSupport@Display:9</key>
 	<false/>
+	<key>hasVRR@Display:13</key>
+	<true/>
 	<key>hasVRR@Display:2</key>
 	<true/>
 	<key>hasVRR@Display:5</key>
 	<true/>
 	<key>hasVRR@Display:6</key>
 	<true/>
+	<key>heightMillimeters@Display:12</key>
+	<real>498.76362887295812</real>
+	<key>heightMillimeters@Display:13</key>
+	<real>340.24185535519626</real>
 	<key>heightMillimeters@Display:2</key>
 	<real>195.99075613242172</real>
 	<key>heightMillimeters@Display:3</key>
-	<real>329.51350856471709</real>
+	<real>329.27635869112879</real>
 	<key>heightMillimeters@Display:5</key>
 	<real>340.24185535519626</real>
 	<key>heightMillimeters@Display:6</key>
-	<real>340.77018121754901</real>
-	<key>heightMillimeters@Display:7</key>
-	<real>380.9999942779541</real>
+	<real>340.24185535519626</real>
 	<key>heightMillimeters@Display:9</key>
 	<real>380.9999942779541</real>
 	<key>hiddenFromMenu@Display:2</key>
@@ -484,8 +538,6 @@
 	<false/>
 	<key>isUnavailable@bGain-OverlayController@Display:2</key>
 	<true/>
-	<key>isUnavailable@bGain-OverlayController@Display:7</key>
-	<true/>
 	<key>isUnavailable@bGain-OverlayController@Display:9</key>
 	<true/>
 	<key>isUnavailable@blueHardwareBlackLevel-DDCController@Display:3</key>
@@ -494,13 +546,9 @@
 	<false/>
 	<key>isUnavailable@gGain-OverlayController@Display:2</key>
 	<true/>
-	<key>isUnavailable@gGain-OverlayController@Display:7</key>
-	<true/>
 	<key>isUnavailable@gGain-OverlayController@Display:9</key>
 	<true/>
 	<key>isUnavailable@gain-OverlayController@Display:2</key>
-	<true/>
-	<key>isUnavailable@gain-OverlayController@Display:7</key>
 	<true/>
 	<key>isUnavailable@gain-OverlayController@Display:9</key>
 	<true/>
@@ -510,7 +558,23 @@
 	<false/>
 	<key>isUnavailable@hardwareAmbientLight-AmbientLightController</key>
 	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:13</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:2</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:3</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:5</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:6</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-AmbientLightController@Display:9</key>
+	<true/>
+	<key>isUnavailable@hardwareAmbientLight-EnvironmentController</key>
+	<true/>
 	<key>isUnavailable@hardwareBacklight-DDCController@Display:3</key>
+	<false/>
+	<key>isUnavailable@hardwareBrightness-DDCController@Display:12</key>
 	<false/>
 	<key>isUnavailable@hardwareBrightness-DDCController@Display:3</key>
 	<false/>
@@ -526,8 +590,6 @@
 	<true/>
 	<key>isUnavailable@rGain-OverlayController@Display:2</key>
 	<true/>
-	<key>isUnavailable@rGain-OverlayController@Display:7</key>
-	<true/>
 	<key>isUnavailable@rGain-OverlayController@Display:9</key>
 	<true/>
 	<key>isUnavailable@redHardwareBlackLevel-DDCController@Display:3</key>
@@ -535,8 +597,6 @@
 	<key>isUnavailable@redHardwareGain-DDCController@Display:3</key>
 	<false/>
 	<key>isUnavailable@temperature-OverlayController@Display:2</key>
-	<true/>
-	<key>isUnavailable@temperature-OverlayController@Display:7</key>
 	<true/>
 	<key>isUnavailable@temperature-OverlayController@Display:9</key>
 	<true/>
@@ -554,74 +614,78 @@
 	<false/>
 	<key>menuCollapsed@Display:6</key>
 	<false/>
-	<key>menuCollapsed@Display:7</key>
-	<false/>
 	<key>menuLevelBlueLight</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelBrightness</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelCheckForUpdates</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelColorDepth</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelColorMode</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelColorProfile</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelConfigProtection</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelContrast</key>
-	<string>hide</string>
+	<string>unset</string>
 	<key>menuLevelDDCAdjustments</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelDDCInput</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelDisplayConnect</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelDisplayDisconnect</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelDisplayMode</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelDisplaysAndVirtualScreens</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelGroups</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelImageAdjustments</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelManageDisplay</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelManageVirtualScreen</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelMirror</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelMove</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelPIP</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelQuit</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelRefreshRate</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelResolution</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelRotation</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelSettings</key>
-	<string>less</string>
+	<string>unset</string>
+	<key>menuLevelShowConsole</key>
+	<string>unset</string>
 	<key>menuLevelStream</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelToggles</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelVideoFilterWindow</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelVirtualScreenConnect</key>
-	<string>less</string>
+	<string>unset</string>
 	<key>menuLevelVirtualScreenDisconnect</key>
-	<string>more</string>
+	<string>unset</string>
 	<key>menuLevelVolume</key>
-	<string>more</string>
+	<string>unset</string>
+	<key>menuLevelWindowStream</key>
+	<string>unset</string>
 	<key>menuLevelXDRPreset</key>
-	<string>more</string>
+	<string>unset</string>
+	<key>moreOptions@Display:12</key>
+	<true/>
 	<key>moreOptions@Display:2</key>
 	<false/>
 	<key>moreOptions@Display:3</key>
@@ -630,8 +694,10 @@
 	<false/>
 	<key>moreOptions@Display:6</key>
 	<false/>
-	<key>moreOptions@Display:7</key>
-	<false/>
+	<key>name@Display:12</key>
+	<string>SAMSUNG</string>
+	<key>name@Display:13</key>
+	<string>Generic Display</string>
 	<key>name@Display:2</key>
 	<string>Color LCD</string>
 	<key>name@Display:3</key>
@@ -639,11 +705,13 @@
 	<key>name@Display:5</key>
 	<string>DELL S2722QC 1</string>
 	<key>name@Display:6</key>
-	<string>DELL S2722QC</string>
-	<key>name@Display:7</key>
-	<string>Open space</string>
+	<string>DELL S2722QC 2</string>
 	<key>name@Display:9</key>
 	<string>003</string>
+	<key>nativeHeight@Display:12</key>
+	<integer>1080</integer>
+	<key>nativeHeight@Display:13</key>
+	<integer>2160</integer>
 	<key>nativeHeight@Display:2</key>
 	<integer>1964</integer>
 	<key>nativeHeight@Display:3</key>
@@ -652,22 +720,26 @@
 	<integer>2160</integer>
 	<key>nativeHeight@Display:6</key>
 	<integer>2160</integer>
-	<key>nativeHeight@Display:7</key>
-	<integer>1080</integer>
 	<key>nativeHeight@Display:9</key>
 	<integer>1080</integer>
+	<key>nativeModeNumber@Display:12</key>
+	<integer>77</integer>
+	<key>nativeModeNumber@Display:13</key>
+	<integer>162</integer>
 	<key>nativeModeNumber@Display:2</key>
 	<integer>126</integer>
 	<key>nativeModeNumber@Display:3</key>
-	<integer>146</integer>
+	<integer>156</integer>
 	<key>nativeModeNumber@Display:5</key>
 	<integer>162</integer>
 	<key>nativeModeNumber@Display:6</key>
 	<integer>162</integer>
-	<key>nativeModeNumber@Display:7</key>
-	<integer>12</integer>
 	<key>nativeModeNumber@Display:9</key>
 	<integer>12</integer>
+	<key>nativeWidth@Display:12</key>
+	<integer>1920</integer>
+	<key>nativeWidth@Display:13</key>
+	<integer>3840</integer>
 	<key>nativeWidth@Display:2</key>
 	<integer>3024</integer>
 	<key>nativeWidth@Display:3</key>
@@ -676,8 +748,6 @@
 	<integer>3840</integer>
 	<key>nativeWidth@Display:6</key>
 	<integer>3840</integer>
-	<key>nativeWidth@Display:7</key>
-	<integer>1920</integer>
 	<key>nativeWidth@Display:9</key>
 	<integer>1920</integer>
 	<key>neutralValueOverride@hardwareBrightness-DDCController@Display:3</key>
@@ -686,6 +756,10 @@
 	<real>0.75</real>
 	<key>neutralValueOverride@mute-DDCController@Display:3</key>
 	<false/>
+	<key>nonAppleRealDisplay@Display:12</key>
+	<true/>
+	<key>nonAppleRealDisplay@Display:13</key>
+	<true/>
 	<key>nonAppleRealDisplay@Display:2</key>
 	<false/>
 	<key>nonAppleRealDisplay@Display:3</key>
@@ -694,8 +768,6 @@
 	<true/>
 	<key>nonAppleRealDisplay@Display:6</key>
 	<true/>
-	<key>nonAppleRealDisplay@Display:7</key>
-	<false/>
 	<key>nonAppleRealDisplay@Display:9</key>
 	<false/>
 	<key>notificationStyle</key>
@@ -706,6 +778,10 @@
 	<false/>
 	<key>onboardingSettingsIcon</key>
 	<false/>
+	<key>overrideCapable@Display:12</key>
+	<true/>
+	<key>overrideCapable@Display:13</key>
+	<true/>
 	<key>overrideCapable@Display:2</key>
 	<true/>
 	<key>overrideCapable@Display:3</key>
@@ -714,8 +790,6 @@
 	<true/>
 	<key>overrideCapable@Display:6</key>
 	<true/>
-	<key>overrideCapable@Display:7</key>
-	<false/>
 	<key>overrideCapable@Display:9</key>
 	<false/>
 	<key>overrideDefaultResolutionHiDPI_overrideUndo@v4268m41349</key>
@@ -745,13 +819,11 @@
 	<key>persistedDisplayID@Display:2</key>
 	<string>1</string>
 	<key>persistedDisplayID@Display:3</key>
-	<string>3</string>
-	<key>persistedDisplayID@Display:5</key>
 	<string>2</string>
-	<key>persistedDisplayID@Display:7</key>
-	<string>8</string>
+	<key>persistedDisplayID@Display:6</key>
+	<string>3</string>
 	<key>persistedDisplayID@Display:9</key>
-	<string>5</string>
+	<string>4</string>
 	<key>preventSleepWhileConnected@Display:3</key>
 	<false/>
 	<key>settingsDisplayGroupPaneSelectedTagID</key>
@@ -759,7 +831,7 @@
 	<key>settingsDisplayPaneSelectedTagID</key>
 	<integer>0</integer>
 	<key>settingsPaneId</key>
-	<string>ProPane</string>
+	<string>DisplaysPane</string>
 	<key>sheetSizeSaveEntries</key>
 	<string>[{"id":"DisplayInformationSheetView","width":660,"height":560},{"id":"IntegrationConfigurationSheet","width":620,"height":560},{"id":"DDCInputConfigurationSheet","width":660,"height":560},{"id":"AudioSheet","width":660,"height":560},{"id":"DDCConfigurationSheet","width":660,"height":560}]</string>
 	<key>showAdditionalPrivacySettings</key>
@@ -798,6 +870,8 @@
 	<false/>
 	<key>showVolumeOSD@Display:3</key>
 	<true/>
+	<key>sidecar@Display:12</key>
+	<false/>
 	<key>sidecar@Display:2</key>
 	<false/>
 	<key>sidecar@Display:3</key>
@@ -805,8 +879,6 @@
 	<key>sidecar@Display:5</key>
 	<false/>
 	<key>sidecar@Display:6</key>
-	<false/>
-	<key>sidecar@Display:7</key>
 	<false/>
 	<key>sidecar@Display:9</key>
 	<false/>
@@ -836,17 +908,23 @@
 	<true/>
 	<key>smoothScaling_overrideUndo@v4268m41349</key>
 	<true/>
+	<key>supportsHDR@Display:12</key>
+	<false/>
+	<key>supportsHDR@Display:13</key>
+	<false/>
 	<key>supportsHDR@Display:2</key>
 	<false/>
 	<key>supportsHDR@Display:3</key>
-	<true/>
+	<false/>
 	<key>supportsHDR@Display:5</key>
-	<false/>
+	<true/>
 	<key>supportsHDR@Display:6</key>
-	<false/>
-	<key>supportsHDR@Display:7</key>
-	<false/>
+	<true/>
 	<key>supportsHDR@Display:9</key>
+	<false/>
+	<key>systemVirtual@Display:12</key>
+	<false/>
+	<key>systemVirtual@Display:13</key>
 	<false/>
 	<key>systemVirtual@Display:2</key>
 	<false/>
@@ -856,12 +934,12 @@
 	<false/>
 	<key>systemVirtual@Display:6</key>
 	<false/>
-	<key>systemVirtual@Display:7</key>
-	<true/>
 	<key>systemVirtual@Display:9</key>
 	<true/>
 	<key>tagIDCounter</key>
-	<integer>9</integer>
+	<integer>11</integer>
+	<key>thirdPartyVirtual@Display:12</key>
+	<false/>
 	<key>thirdPartyVirtual@Display:2</key>
 	<false/>
 	<key>thirdPartyVirtual@Display:3</key>
@@ -870,13 +948,13 @@
 	<false/>
 	<key>thirdPartyVirtual@Display:6</key>
 	<false/>
-	<key>thirdPartyVirtual@Display:7</key>
-	<false/>
 	<key>thirdPartyVirtual@Display:9</key>
 	<false/>
 	<key>toolsMenuCollapsed</key>
 	<true/>
 	<key>toolsMoreOptions</key>
+	<false/>
+	<key>tv@Display:12</key>
 	<false/>
 	<key>tv@Display:2</key>
 	<false/>
@@ -886,9 +964,9 @@
 	<false/>
 	<key>tv@Display:6</key>
 	<false/>
-	<key>tv@Display:7</key>
-	<false/>
 	<key>tv@Display:9</key>
+	<false/>
+	<key>unknownDisplay@Display:12</key>
 	<false/>
 	<key>unknownDisplay@Display:2</key>
 	<false/>
@@ -898,14 +976,16 @@
 	<false/>
 	<key>unknownDisplay@Display:6</key>
 	<false/>
-	<key>unknownDisplay@Display:7</key>
-	<false/>
 	<key>unknownDisplay@Display:9</key>
 	<false/>
 	<key>userDefinedControls@Display:3</key>
 	<string>[]</string>
 	<key>uuid@Display:0</key>
 	<integer>0</integer>
+	<key>uuid@Display:12</key>
+	<integer>12</integer>
+	<key>uuid@Display:13</key>
+	<integer>13</integer>
 	<key>uuid@Display:2</key>
 	<integer>2</integer>
 	<key>uuid@Display:3</key>
@@ -914,16 +994,18 @@
 	<integer>5</integer>
 	<key>uuid@Display:6</key>
 	<integer>6</integer>
-	<key>uuid@Display:7</key>
-	<integer>7</integer>
 	<key>uuid@Display:9</key>
 	<integer>9</integer>
 	<key>uuid@DisplayGroup:-1001</key>
 	<integer>-1001</integer>
 	<key>value@blueLight-BlueLightController</key>
 	<real>1</real>
+	<key>value@blueLight-EnvironmentController</key>
+	<real>1</real>
+	<key>value@combinedBrightness-CombinedController@Display:12</key>
+	<real>0.5</real>
 	<key>value@combinedBrightness-CombinedController@Display:2</key>
-	<real>0.9992076646197926</real>
+	<real>0.94728768413717102</real>
 	<key>value@combinedBrightness-CombinedController@Display:3</key>
 	<real>1</real>
 	<key>value@combinedBrightness-CombinedController@Display:5</key>
@@ -931,13 +1013,23 @@
 	<key>value@combinedBrightness-CombinedController@Display:6</key>
 	<real>1</real>
 	<key>value@hardwareBrightness-AppleController@Display:2</key>
-	<real>1</real>
+	<real>0.92598235607147217</real>
+	<key>value@hardwareBrightness-DDCController@Display:12</key>
+	<real>0.0</real>
 	<key>value@hardwareBrightness-DDCController@Display:3</key>
 	<real>0.5</real>
+	<key>value@hardwareBrightness-DDCController@Display:5</key>
+	<real>1</real>
+	<key>value@hardwareBrightness-DDCController@Display:6</key>
+	<real>1</real>
 	<key>value@mute-DDCController@Display:3</key>
 	<false/>
 	<key>value@mute-NativeAudioController@Display:3</key>
 	<false/>
+	<key>value@softwareBrightness-ColorController@Display:12</key>
+	<real>1</real>
+	<key>value@softwareBrightness-ColorController@Display:13</key>
+	<real>1</real>
 	<key>value@softwareBrightness-ColorController@Display:2</key>
 	<real>1</real>
 	<key>value@softwareBrightness-ColorController@Display:3</key>
@@ -948,9 +1040,9 @@
 	<real>1</real>
 	<key>value@softwareBrightness-OverlayController@Display:2</key>
 	<real>1</real>
-	<key>value@softwareBrightness-OverlayController@Display:7</key>
-	<real>1</real>
 	<key>value@softwareBrightness-OverlayController@Display:9</key>
+	<real>1</real>
+	<key>value@volume-DDCController@Display:12</key>
 	<real>1</real>
 	<key>value@volume-DDCController@Display:3</key>
 	<real>0.13</real>
@@ -958,6 +1050,10 @@
 	<real>0.6875</real>
 	<key>videoKeyboardControl</key>
 	<string>displayWithMouse</string>
+	<key>virtualScreenLinked@Display:12</key>
+	<false/>
+	<key>virtualScreenLinked@Display:13</key>
+	<false/>
 	<key>virtualScreenLinked@Display:2</key>
 	<false/>
 	<key>virtualScreenLinked@Display:3</key>
@@ -966,22 +1062,26 @@
 	<false/>
 	<key>virtualScreenLinked@Display:6</key>
 	<false/>
-	<key>virtualScreenLinked@Display:7</key>
-	<false/>
 	<key>virtualScreenLinked@Display:9</key>
 	<false/>
+	<key>widthMillimeters@Display:12</key>
+	<real>886.69089577414763</real>
+	<key>widthMillimeters@Display:13</key>
+	<real>599.2995301699309</real>
 	<key>widthMillimeters@Display:2</key>
 	<real>301.78217368550821</real>
 	<key>widthMillimeters@Display:3</key>
-	<real>801.61466686003791</real>
+	<real>801.04072871031588</real>
 	<key>widthMillimeters@Display:5</key>
 	<real>599.2995301699309</real>
 	<key>widthMillimeters@Display:6</key>
-	<real>598.38035911138797</real>
-	<key>widthMillimeters@Display:7</key>
-	<real>677.33332316080737</real>
+	<real>599.2995301699309</real>
 	<key>widthMillimeters@Display:9</key>
 	<real>677.33332316080737</real>
+	<key>xdrPresetsSupported@Display:12</key>
+	<false/>
+	<key>xdrPresetsSupported@Display:13</key>
+	<false/>
 	<key>xdrPresetsSupported@Display:2</key>
 	<true/>
 	<key>xdrPresetsSupported@Display:3</key>
@@ -989,8 +1089,6 @@
 	<key>xdrPresetsSupported@Display:5</key>
 	<false/>
 	<key>xdrPresetsSupported@Display:6</key>
-	<false/>
-	<key>xdrPresetsSupported@Display:7</key>
 	<false/>
 	<key>xdrPresetsSupported@Display:9</key>
 	<false/>
