@@ -136,10 +136,10 @@ on-window-detected = [
     { if = 'test %{app-bundle-id} = org.m0k.transmission', run = 'layout floating' },
     { if = 'test %{app-bundle-id} = com.colliderli.iina', run = 'layout floating' },
 
-    # Mail collapses its message preview pane, and persists it collapsed,
-    # whenever its window is narrower than sidebar + message list + preview
-    # minimum widths.
-    { if = 'test %{app-bundle-id} = com.apple.mail', run = 'layout floating' },
+    # # Mail collapses its message preview pane, and persists it collapsed,
+    # # whenever its window is narrower than sidebar + message list + preview
+    # # minimum widths.
+    # { if = 'test %{app-bundle-id} = com.apple.mail', run = 'layout floating' },
 ]
 
 # Possible values: (qwerty|dvorak|colemak)
