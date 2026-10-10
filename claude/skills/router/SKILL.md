@@ -40,7 +40,7 @@ A value in nvram is a request; the generated config is what rc derived from it; 
 
 An action that restarts the radios, the network, sshd or the router drops the SSH session or the Mac's Wi‑Fi link (which one, per action: the DROPS column of [platform.md § Apply actions](references/platform.md#apply-actions)). The write, the restart, the wait loop and the read-back therefore run as one Bash call with `run_in_background: true`, whose exit notification is the signal that the router is back; the wait loop and the markers that mean each part is up are in [diagnostics.md § Restart safety](references/diagnostics.md#restart-safety). The hook `~/.claude/hooks/enforce-foreground-polling.sh` refuses foreground sleep loops.
 
-Completion: each written key reads its new value, the generated config and live state agree with it, `uptime` matches the restart that was run, and the old values are reported to the user as the restore command and appended as a decision row (factory value, chosen value, reason, restore command) to `~/.config/router/decisions.md`, the user's local log of every choice made on this unit, which also holds the factory baseline.
+Completion: each written key reads its new value, the generated config and live state agree with it, `uptime` matches the restart that was run, and the old values are reported to the user as the restore command and appended as a decision row (factory value, chosen value, reason, restore command) to `~/donofiles/router/decisions.md`, the user's private log of every choice made on this unit, which also holds the factory baseline.
 
 ## Reference files
 
