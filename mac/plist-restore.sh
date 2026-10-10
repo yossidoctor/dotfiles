@@ -4,8 +4,7 @@
 # Usage: plist-restore.sh <ProcessName> <defaults-domain> <plist>
 #
 # For apps whose settings are nested structures rather than flat scalars
-# (BetterDisplay's per-display UUID-keyed entries, BetterCmdTab's
-# shortcutOverrides/appExceptions arrays), whole-plist export/import via
+# (BetterDisplay's per-display UUID-keyed entries), whole-plist export/import via
 # `defaults` is the vendor-sanctioned mechanism; hand-editing the plist on
 # disk is not, because cfprefsd caches the live values and rewrites the file
 # on quit. The app is quit before the import so that rewrite cannot clobber
