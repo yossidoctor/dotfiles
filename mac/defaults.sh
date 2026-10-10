@@ -613,6 +613,23 @@ defaults write "$IINA" "PluginEnabled.io.iina.opensub" -bool false
 defaults write "$IINA" "PluginEnabled.io.iina.user-script" -bool false
 defaults write "$IINA" "PluginEnabled.io.iina.ytdl" -bool false
 
+# Spotify (cask: spotify) — settings are key=value lines in the per-user prefs
+# file, which appears only after the first login and which Spotify rewrites on
+# quit, so it is edited only while Spotify is not running. Spotify stores a key
+# only once it differs from the default.
+# Spotify › Settings › "Streaming quality" (metered and unmetered) and download quality · value 5
+# Spotify › Settings › "Normalize volume" · default on
+if ! pgrep -xq Spotify; then
+  for prefs in "$HOME/Library/Application Support/Spotify/Users/"*-user/prefs; do
+    [ -f "$prefs" ] || continue
+    for kv in audio.play_bitrate_enumeration=5 audio.play_bitrate_non_metered_enumeration=5 \
+              audio.sync_bitrate_enumeration=5 audio.normalize_v2=false; do
+      awk -F= -v k="${kv%%=*}" '$1 != k' "$prefs" > "$prefs.tmp" &&
+        echo "$kv" >> "$prefs.tmp" && mv "$prefs.tmp" "$prefs"
+    done
+  done
+fi
+
 # Ghostty (cask: ghostty) — real config is ~/.config/ghostty/config, not defaults.
 # Karabiner-Elements (cask: karabiner-elements) — real config is
 # ~/.config/karabiner/karabiner.json (defaults holds only window geometry).
