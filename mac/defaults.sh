@@ -497,6 +497,8 @@ killall Transmission 2>/dev/null || true
 TRANSMISSION=org.m0k.transmission
 # Transmission › Settings › Transfers › Adding › "Default location:" (chosen folder) · default ~/Downloads
 defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Movies"
+# Transmission › Settings › Transfers › "Keep incomplete files in:" (chosen folder) · default ~/Downloads
+defaults write "$TRANSMISSION" IncompleteDownloadFolder -string "$HOME/Movies"
 # Transmission › Settings › Transfers › Adding › "Default location:" popup · default "Same as torrent file" (false)
 # true selects the fixed folder above (PrefsController.mm setDownloadLocation:).
 defaults write "$TRANSMISSION" DownloadLocationConstant -bool true
@@ -521,12 +523,20 @@ defaults write "$TRANSMISSION" RatioLimit -float 1.0
 defaults write "$TRANSMISSION" PeersTotal -int 500
 # Transmission › Settings › Peers › Connections › "Maximum connections for new transfers:" · default 60
 defaults write "$TRANSMISSION" PeersTorrent -int 120
-# Transmission › Settings › Bandwidth › Global bandwidth limits › "Upload rate:" · default off, 50 KB/s
-# Half the measured uplink, so seeding never fills the upstream queue that ACKs and every other device share.
-defaults write "$TRANSMISSION" CheckUpload -bool true
-defaults write "$TRANSMISSION" UploadLimit -int 5000
 # Transmission › View › Compact View · default off
-defaults write "$TRANSMISSION" SmallView -bool true
+defaults write "$TRANSMISSION" SmallView -bool false
+# Transmission › View › Show Filter Bar · default off
+defaults write "$TRANSMISSION" FilterBar -bool true
+# Transmission › View › Sort Transfers By › Queue Order · default Order
+defaults write "$TRANSMISSION" Sort -string Order
+# Transmission status bar › ratio/transfer label › session transfer · default RatioTotal
+defaults write "$TRANSMISSION" StatusLabel -string TransferSession
+# Transmission › Window › Inspector › selected tab · default Info
+defaults write "$TRANSMISSION" InspectorSelected -string Files
+# Transmission › Settings › General › "Automatically size window to fit all transfers" · default off
+defaults write "$TRANSMISSION" AutoSize -bool true
+# Transmission › Settings › General › "Automatically check daily" (updates) · default on
+defaults write "$TRANSMISSION" SUEnableAutomaticChecks -bool false
 # Transmission › Settings › General › "Notifications:" · default on
 # macOS notification when a transfer completes.
 defaults write "$TRANSMISSION" DisplayNotifications -bool true
