@@ -34,6 +34,7 @@ brew "hurl"                         # HTTP requests + assertions as plain-text f
 
 # ── languages & runtime ────────────────────────────────────────────
 brew "fnm"                          # Fast Node Manager — per-dir Node via .nvmrc (zshrc auto-switch)
+brew "python"
 brew "uv"                           # Python package installer / tool runner (claude-swap)
 
 # ── mac utilities ──────────────────────────────────────────────────
