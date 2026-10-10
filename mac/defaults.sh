@@ -371,41 +371,15 @@ defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
 # ─────────────────────────────────────────────────────────────────────────────
 SAFARI="$HOME/Library/Containers/com.apple.Safari/Data/Library/Preferences/com.apple.Safari"
 
-# Safari › Settings › Search › "Include Safari Suggestions" · default on
-# Typed text is not sent to Apple for Music/Maps/News/Wikipedia suggestions.
-defaults write "$SAFARI" UniversalSearchEnabled -bool false
-
-# Safari › Settings › Search › "Include search engine suggestions" · default on (key off)
-# Inverted key: true suppresses the live completions fetched from the search engine.
-defaults write "$SAFARI" SuppressSearchSuggestions -bool true
-
-# Safari › Settings › Search › "Preload Top Hit in the background" · default on
-# No page fetched before it is chosen.
-defaults write "$SAFARI" PreloadTopHit -bool false
-
 # Safari › Settings › Advanced › "Use advanced tracking and fingerprinting protection" · default "in Private Browsing"
 # Both true = "in all browsing": strips click IDs (gclid, fbclid) from links
 # and blocks known tracker loads everywhere. Breaks the odd analytics-gated site.
 defaults write "$SAFARI" EnableEnhancedPrivacyInPrivateBrowsing -bool true
 defaults write "$SAFARI" EnableEnhancedPrivacyInRegularBrowsing -bool true
 
-# Safari › Settings › General › Homepage · default Apple's start page
-# Blank homepage. New tabs/windows are governed separately by NewTabBehavior /
-# NewWindowBehavior and left to the UI.
-defaults write "$SAFARI" HomePage -string 'about:blank'
-
-# Safari › Settings › General › "Open "safe" files after downloading" · default on
-# Downloads stay as files; nothing auto-opens (disk images and archives included).
-defaults write "$SAFARI" AutoOpenSafeDownloads -bool false
-
-# Safari › Settings › Privacy › "Allow privacy-preserving measurement of ad effectiveness" · default on
-# No Private Click Measurement attribution reports.
-defaults write "$SAFARI" WebKitPreferences.privateClickMeasurementEnabled -bool false
-
-# Safari › Settings › Advanced › "Show features for web developers" · default off
-# Develop menu and Web Inspector. Lives in the broker domain, a plain plist in
-# ~/Library/Preferences, so no FDA involved. Read at Safari launch.
-defaults write com.apple.Safari.SandboxBroker ShowDevelopMenu -bool true
+# Safari › View › Show Status Bar · default off
+# Hovering a link shows its destination URL at the bottom of the window.
+defaults write "$SAFARI" ShowOverlayStatusBar -bool true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Mail — sandboxed like Safari; same container-path rule.
