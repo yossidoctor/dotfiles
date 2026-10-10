@@ -15,8 +15,6 @@
 #                                    never match another Mac's displays anyway),
 #                                    the Paddle license hash, Finder save-panel
 #                                    chrome
-#   pro.bettercmdtab.BetterCmdTab    GitHubUpdater.* update-check markers,
-#                                    Switcher.recentlyClosed window history
 #
 # PlistBuddy treats a literal `:` inside a key name (firstAdded@Display:7) as a
 # nesting separator, so it is escaped as `\:` or the Delete silently misses.
@@ -30,8 +28,6 @@ domain="$1" plist="$2"
 case "$domain" in
   pro.betterdisplay.BetterDisplay)
     volatile='(firstAdded|lastConnected|lastUnseen|storedIdentifiers)@[^ =]*|Paddle-BetterDisplay-[^ =]*|NSNavPanelExpandedSizeForSaveMode|NSOSPLastRootDirectory' ;;
-  pro.bettercmdtab.BetterCmdTab)
-    volatile='GitHubUpdater[^ =]*|Switcher\.recentlyClosed' ;;
   *)
     echo "plist-export: no volatile-key set for domain $domain — add a case before exporting" >&2
     exit 2 ;;
