@@ -553,9 +553,47 @@ defaults write "$TRANSMISSION" WarningDonate -bool false
 # Labels are the installed build's Pref*ViewController.strings.
 IINA=com.colliderli.iina
 # IINA › Preferences › Subtitle › "Preferred language:" · default "" (none)
-# ISO 639-2 code, passed to mpv as slang: an English embedded or sidecar track
-# is selected on open. Also the language OpenSubtitles searches are made in.
-defaults write "$IINA" subLang -string "eng"
+# Comma-separated language codes, passed to mpv as slang: an English embedded or
+# sidecar track is selected on open. Also the language OpenSubtitles searches are made in.
+defaults write "$IINA" subLang -string "eng,en"
+# IINA › Preferences › Subtitle › "Search online subtitles automatically" · default off
+defaults write "$IINA" autoSearchOnlineSub -bool true
+# IINA › Preferences › Video/Audio › "Preferred language:" (audio) · default "" (none)
+defaults write "$IINA" audioLanguage -string "en,eng"
+# IINA › Preferences › Video/Audio › "Maximum volume:" · default 100
+defaults write "$IINA" maxVolume -int 150
+# IINA › Preferences › Video/Audio › "Enable tone mapping" · default on
+defaults write "$IINA" enableToneMapping -bool false
+# IINA › Preferences › General › "At launch:" · default Show welcome window (0)
+# 0 welcome window, 1 open panel, 2 do nothing.
+defaults write "$IINA" actionAfterLaunch -int 2
+# IINA › Preferences › General › "Allow multiple player windows" · default on
+defaults write "$IINA" alwaysOpenInNewWindow -bool false
+# IINA › Preferences › General › "Keep window open after playback finishes" · default on
+defaults write "$IINA" keepOpenOnFileEnd -bool false
+# IINA › Preferences › General › "Pause/resume when:" › "Window becomes inactive/active" and "Minimized/un-minimized" · default off
+defaults write "$IINA" pauseWhenInactive -bool true
+defaults write "$IINA" pauseWhenMinimized -bool true
+# IINA › Preferences › General › "Check for updates" · default on
+defaults write "$IINA" SUEnableAutomaticChecks -bool false
+# IINA › Preferences › UI › "On Screen Controller:" · default Floating (0)
+# 0 floating, 1 top, 2 bottom.
+defaults write "$IINA" oscPosition -int 2
+# IINA › Preferences › UI › "Auto hide after:" (seconds) · default 2.5
+defaults write "$IINA" controlBarAutoHideTimeout -float 2
+# IINA › Preferences › UI › "Toolbar:" · default plugins, PiP, playlist, settings
+# ToolBarButton raw values: 5 subtitle track, 3 full screen.
+defaults write "$IINA" controlBarToolbarButtons -array '<integer>5</integer>' '<integer>3</integer>'
+# IINA › Preferences › UI › "Resize window to:" · default 1x video size (2)
+# 0 fit screen, 1 0.5x, 2 1x, 3 1.5x, 4 2x.
+defaults write "$IINA" resizeWindowOption -int 0
+# IINA › Preferences › UI › "Resize the window to fit video size:" · default when media is opened manually (1)
+# 0 always, 1 when media is opened manually, 2 never.
+defaults write "$IINA" resizeWindowTiming -int 0
+# IINA › Preferences › UI › "Show chapter position in progress bar" · default off
+defaults write "$IINA" showChapterPos -bool true
+# IINA › Preferences › UI › Thumbnail Preview › "Maximum cache size:" (MB) · default 500
+defaults write "$IINA" maxThumbnailPreviewCacheSize -int 1000
 # IINA › Preferences › General › "Resume last playback position" · default on
 defaults write "$IINA" resumeLastPosition -bool true
 # IINA › Preferences › General › "Quit after all windows are closed" · default off
@@ -566,7 +604,7 @@ defaults write "$IINA" quitWhenNoOpenedWindow -bool true
 defaults write "$IINA" themeMaterial -int 0
 # IINA › Preferences › General › "Screenshots:" folder · default ~/Pictures/Screenshots
 # Same folder com.apple.screencapture writes to above.
-defaults write "$IINA" screenshotFolder -string "$HOME/Screenshots"
+defaults write "$IINA" screenShotFolder -string "$HOME/Screenshots"
 # IINA › Preferences › Plugins › each plugin's "Enabled" · default on once installed
 # The bundled plugins each raise a standalone window alongside the player window
 # (OpenSubtitles' search window, User Scripts' script manager), and Online Media
