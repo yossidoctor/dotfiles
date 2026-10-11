@@ -8,8 +8,10 @@
 # Excluded: the work tree, whose node_modules, .venv and build output are
 # hundreds of thousands of files rewritten on every install and searched by
 # ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade;
-# Linear's Electron cache, which alone was 263k of the first full index's
-# 368k items; and the Command Line Tools' SDK headers under
+# ~/Library/Application Support and Application Scripts, the apps' own working
+# data (VS Code, Chrome, Zoom; Linear's Electron cache alone was 263k of the
+# first full index's 368k items), half of the index and not what Finder search
+# is for, matching Raycast, which skips it too; the Command Line Tools' SDK headers under
 # /Library/Developer, 91k static items nobody searches from Finder; and the
 # Music library, installed fonts and app logs, which have their own apps
 # (Music, Font Book, Console) and nothing a Finder search is for. Hidden
@@ -35,7 +37,9 @@ set -uo pipefail
 exclusions=(
   "$HOME/work"
   /opt/homebrew
-  "$HOME/Library/Application Support/Linear"
+  "$HOME/Library/Application Support"
+  "$HOME/Library/Application Support/Linear"  # Kept, in case the line above is removed
+  "$HOME/Library/Application Scripts"
   /Library/Developer
   "$HOME/Music"
   "$HOME/Library/Fonts"

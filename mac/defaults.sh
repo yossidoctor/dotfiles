@@ -330,14 +330,14 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 # Spotlight › Results from System › "iPhone Apps" · default on
 # No Apple-partner content, no content from the listed apps (Books is
 # iBooksX, Calendar iCal, Contacts AddressBook, Messages MobileSMS, Phone
-# mobilephone), no iPhone apps. Notes, Reminders, System Settings and the
+# mobilephone, Reminders reminders), no iPhone apps. Notes, System Settings and the
 # Apps, Files, Folders and Menu Items sources stay on.
 defaults write com.apple.Spotlight EnabledPreferenceRules -array \
   Custom.relatedContents \
   com.apple.AppStore com.apple.iBooksX com.apple.calculator com.apple.iCal \
   com.apple.AddressBook com.apple.Dictionary com.apple.games com.apple.mail \
   com.apple.Maps com.apple.MobileSMS com.apple.Music com.apple.mobilephone \
-  com.apple.Photos com.apple.podcasts com.apple.Safari com.apple.shortcuts \
+  com.apple.Photos com.apple.podcasts com.apple.reminders com.apple.Safari com.apple.shortcuts \
   com.apple.stocks com.apple.tips com.apple.VoiceMemos net.whatsapp.WhatsApp \
   System.iphoneApps
 
