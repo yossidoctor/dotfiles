@@ -65,32 +65,12 @@
       "Bash(git * push * -d *)",
       "Bash(rg -r*)"
     ],
-    "ask": [
-      "Bash(git branch -D *)",
-      "Bash(git reset --hard *)",
-      "Bash(git tag -d *)",
-      "Bash(git push --force-with-lease*)",
-      "Bash(git -C * push --force-with-lease*)",
-      "Bash(git * reset --hard *)",
-      "Bash(git * branch -D *)",
-      "Bash(git * tag -d *)",
-      "Bash(git checkout -- *)",
-      "Bash(git * checkout -- *)",
-      "Bash(git clean *)",
-      "Bash(git * clean *)",
-      "Bash(git stash drop*)",
-      "Bash(git stash clear*)",
-      "Bash(git * stash drop*)",
-      "Bash(git * stash clear*)",
-      "Bash(git push * --force-with-lease*)",
-      "Bash(git * push * --force-with-lease*)"
-    ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "/Users/yossidoctor/dotfiles"
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "availableModels": [
     "fable",
     "opus",
@@ -105,6 +85,10 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/enforce-foreground-polling.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh"
           }
         ]
       }
@@ -188,6 +172,9 @@
     },
     "claude-opus-5-5": {
       "effortLevel": "medium"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "high"
     }
   },
   "promptSuggestionEnabled": false,

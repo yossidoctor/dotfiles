@@ -63,12 +63,13 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 | Event | Hook |
 |---|---|
 | `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) to run off-thread; denies foreground sleeps and sleep-loops. |
+| `PreToolUse: Bash` | `ask-risky-git-outside-worktree.sh` — asks before `reset --hard`, `branch -D`, `tag -d`, `checkout --`, `clean`, `stash drop|clear`, `push --force-with-lease`, except inside a sandbox worktree. |
 | `UserPromptSubmit` | `caffeinate-claude.sh` — keeps macOS awake while Claude works. |
 | `Stop` | `caffeinate-claude.sh` — 30-min post-turn linger. |
 
 ### Permissions
 
-`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The `ask` list covers the working-tree discards CLAUDE.md § Own your lines names (`checkout --`, `clean`, `stash drop|clear`, `reset --hard`); `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk. `deny` also holds `Bash(rg -r*)`: ripgrep's `-r` is `--replace`, not grep's recursive flag, so a grep-habit `rg -rn <pattern>` rewrites every match and still exits 0; spell out `--replace=` for a real rewrite.
+`.permissions` arrays are edited directly in `claude/settings.json`, which holds the rules that apply everywhere. Claude Code merges permission rules across settings scopes (union), so a project layer's settings file adds only its own extras and never re-lists a global entry. `deny`/`ask` are safety-critical — review every change individually. The working-tree discards CLAUDE.md § Own your lines names (`checkout --`, `clean`, `stash drop|clear`, `reset --hard`) are asked for by `ask-risky-git-outside-worktree.sh`, not the `ask` list, because a settings `ask` rule prompts even when a hook allows, and these must pass inside a sandbox worktree; `git restore` is not on it because `restore --staged` is the sanctioned way to unstage another session's hunk. `deny` also holds `Bash(rg -r*)`: ripgrep's `-r` is `--replace`, not grep's recursive flag, so a grep-habit `rg -rn <pattern>` rewrites every match and still exits 0; spell out `--replace=` for a real rewrite.
 
 ### Bash-tool environment
 
