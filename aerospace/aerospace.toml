@@ -69,15 +69,11 @@ start-at-login = true
 auto-reload-config = true
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
-enable-normalization-flatten-containers = true
 # Off: nested containers would otherwise flip to vertical, producing up/down
 # splits. Disabled to keep every split side-by-side.
 enable-normalization-opposite-orientation-for-nested-containers = false
 
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
-# Possible values: tiles|accordion
-default-root-container-layout = 'tiles'
-
 # Possible values: horizontal|vertical|auto
 # 'auto' means: wide monitor (anything wider than high) gets horizontal orientation,
 #               tall monitor (anything higher than wide) gets vertical orientation
@@ -141,11 +137,6 @@ on-window-detected = [
     # # minimum widths.
     # { if = 'test %{app-bundle-id} = com.apple.mail', run = 'layout floating' },
 ]
-
-# Possible values: (qwerty|dvorak|colemak)
-# See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
-[key-mapping]
-    preset = 'qwerty'
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:

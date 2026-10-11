@@ -129,12 +129,6 @@
     // Theme
     "workbench.colorTheme": "One Dark Pro Flat",
     "workbench.colorCustomizations": {
-        // Occurrences highlight (cursor on symbol) — very subtle
-        "editor.wordHighlightBackground": "#ffffff0d",              // ~5% white, read access
-        "editor.wordHighlightStrongBackground": "#ffffff14",        // ~8% white, write access
-        "editor.wordHighlightBorder": "#00000000",                  // no border
-        "editor.wordHighlightStrongBorder": "#00000000",
-
         // Selection highlight (other matches of selected text) — a bit more visible
         "editor.selectionHighlightBackground": "#ffffff1f",         // ~12% white
         "editor.selectionHighlightBorder": "#00000000",

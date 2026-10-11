@@ -45,16 +45,10 @@ HS=/opt/homebrew/bin/hs
 AS=/opt/homebrew/bin/aerospace
 
 hs_call() {
-  local tmp pid i=0
-  tmp=$(mktemp)
-  "$HS" -c "$1" >"$tmp" 2>/dev/null & pid=$!
-  while kill -0 "$pid" 2>/dev/null && [ $i -lt 50 ]; do sleep 0.1; i=$((i+1)); done
-  if kill -0 "$pid" 2>/dev/null; then
-    kill "$pid" 2>/dev/null; rm -f "$tmp"
-    echo "test-harness: Hammerspoon bridge not answering; recover with: killall Hammerspoon; open -g -a Hammerspoon" >&2
-    return 1
-  fi
-  tail -n 1 "$tmp"; rm -f "$tmp"
+  local out
+  out=$(perl -e 'alarm shift; exec @ARGV' 5 "$HS" -c "$1" 2>/dev/null) \
+    || { echo "test-harness: Hammerspoon bridge not answering; recover with: killall Hammerspoon; open -g -a Hammerspoon" >&2; return 1; }
+  tail -n 1 <<<"$out"
 }
 now() { date +%s.%N | cut -c1-14; }
 displays() { hs_call 'return #hs.screen.allScreens()'; }

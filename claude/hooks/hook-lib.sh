@@ -22,7 +22,6 @@
 #                     jq would extract, so `case "$HOOK_INPUT" in *lit*)` is a sound
 #                     gate ahead of hook_parse_input.
 #   hook_parse_input  HOOK_INPUT -> the fields below via one jq pass
-#   hook_read_input   hook_read_raw + hook_parse_input, for hooks with no raw gate
 #                     HOOK_CMD (.tool_input.command),
 #                     HOOK_DESCRIPTION (.tool_input.description),
 #                     HOOK_SESSION_ID (.session_id), HOOK_CWD (.cwd),
@@ -56,11 +55,6 @@
 
 hook_read_raw() {
   HOOK_INPUT=$(cat)
-}
-
-hook_read_input() {
-  hook_read_raw
-  hook_parse_input
 }
 
 hook_parse_input() {

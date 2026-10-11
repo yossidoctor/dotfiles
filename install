@@ -28,6 +28,12 @@ echo "== Needs you =="
 bash "$BASEDIR/mac/spotlight.sh" 2>&1 | grep -v "Indexing enabled" | sed 's/^/  /' || true
 plutil -p "/Library/Managed Preferences/$USER/com.apple.applicationaccess.plist" 2>/dev/null | grep -q '"allowSpotlightInternetResults" => false' \
   || echo "  Privacy profile: open mac/profiles/privacy-restrictions.mobileconfig, then System Settings › General › Device Management › Install"
+# UnTrap keeps its options as one JSON blob in Safari's extension store, which only
+# the extension's own import writes; the check reads that blob and compares.
+untrap_db=("$HOME"/Library/Containers/com.apple.Safari/Data/Library/WebKit/WebExtensions/Default/me.swifter.ytdistract.Extension*/LocalStorage.db)
+sqlite3 "${untrap_db[0]}" "select value from extension_storage where key='untrap_options_state'" 2>/dev/null \
+  | jq -e --slurpfile want "$BASEDIR/mac/manual/untrap-settings.json" '. as $db | $want[0] | to_entries | all(.value == $db[.key])' >/dev/null \
+  || echo "  UnTrap: import mac/manual/untrap-settings.json through the extension's settings import"
 echo "  GitHub: add ~/.config/git/signing/personal.pub as a Signing key on each account"
 echo "  Accessibility: allow Hammerspoon, AeroSpace and Karabiner when each first asks"
 echo "  Claude accounts: cswap add <name> for each one"

@@ -50,10 +50,7 @@ caffeinate -i -w $$ &
 
 command -v npm >/dev/null 2>&1 || { command -v fnm >/dev/null 2>&1 && eval "$(fnm env --shell bash)"; }
 
-for _ in $(seq 20); do
-    curl -fs -o /dev/null --max-time 5 https://github.com && break
-    sleep 10
-done
+curl -fs -o /dev/null --max-time 5 --retry 20 --retry-delay 10 --retry-all-errors https://github.com
 
 for job in "$jobs_dir"/*; do
     [ -e "$job" ] || continue

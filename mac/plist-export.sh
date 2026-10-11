@@ -6,15 +6,12 @@
 # Usage: plist-export.sh <defaults-domain> <plist>
 #
 # Volatile keys — state the app rewrites on every run without a preference
-# changing — are stripped so they never dirty the diff. The per-domain set is
-# the `case` below (SoT):
-#   pro.betterdisplay.BetterDisplay  per-display firstAdded/lastConnected/
-#                                    lastUnseen timestamps, the storedIdentifiers
-#                                    hardware fingerprints (monitor serials, EDID,
-#                                    display UUIDs — this repo is public, and they
-#                                    never match another Mac's displays anyway),
-#                                    the Paddle license hash, Finder save-panel
-#                                    chrome
+# changing — are stripped so they never dirty the diff. `volatile` below is the
+# set, for BetterDisplay: per-display firstAdded/lastConnected/lastUnseen
+# timestamps, the storedIdentifiers hardware fingerprints (monitor serials,
+# EDID, display UUIDs — this repo is public, and they never match another
+# Mac's displays anyway), the Paddle license hash, Finder save-panel chrome.
+# A second app's plist adds its keys to the same regex.
 #
 # PlistBuddy treats a literal `:` inside a key name (firstAdded@Display:7) as a
 # nesting separator, so it is escaped as `\:` or the Delete silently misses.
@@ -24,14 +21,7 @@
 set -uo pipefail
 
 domain="$1" plist="$2"
-
-case "$domain" in
-  pro.betterdisplay.BetterDisplay)
-    volatile='(firstAdded|lastConnected|lastUnseen|storedIdentifiers)@[^ =]*|Paddle-BetterDisplay-[^ =]*|NSNavPanelExpandedSizeForSaveMode|NSOSPLastRootDirectory' ;;
-  *)
-    echo "plist-export: no volatile-key set for domain $domain — add a case before exporting" >&2
-    exit 2 ;;
-esac
+volatile='(firstAdded|lastConnected|lastUnseen|storedIdentifiers)@[^ =]*|Paddle-BetterDisplay-[^ =]*|NSNavPanelExpandedSizeForSaveMode|NSOSPLastRootDirectory'
 
 defaults export "$domain" "$plist"
 plutil -convert xml1 "$plist"
