@@ -1,0 +1,8 @@
+# Raycast File Search, scoped to ~ and /Applications. Mirror of the home-folder
+# exclusions in mac/spotlight.sh (the SoT), in gitignore syntax relative to ~.
+# /opt/homebrew and /Library/Developer are outside Raycast's scopes, and
+# Library/Application Support is already in Raycast's built-in ignore patterns.
+/Dono/
+/Music/
+/Library/Fonts/
+/Library/Logs/
