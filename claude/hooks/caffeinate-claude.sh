@@ -17,13 +17,10 @@
 
 set -u
 
-. "$(dirname "${BASH_SOURCE[0]}")/hook-lib.sh"
-
 mode="${1:-}"
 case "$mode" in active|linger) ;; *) exit 0 ;; esac
 
-hook_read_input
-session="${HOOK_SESSION_ID:-default}"
+session=$(jq -r '.session_id // "default"' 2>/dev/null) || session=default
 pidfile="${TMPDIR:-/tmp}/claude-caffeinate-${session}.pid"
 
 # Find this hook's Claude parent by walking up the process tree: one ps of every

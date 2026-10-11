@@ -41,12 +41,8 @@ command -v starship >/dev/null && eval "$(starship init zsh)"
 # A function, not an alias, so `claude mcp`, `claude agents` and `claude -p`
 # keep their arguments.
 claude() {
-  local rules="$HOME/.claude/CLAUDE.md"
-  if [[ -r "$rules" ]]; then
-    command claude --append-system-prompt-file "$rules" "$@"
-  else
-    command claude "$@"
-  fi
+  [[ -r ~/.claude/CLAUDE.md ]] && set -- --append-system-prompt-file ~/.claude/CLAUDE.md "$@"
+  command claude "$@"
 }
 
 # fnm — per-service Node version via .nvmrc; auto-switch on cd

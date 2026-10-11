@@ -47,7 +47,6 @@
 
 - link:
     ~/.config/aerospace: aerospace
-    ~/.config/gh: gh
     ~/.config/ghostty: ghostty
     ~/.config/karabiner: karabiner
     ~/.hammerspoon: hammerspoon
@@ -61,7 +60,8 @@
     - [bash mac/login-items.sh || true, Register Open-at-Login items (needs System Events automation permission; retried next run if denied)]
     - [bash mac/daily-agent.sh, Install/refresh the daily-jobs LaunchAgent]
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
-    - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
     - [cmp -s raycast/rayignore ~/.rayignore || cp raycast/rayignore ~/.rayignore, Copy the Raycast ignore file (Raycast ignores a symlinked .rayignore)]
+    - ['[ "$(gh config get color_labels)" = enabled ] || gh config set color_labels enabled', Colour PR/issue labels in gh output (gh owns ~/.config/gh; its other defaults stand)]
+    - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]
     - [bash claude/cswap-prime-agent.sh, Install/refresh the cswap 5h-window primer LaunchAgent]

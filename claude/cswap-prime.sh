@@ -74,10 +74,7 @@ prime() {
 
 caffeinate -i -w $$ &
 
-for _ in $(seq 20); do
-    curl -s -o /dev/null --max-time 5 https://api.anthropic.com && break
-    sleep 10
-done
+curl -s -o /dev/null --max-time 5 --retry 20 --retry-delay 10 --retry-all-errors https://api.anthropic.com
 
 plan=$(cswap list --json | jq -r '
     .accounts[]
