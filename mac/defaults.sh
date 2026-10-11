@@ -523,6 +523,12 @@ defaults write "$TRANSMISSION" RatioLimit -float 1.0
 defaults write "$TRANSMISSION" PeersTotal -int 500
 # Transmission › Settings › Peers › Connections › "Maximum connections for new transfers:" · default 60
 defaults write "$TRANSMISSION" PeersTorrent -int 120
+# Transmission › Settings › Bandwidth › Global bandwidth limits: › "Upload rate:" (KB/s) · default off, 50
+# A seed left uncapped fills the uplink and lags every other device on the LAN
+# (bufferbloat); 11000 is ~85% of the uplink `networkQuality` measures, re-derived
+# when the line changes.
+defaults write "$TRANSMISSION" CheckUpload -bool true
+defaults write "$TRANSMISSION" UploadLimit -int 11000
 # Transmission › View › Compact View · default off
 defaults write "$TRANSMISSION" SmallView -bool false
 # Transmission › View › Show Filter Bar · default off
