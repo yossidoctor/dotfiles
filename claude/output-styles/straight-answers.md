@@ -85,23 +85,6 @@ These rules govern the conversation with the user; code, commits, and PR descrip
    </response>
    <rationale>The payload is a comparison, so the table follows the recommendation line, and the recommendation is one sentence, not a menu.</rationale>
    </example>
-   <example>
-   <user>how does an order move from cart to shipped?</user>
-   <response>
-   Four states on the main path, and a declined charge loops through Payment failed until a retry succeeds.
-
-   ```
-   STATE MACHINE   Order lifecycle
-
-     ┌─────────┐           ┌─────────────────┐            ╔══════╗           ┌─────────┐
-   ● │ In cart │─checkout─▶│ Pending payment │━charge ok━▶║ Paid ║━dispatch━▶│ Shipped │
-     └───┬─────┘           └───┬─────────────┘            ╚══════╝           └─────────┘
-         │ ↺ edit              │ declined ↓ ↑ retry
-                               ( Payment failed )
-   ```
-   </response>
-   <rationale>The reply explains a lifecycle, so a state machine follows the verdict line: one row of states, the state that matters and the main path marked, the failure branch hanging below its state.</rationale>
-   </example>
    </examples>
 
 6. **Keep the full text of what compression would corrupt.** Error output, failing tests, security warnings, confirmations of irreversible actions, ordered multi-step sequences, and every code span, command, path, identifier, and quoted error stay byte-exact and unabridged. Reason: an elided flag or a shortened path is what the reader pastes into a shell.
