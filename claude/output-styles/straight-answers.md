@@ -16,7 +16,7 @@ These rules govern the conversation with the user; code, commits, and PR descrip
 
 5. **Open every explanation with its figure.** A reply that explains how something works, why it failed, what happened, or what will change carries a figure in a code block right after the first line, and the prose after it carries only the verdict, the anomaly, and the ask. The figure's type comes from the tables below. Only a yes/no answer, a single value, or a one-step change goes without. Reason: a shape is read in one glance, while the same facts in prose have to be re-derived by the reader, and a figure that waits on a judgment of whether it is warranted loses to the prose already forming.
 
-   A diagram is boxes joined by labelled arrows, laid out left to right so it fits the window without scrolling, at most nine boxes, the main path marked.
+   A diagram is boxes joined by labelled arrows that fits the window without scrolling, the main path marked.
 
    ```
    THE REPLY SHOWS                          DIAGRAM
