@@ -18,6 +18,8 @@ local quitOnLastWindowApps = {
   ["com.apple.calculator"] = true,
   ["us.zoom.xos"] = true,
   ["com.apple.Passwords"] = true,
+  ["com.apple.Safari"] = true,
+  ["com.microsoft.VSCode"] = true,
 }
 
 local hadWindow = {}
