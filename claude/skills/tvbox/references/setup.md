@@ -69,6 +69,16 @@ One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into 
 - The TV does not appear on the CEC bus, and the box's `<Text View On>` messages to it go unanswered (`NACK`), so TV power is on the Samsung remote.
 - The Netflix (`com.netflix.ninja`) and Prime Video (`com.amazon.amazonvideo.livingroom`) apps are disabled on the box; YouTube (`com.google.android.youtube.tv`) is enabled. The remote has Netflix, Prime Video and YouTube buttons (user diagram); its key layout (`/vendor/usr/keylayout/Vendor_2717_Product_32b9.kl`) maps the app buttons to generic `BUTTON_n` codes, and which app each one opens is handled by the box's software.
 
+## Movies share
+
+VLC on the box (`org.videolan.vlc`) plays from the Mac's `~/Movies`, which macOS File Sharing serves over SMB as share `Movies`. The VLC favorite names the Mac by IP (`smb://<Mac IP>/Movies`), which the router's DHCP reservation holds fixed ([router skill, wan-lan.md § DHCP](../../router/references/wan-lan.md#dhcp)); read it back by long-pressing the favorite. VLC's SMB2/3 client resolves only DNS names and IPs: a NetBIOS name such as the Mac's `NetBIOSName` fails with `smb2_connect_share_async failed: -5, Invalid address:<name>  Can not resolv into IPv4/v6.`
+
+- Whether VLC asks for a login depends on two Mac settings: the share's own `guest access` (`sharing -l`) and Mac-wide SMB guest access (`sysadminctl -smbGuestAccess status`). Guests get in only when both are on; otherwise VLC prompts and the login is the Mac account name and its login password.
+- VLC caches the login it was given and logs it (`Creds: username = '…', domain = '…'`), with no password. A rejected login logs `Unable to login`.
+- `VLC is unable to open the MRL 'smb://…/<folder>'` also appears for folders on a share VLC is logged into and streaming from; on its own it is not an access failure.
+- `SMB 2/3 disabled by the user, using *unsafe* SMB 1` means VLC › Settings › Advanced › Prefer SMB 1 is ticked.
+- Driving VLC over ADB: `uiautomator dump` lists on-screen text, bounds and checkbox state; `input keyevent --longpress KEYCODE_DPAD_CENTER` opens a favorite's actions (Browse, Remove, Edit) and its URL. In the add-server dialog the fields move after the protocol is chosen, so re-dump before tapping; `input text` types regardless of the on-screen keyboard's language.
+
 ## Checking it
 
 ```
@@ -81,4 +91,14 @@ CEC volume / power settings       cmd hdmi_control cec_setting get volume_contro
 TV answering CEC                  dumpsys hdmi_control | grep -E '40:0D|40:8F'   (ACK = answered)
 streaming apps enabled            pm list packages -e | grep -iE 'youtube|netflix|amazon'
 what the chain reports            cat /sys/class/amhdmitx/amhdmitx0/edid ; …/aud_cap ; …/disp_cap
+VLC's SMB logins and errors       logcat -d | grep ' VLC ' | grep -iE 'creds|login|unable'
+```
+
+```
+WHAT                              COMMAND (on the Mac)
+-------------------------------   -----------------------------------------------------------------------
+share and its guest flag          sharing -l
+Mac-wide SMB guest access         sysadminctl -smbGuestAccess status
+Mac's NetBIOS name                defaults read /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName
+box connected to the share        netstat -an -p tcp | grep '\.445 '
 ```
