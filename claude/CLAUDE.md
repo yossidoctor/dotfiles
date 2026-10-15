@@ -34,6 +34,7 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 - **Git identity comes from git config.** A tree's email is `git config -f <scope file> user.email`; the mechanism is `~/dotfiles/README.md` § Git identity & credentials. `# userEmail` names the Claude account, which is no git identity — using it as one commits under the wrong author.
 - **A skill named for any purpose — to run, edit, or explain it — is loaded with `Skill`, and an edit lands in the base directory the load prints.** A disk search finds every copy — plugin cache, marketplace clone, archive — and only the load names the live one and registers it.
 - **A `cd` chains with `&&`** — a failed `cd` otherwise runs the next command wherever you happened to be.
+- **A path shown to the user is absolute, followed only by a space or line break.** Ghostty opens a clicked path only if its matched text is a real file: a relative one resolves against the shell's pwd, not this session's cwd, and `. ; = %` count as path characters, so `…/a.html;` is read as a file named `a.html;`.
 - **Before touching a hook or an install step, read the conventions.** `~/dotfiles/README.md` § Script conventions (bash 3.2, idempotent `shell:` steps) and the `hook-lib.sh` header (payload parsing, live symlinked hooks).
 
 ## Shell commands
