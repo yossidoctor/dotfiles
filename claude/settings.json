@@ -168,13 +168,13 @@
   "effortLevel": "medium",
   "modelSettings": {
     "claude-fable-5-1": {
-      "effortLevel": "xhigh"
+      "effortLevel": "medium"
     },
     "claude-opus-5-5": {
       "effortLevel": "medium"
     },
     "claude-sonnet-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "medium"
     }
   },
   "promptSuggestionEnabled": false,
