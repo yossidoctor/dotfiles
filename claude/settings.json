@@ -72,7 +72,6 @@
   },
   "model": "sonnet",
   "availableModels": [
-    "fable",
     "opus",
     "sonnet",
     "haiku"
