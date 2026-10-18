@@ -116,7 +116,7 @@ on-window-detected = [
 
     # Transient/dialog-style apps float instead of tiling.
     { if = 'test %{app-bundle-id} = com.apple.systempreferences', run = 'layout floating' },
-    { if = 'test %{app-bundle-id} = com.apple.finder', run = 'layout floating' },
+    # { if = 'test %{app-bundle-id} = com.apple.finder', run = 'layout floating' },
     { if = 'test %{app-bundle-id} = com.apple.calculator', run = 'layout floating' },
 
     # Small fixed-size utility windows that fight the tiling tree.
