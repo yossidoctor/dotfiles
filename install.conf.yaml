@@ -25,9 +25,11 @@
     ~/.config/homebrew/Brewfile.d/00-base: brew/Brewfile
     # every layer drops its daily job here; mac/daily.sh runs them in name order:
     # 00 the time-bound priming, before brew can swap the claude binary under it;
-    # 10 brew, so every later job runs on the upgraded tools; a layer's jobs from 20
+    # 10 brew, so every later job runs on the upgraded tools;
+    # 15 the Claude plugin update, on the upgraded claude; a layer's jobs from 20
     ~/.config/daily.d/00-cswap-prime: claude/cswap-prime.sh
     ~/.config/daily.d/10-brew-maintenance: brew/maintenance.sh
+    ~/.config/daily.d/15-claude-plugins: claude/plugins-update.sh
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/claude: claude/stable-launcher.sh
     ~/.claude/CLAUDE.md: claude/CLAUDE.md
