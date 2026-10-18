@@ -1,15 +1,21 @@
 confirm-close-surface = false
 
 # ── Appearance ────────────────────────────────────────────────────────────────
-theme = "Catppuccin Mocha"
+theme = Catppuccin Mocha
 window-decoration = true
+window-padding-x = 8
+window-padding-y = 8
+unfocused-split-opacity = 0.85
 mouse-hide-while-typing = true
 # left = Alt/Meta for Claude Code shortcuts (option+p model picker etc.); right Option still types π/é
 macos-option-as-alt = left
 
 # ── Font ──────────────────────────────────────────────────────────────────────
 font-family = "JetBrainsMono Nerd Font"
-font-size = 14
+font-size = 16
+font-thicken = false
+font-thicken-strength = 128
+adjust-cell-height = 10%
 
 # Ligatures: +liga = standard (fi, fl), +calt = coding (-> => != === >=)
 font-feature = +liga

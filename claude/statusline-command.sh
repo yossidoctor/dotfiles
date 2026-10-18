@@ -119,7 +119,7 @@ add_meter() {
   fi
   local body
   case "$form" in
-    bars)  body="${label}${name}${c_off} $(bar "$pct" "$track" "$empty") ${color}$(printf '%3d%%' "$pct")${c_off}" ;;
+    bars)  body="${label}${name}${c_off} $(bar "$pct" "$track" "$empty")  ${color}$(printf '%3d%%' "$pct")${c_off}" ;;
     glyph) body="${label}${name}${c_off} ${color}$(glyph_for_pct "$pct" "$empty")$(printf '%2d%%' "$pct")${c_off}" ;;
     *)     body="${color}$(glyph_for_pct "$pct" "$empty")$(printf '%2d%%' "$pct")${c_off}" ;;
   esac

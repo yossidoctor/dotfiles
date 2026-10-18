@@ -127,7 +127,7 @@
     "editor.acceptSuggestionOnEnter": "off",
 
     // Theme
-    "workbench.colorTheme": "One Dark Pro Flat",
+    "workbench.colorTheme": "Quiet Light",
     "workbench.colorCustomizations": {
         // Selection highlight (other matches of selected text) — a bit more visible
         "editor.selectionHighlightBackground": "#ffffff1f",         // ~12% white
