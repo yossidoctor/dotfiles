@@ -115,11 +115,11 @@
     ],
     "Notification": [
       {
-        "matcher": "permission_prompt|elicitation_dialog|elicitation_url_dialog|agent_needs_input",
+        "matcher": "permission_prompt|elicitation_dialog|elicitation_url_dialog",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r 'if (.message // \"\" | test(\"AskUserQuestion|question\"; \"i\")) then \"Claude has a question for you\" else (.message // \"Claude needs your input\") end' | { read -r m; /opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"$m\" -sound default -activate com.mitchellh.ghostty; } 2>/dev/null || true",
+            "command": "/opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"Needs your input\" -sound default -activate com.mitchellh.ghostty >/dev/null 2>&1 || true",
             "async": true
           }
         ]
