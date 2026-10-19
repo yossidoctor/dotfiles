@@ -7,17 +7,27 @@
 # An update only lands on disk: sessions already open keep the old version
 # until restarted. A plugin whose marketplace declares an install command is
 # refused here (no terminal to confirm it), and that counts as a failure.
+#
+# Each claude call is killed after $call_timeout seconds (perl's alarm survives
+# the exec), so one hung call fails by name in the log instead of holding the
+# job until the runner's deadline.
 
 command -v claude >/dev/null 2>&1 || { echo "(claude not on PATH — skipped)"; exit 0; }
 
+call_timeout=180
 FAILURES=()
 UPDATED=()
 
-claude plugin marketplace update || FAILURES+=("marketplace update")
+claude_call() {
+    echo "$(date +%T) claude $*" >&2
+    perl -e 'alarm shift; exec @ARGV' "$call_timeout" claude "$@" </dev/null
+}
 
-for id in $(claude plugin list --json | jq -er '.[].id'); do
+claude_call plugin marketplace update || FAILURES+=("marketplace update")
+
+for id in $(claude_call plugin list --json | jq -er '.[].id'); do
     echo "→ $id"
-    if result=$(claude plugin update "$id" --json </dev/null); then
+    if result=$(claude_call plugin update "$id" --json); then
         echo "  $(jq -r '.message' <<<"$result")"
         [ "$(jq -r '.updateOutcome' <<<"$result")" = up_to_date ] || UPDATED+=("$id")
     else
