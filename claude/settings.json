@@ -143,7 +143,11 @@
   },
   "enabledPlugins": {
     "mattpocock-skills@mattpocock": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "cc-plugin-agents-md@builtin": false,
+    "cc-plugin-sec-default@builtin": false,
+    "cc-plugin-diff@builtin": false,
+    "cc-plugin-plugin-authoring@builtin": false
   },
   "extraKnownMarketplaces": {
     "mattpocock": {
