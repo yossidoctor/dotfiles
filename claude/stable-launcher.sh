@@ -19,6 +19,7 @@ bin="$dir/claude"
 if [ ! -x "$bin" ] || [ "$(cat "$dir/source" 2>/dev/null)" != "$src" ]; then
   mkdir -p "$dir"
   cp -X "$src" "$bin.$$"
+  xattr -d com.apple.quarantine "$bin.$$" 2>/dev/null || true
   mv -f "$bin.$$" "$bin"
   printf '%s' "$src" > "$dir/source"
 fi
