@@ -25,7 +25,8 @@ claude_call() {
 
 claude_call plugin marketplace update || FAILURES+=("marketplace update")
 
-for id in $(claude_call plugin list --json | jq -er '.[].id'); do
+list=$(claude_call plugin list --json) || FAILURES+=("plugin list")
+for id in $(jq -er '.[].id' <<<"$list"); do
     echo "→ $id"
     if result=$(claude_call plugin update "$id" --json); then
         echo "  $(jq -r '.message' <<<"$result")"
