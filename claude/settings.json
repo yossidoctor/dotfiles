@@ -112,18 +112,6 @@
           }
         ]
       }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt|elicitation_dialog|elicitation_url_dialog",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/opt/homebrew/bin/terminal-notifier -title \"Claude Code\" -message \"Needs your input\" -sound default -activate com.mitchellh.ghostty >/dev/null 2>&1 || true",
-            "async": true
-          }
-        ]
-      }
     ]
   },
   "worktree": {
@@ -195,7 +183,7 @@
   "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
-  "preferredNotifChannel": "terminal_bell",
+  "preferredNotifChannel": "ghostty",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,
   "autoContinueAtUsageLimit": false,
