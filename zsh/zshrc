@@ -49,6 +49,8 @@ command -v starship >/dev/null && eval "$(starship init zsh)"
 # keep their arguments.
 claude() {
   [[ -r ~/.claude/CLAUDE.md ]] && set -- --append-system-prompt-file ~/.claude/CLAUDE.md "$@"
+  # a private layer's auto mode rules; auto mode reads none from project settings
+  [[ -r ~/.claude/automode.json ]] && set -- --settings ~/.claude/automode.json "$@"
   command claude "$@"
 }
 
