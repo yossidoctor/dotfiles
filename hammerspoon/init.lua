@@ -148,16 +148,16 @@ function aerospaceRaiseFullscreen(activatedPid)
     -- launch onto the empty workspace is not dragged back to the old window.
     local emptyWs = not id and frontId and front:application():pid() == activatedPid
     if not frontId or not id and not emptyWs then
-      note("focus resync skipped", id or "no aerospace focus", frontId and "" or "nonstandard", frontApp)
+      note("focus resync skipped", id or "no aerospace focus", frontId and "" or "nonstandard", frontApp, activatedPid and "on activation" or "on focus")
     elseif emptyWs or frontId ~= tonumber(id) then
       -- Re-read after 300ms: on Cmd+Q macOS still reports the dying window
       -- as focused for a moment (Notes, 2026-10-22), and following it sent
       -- AeroSpace to the dead window's workspace.
       hs.timer.doAfter(0.3, function()
         local still = hs.window.focusedWindow()
-        if not still or still:id() ~= frontId then note("focus resync dropped", id or "none", "->", tostring(frontId), frontApp); return end
+        if not still or still:id() ~= frontId then note("focus resync dropped", id or "none", "->", tostring(frontId), frontApp, activatedPid and "on activation" or "on focus"); return end
         aerospace({ "focus", "--window-id", tostring(frontId) })
-        note("focus resync", id or "none", "->", tostring(frontId), frontApp)
+        note("focus resync", id or "none", "->", tostring(frontId), frontApp, activatedPid and "on activation" or "on focus")
       end)
     end
   end)
