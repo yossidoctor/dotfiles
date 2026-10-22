@@ -138,6 +138,13 @@ on-window-detected = [
     # { if = 'test %{app-bundle-id} = com.apple.mail', run = 'layout floating' },
 ]
 
+# Trace of every workspace switch into the Hammerspoon handler log, to date
+# a switch against the handler lines around it. A shell echo, not an
+# `aerospace` CLI call, so it cancels no refresh.
+exec-on-workspace-change = ['/bin/bash', '-c',
+    'echo "$(date +%Y-%m-%dT%H:%M:%S) aerospace workspace $AEROSPACE_PREV_WORKSPACE -> $AEROSPACE_FOCUSED_WORKSPACE" >> ~/.cache/aerospace/hammerspoon.log'
+]
+
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
 # - Constant:     gaps.outer.top = 8

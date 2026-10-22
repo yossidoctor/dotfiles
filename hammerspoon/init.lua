@@ -131,9 +131,9 @@ end)
 -- aerospace.toml's Hyper+f binding calls this via `hs -c`.
 local lastWindowCreated = 0
 aerospaceWindows:subscribe(hs.window.filter.windowCreated, function() lastWindowCreated = hs.timer.secondsSinceEpoch() end)
-function aerospaceRaiseFullscreen()
+function aerospaceRaiseFullscreen(activatedPid)
   if hs.timer.secondsSinceEpoch() - lastWindowCreated < 0.4 then
-    hs.timer.doAfter(0.4, aerospaceRaiseFullscreen); return
+    hs.timer.doAfter(0.4, function() aerospaceRaiseFullscreen(activatedPid) end); return
   end
   aerospace({ "list-windows", "--focused", "--format", "%{window-id} %{window-is-fullscreen}" }, function(out)
     local id, fullscreen = out:match("^(%d+) (%S+)")
@@ -142,23 +142,28 @@ function aerospaceRaiseFullscreen()
     local front = hs.window.focusedWindow()
     local frontId = front and front:isStandard() and front:id()
     local frontApp = front and front:application():name() or "no front window"
-    if not id or not frontId then
+    -- On an empty workspace AeroSpace has no focused window; follow the
+    -- macOS one only when it belongs to the app that was just activated
+    -- (Mission Control click, Cmd+Tab back to the app you left), so a
+    -- launch onto the empty workspace is not dragged back to the old window.
+    local emptyWs = not id and frontId and front:application():pid() == activatedPid
+    if not frontId or not id and not emptyWs then
       note("focus resync skipped", id or "no aerospace focus", frontId and "" or "nonstandard", frontApp)
-    elseif frontId ~= tonumber(id) then
+    elseif emptyWs or frontId ~= tonumber(id) then
       -- Re-read after 300ms: on Cmd+Q macOS still reports the dying window
       -- as focused for a moment (Notes, 2026-10-22), and following it sent
       -- AeroSpace to the dead window's workspace.
       hs.timer.doAfter(0.3, function()
         local still = hs.window.focusedWindow()
-        if not still or still:id() ~= frontId then note("focus resync dropped", id, "->", tostring(frontId), frontApp); return end
+        if not still or still:id() ~= frontId then note("focus resync dropped", id or "none", "->", tostring(frontId), frontApp); return end
         aerospace({ "focus", "--window-id", tostring(frontId) })
-        note("focus resync", id, "->", tostring(frontId), frontApp)
+        note("focus resync", id or "none", "->", tostring(frontId), frontApp)
       end)
     end
   end)
   floatPhantoms()
 end
 aerospaceWindows:subscribe(hs.window.filter.windowFocused, aerospaceRaiseFullscreen)
-aerospaceActivationWatcher = hs.application.watcher.new(function(_, event)
-  if event == hs.application.watcher.activated then aerospaceRaiseFullscreen() end
+aerospaceActivationWatcher = hs.application.watcher.new(function(_, event, app)
+  if event == hs.application.watcher.activated then aerospaceRaiseFullscreen(app and app:pid()) end
 end):start()
