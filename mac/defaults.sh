@@ -67,6 +67,13 @@ defaults write com.apple.dock mineffect -string "scale"
 # opposed to the toggle) still lands is unverified.
 defaults write com.apple.dock mru-spaces -bool false
 
+# Desktop & Dock › Mission Control › "Displays have separate Spaces" · default on
+# Off (the key reads "spans displays"): one Space across all monitors, which
+# the AeroSpace guide recommends because the public window API it relies on
+# does not know Spaces exist (wrong window focused across monitors, #101).
+# Costs the menu bar on secondary monitors. Takes effect at the next login.
+defaults write com.apple.spaces spans-displays -bool true
+
 # Desktop & Dock › Mission Control › "Drag windows to top of screen to enter Mission Control" · default on
 # A window dragged against the menu bar stays a plain drag.
 defaults write com.apple.dock enterMissionControlByTopWindowDrag -bool false
