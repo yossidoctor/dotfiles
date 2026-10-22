@@ -39,7 +39,7 @@ Google TV "Apps only mode" (Settings › Accounts & Sign In › profile › Apps
 
 ## Runtime resource overlays
 
-Overlays change another package's resources (strings, layouts, config) without changing its code. `cmd overlay list` shows each overlay under its target with `[x]` enabled, `[ ]` disabled, `---` not changeable; `cmd overlay enable|disable <overlay>` toggles one; static overlays cannot be disabled ([OverlayManagerShellCommand](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/services/core/java/com/android/server/om/OverlayManagerShellCommand.java), [RRO docs](https://source.android.com/docs/core/runtime/rros)). Vendor overlays on this box target, among others, `android`, `com.android.tv.settings`, `com.android.providers.settings`, `com.android.systemui`, `com.android.wifi.resources`, `com.android.networkstack.tethering`, `com.android.providers.tv` and `com.android.tv.mdnsoffloadmanager` *(read on MiTV-AFMU0; `cmd overlay list` gives the full set)*.
+Overlays change another package's resources (strings, layouts, config) without changing its code. `cmd overlay list` shows each overlay under its target with `[x]` enabled, `[ ]` disabled, `---` not changeable; `cmd overlay enable|disable <overlay>` toggles one; static overlays cannot be disabled ([OverlayManagerShellCommand](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/services/core/java/com/android/server/om/OverlayManagerShellCommand.java), [RRO docs](https://source.android.com/docs/core/runtime/rros)). `cmd overlay list` also prints the box's vendor overlays and the packages they target.
 
 ## Packages by vendor
 

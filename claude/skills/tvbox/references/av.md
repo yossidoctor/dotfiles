@@ -38,13 +38,13 @@ When another device sits between the box and the TV (a soundbar with HDMI in and
 ```
 READ                                                              SHOWS
 ---------------------------------------------------------------   ------------------------------------------
-cmd audio get-encoded-surround-mode                               0 auto, 1 never, 2 always, 3 manual
+cmd audio get-encoded-surround-mode                               the encoded_surround_output mode (below)
 dumpsys audio | grep -iE 'hdmi|surround|SystemAudio|CecVolume'    output device, CEC volume and system-audio flags
 dumpsys media.audio_policy | grep -iE 'hdmi|encoded|format'       HDMI port profiles: encodings the output can carry
 cat /sys/class/amhdmitx/amhdmitx0/aud_cap                         encodings the sink accepts
 ```
 
-The `encoded_surround_output` modes ([Settings.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/core/java/android/provider/Settings.java) `ENCODED_SURROUND_OUTPUT_*`): **auto** offers compressed surround formats (AC-3, E-AC-3, DTS…) that are detected on the output; **never** offers none; **always** offers them even when not detected; **manual** offers the formats listed in `encoded_surround_output_enabled_formats`. `dumpsys audio` shows `mHdmiCecVolumeControlEnabled` (volume keys sent over CEC) and `mFixedVolumeDevices` (outputs kept at fixed level).
+The `encoded_surround_output` modes ([Settings.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/core/java/android/provider/Settings.java) `ENCODED_SURROUND_OUTPUT_*`): **0 auto** offers compressed surround formats (AC-3, E-AC-3, DTS…) that are detected on the output; **1 never** offers none; **2 always** offers them even when not detected; **3 manual** offers the formats listed in `encoded_surround_output_enabled_formats`. `dumpsys audio` shows `mHdmiCecVolumeControlEnabled` (volume keys sent over CEC) and `mFixedVolumeDevices` (outputs kept at fixed level).
 
 ## HDMI-CEC
 
@@ -79,4 +79,4 @@ set_menu_language                           1/0                                 
 earc_enabled                                1/0                                          eARC
 ```
 
-`cmd hdmi_control onetouchplay` sends `<Image View On>`/`<Text View On>` and `<Active Source>`, the same messages the box sends on wake. `input keyevent TV_POWER` toggles the TV through CEC.
+`cmd hdmi_control onetouchplay` sends `<Image View On>`/`<Text View On>` and `<Active Source>`, the same messages the box sends on wake. `input keyevent TV_POWER` on an HDMI source toggles the TV through CEC, and the source follows ([KeyEvent.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/core/java/android/view/KeyEvent.java)).

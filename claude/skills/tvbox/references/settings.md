@@ -55,7 +55,7 @@ The display service owns these; they are set through `cmd display` ([commands.md
 ```
 KEY                                       NS       MEANING
 ---------------------------------------   ------   -------------------------------------------------
-encoded_surround_output                   global   0 auto, 1 never, 2 always, 3 manual
+encoded_surround_output                   global   surround mode 0–3 (av.md § Audio)
 encoded_surround_output_enabled_formats   global   with 3: comma list of AudioFormat encodings
 ```
 

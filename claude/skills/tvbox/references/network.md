@@ -4,7 +4,7 @@ Wi‑Fi hardware, how the box chooses its regulatory channels, and where its con
 
 ## Hardware and interfaces
 
-The Wi‑Fi/Bluetooth chip is Amlogic W2 (`getprop vendor.wlan.wifi_chip` → `aml_w2`; kernel modules `w2`, `w2_comm`, `cfg80211` in `/proc/modules`). Interfaces (`ls /sys/class/net`, `ip link`): `wlan0` (client), `p2p0` (Wi‑Fi Direct), `ap0` (hotspot), `eth0` (exists, no carrier; the box has no Ethernet port per [Xiaomi FAQ](https://www.mi.com/global/support/faq/details/KA-567165/)). Xiaomi lists Wi‑Fi 6 on 2.4 and 5 GHz with OFDMA and MU-MIMO, and no 6 GHz ([hardware.md](hardware.md)). `ip addr show wlan0` (its `link/ether` line) shows the MAC in use; `ip link show <if>` and `/sys/class/net/wlan0/address` are denied to the shell.
+The Wi‑Fi/Bluetooth chip is Amlogic W2 (`getprop vendor.wlan.wifi_chip` → `aml_w2`; kernel modules `w2`, `w2_comm`, `cfg80211` in `/proc/modules`). Interfaces (`ls /sys/class/net`, `ip link`): `wlan0` (client), `p2p0` (Wi‑Fi Direct), `ap0` (hotspot), `eth0` (present, no carrier). Xiaomi lists Wi‑Fi 6 on 2.4 and 5 GHz with OFDMA and MU-MIMO, and no 6 GHz ([hardware.md](hardware.md)). `ip addr show wlan0` (its `link/ether` line) shows the MAC in use; `ip link show <if>` and `/sys/class/net/wlan0/address` are denied to the shell.
 
 ## Connection state
 
