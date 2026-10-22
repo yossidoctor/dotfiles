@@ -30,7 +30,6 @@
       "Bash(mkfs *)",
       "Bash(mkfs.* *)",
       "Bash(shred *)",
-      "Bash(sudo *)",
       "Bash(rm -rf /)",
       "Bash(git push --force)",
       "Bash(git push --force *)",
@@ -55,14 +54,11 @@
       "Bash(git * push --mirror *)",
       "Bash(git * push --delete *)",
       "Bash(gh repo delete *)",
-      "Bash(gh release delete *)",
-      "Bash(gh cache delete *)",
       "Bash(gh secret delete *)",
       "Bash(git push * --delete *)",
       "Bash(git push * -d *)",
       "Bash(git * push * --delete *)",
-      "Bash(git * push * -d *)",
-      "Bash(rg -r*)"
+      "Bash(git * push * -d *)"
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
