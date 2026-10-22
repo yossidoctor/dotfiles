@@ -16,26 +16,14 @@
 #
 # Spotlight indexing and its exclusions are mac/spotlight.sh (needs sudo).
 #
-# The stamp records this script's own hash after a fully-successful run, so an
-# unchanged re-run skips everything — including the Transmission quit and the
-# Dock/Finder restarts at the end. A manually-flipped setting is re-applied
-# only after this script changes (stamp tracks intent, not live state).
+# Every `defaults write` below runs through mac/defaults-lib.sh, which writes
+# only a key whose live value differs and names every refused write, so a
+# re-run touches nothing. `bash mac/defaults.sh --check` prints the keys whose
+# live value differs from this file and writes nothing.
 set -uo pipefail
 
-stamp="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/defaults.stamp"
-self_hash="$(md5 -q "${BASH_SOURCE[0]}")"
-if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$self_hash" ]; then
-  echo "macOS defaults unchanged since last apply — skipping."
-  exit 0
-fi
-
-# Count individual write failures instead of swallowing them behind an
-# unconditional success message. Two causes on this machine: a domain whose
-# plist carries the com.apple.macl TCC attribute (com.apple.universalaccess),
-# and the sandboxed-app container paths (Safari, Mail), which the terminal can
-# only reach with Full Disk Access.
-failures=0
-trap 'failures=$((failures + 1))' ERR
+check=false; [ "${1:-}" = --check ] && check=true
+. "$(dirname "${BASH_SOURCE[0]}")/defaults-lib.sh"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Dock
@@ -167,7 +155,9 @@ for id in 64 65; do
   defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" \
     '<dict><key>enabled</key><false/><key>value</key><dict><key>type</key><string>standard</string><key>parameters</key><array><integer>65535</integer><integer>65535</integer><integer>0</integer></array></dict></dict>'
 done
-/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u 2>/dev/null || true
+case " $written " in *" com.apple.symbolichotkeys "*)
+  /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u 2>/dev/null || true ;;
+esac
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Text input — substitution that corrupts code and config typed or pasted into
@@ -483,12 +473,11 @@ defaults write digital.twisted.noTunes hideIcon -bool true
 # Sparkle: SUSendProfileInfo per sparkle-project.org/documentation/customization.
 #
 # Transmission rewrites its plist on exit, so a write made while it runs is
-# clobbered when it next quits. Quit it BEFORE writing; relaunch after only if it
-# was already running. WhatsApp is never force-killed (interrupting a session);
-# its key is read on next launch.
+# clobbered when it next quits: defaults-lib's quit_first stops it before the
+# first differing key, and it is relaunched at the end if it was running.
+# WhatsApp is never force-killed (interrupting a session); its key is read on
+# next launch.
 # ─────────────────────────────────────────────────────────────────────────────
-transmission_was_running=false; pgrep -xq Transmission && transmission_was_running=true
-killall Transmission 2>/dev/null || true
 
 # Transmission (cask: transmission) — defaults IS the config mechanism. The
 # listening port (BindPort) is per-machine state the app writes into this same
@@ -622,10 +611,10 @@ defaults write "$IINA" "PluginEnabled.io.iina.ytdl" -bool false
 # Spotify (cask: spotify) — settings are key=value lines in the per-user prefs
 # file, which appears only after the first login and which Spotify rewrites on
 # quit, so it is edited only while Spotify is not running. Spotify stores a key
-# only once it differs from the default.
+# only once it differs from the default. --check does not compare this file.
 # Spotify › Settings › "Streaming quality" (metered and unmetered) and download quality · value 5
 # Spotify › Settings › "Normalize volume" · default on
-if ! pgrep -xq Spotify; then
+if ! $check && ! pgrep -xq Spotify; then
   for prefs in "$HOME/Library/Application Support/Spotify/Users/"*-user/prefs; do
     [ -f "$prefs" ] || continue
     for kv in audio.play_bitrate_enumeration=5 audio.play_bitrate_non_metered_enumeration=5 \
@@ -650,17 +639,23 @@ while IFS= read -r d; do
   defaults write "$d" SUSendProfileInfo -bool false
 done < <(defaults domains | tr ',' '\n' | sed 's/^ //')
 
-# Relaunch Transmission only if it was running before this script quit it.
-$transmission_was_running && open -a Transmission 2>/dev/null || true
+if $check; then
+  [ "$drift" = 0 ] && echo "macOS defaults match."
+  exit $((drift > 0))
+fi
+
+for app in $relaunch; do open -a "$app" 2>/dev/null || true; done
 
 # Dock and Finder read their domains at launch; everything else above is
 # picked up live through cfprefsd or at the next login.
-killall Dock Finder 2>/dev/null || true
+case " $written " in
+  *" com.apple.dock "*|*" com.apple.spaces "*|*" com.apple.finder "*|*" com.apple.desktopservices "*|*" NSGlobalDomain "*)
+    killall Dock Finder 2>/dev/null || true ;;
+esac
 
-if [ "$failures" -gt 0 ]; then
-  echo "macOS defaults applied with $failures failed write(s) — a Safari/Mail container write needs Full Disk Access for the terminal." >&2
+if [ -n "$failed" ]; then
+  printf 'macOS defaults applied with failed writes:\n%s' "$failed" >&2
+  case "$failed" in */Library/Containers/*) echo "  a container write needs Full Disk Access for the terminal" >&2 ;; esac
   exit 1
 fi
-mkdir -p "$(dirname "$stamp")"
-printf '%s' "$self_hash" > "$stamp"
-echo "macOS defaults applied."
+echo "macOS defaults applied, $(( $(wc -w <<<"$written") )) key(s) written."
