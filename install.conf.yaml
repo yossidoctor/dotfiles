@@ -4,7 +4,7 @@
       force: true
 
 # A link whose source left this repo is otherwise left dangling in place.
-- clean: [~/.claude/hooks, ~/.local/bin, ~/.config, ~/.config/homebrew/Brewfile.d, ~/.config/daily.d]
+- clean: [~/.claude/hooks, ~/.local/bin, ~/.config, ~/.config/homebrew/Brewfile.d, ~/.config/daily.d, ~/.config/spotlight/exclusions.d]
 
 - create:
     - ~/.claude/hooks
@@ -12,6 +12,7 @@
     - ~/.config/git/identities.d
     - ~/.config/homebrew/Brewfile.d
     - ~/.config/daily.d
+    - ~/.config/spotlight/exclusions.d
     - ~/Library/Application Support/Code/User
 
 - link:
@@ -62,7 +63,7 @@
     - [bash mac/login-items.sh || true, Register Open-at-Login items (needs System Events automation permission; retried next run if denied)]
     - [bash mac/daily-agent.sh, Install/refresh the daily-jobs LaunchAgent]
     - [bash mac/plist-restore.sh BetterDisplay pro.betterdisplay.BetterDisplay mac/plists/betterdisplay.plist, Restore BetterDisplay settings]
-    - [cmp -s raycast/rayignore ~/.rayignore || cp raycast/rayignore ~/.rayignore, Copy the Raycast ignore file (Raycast ignores a symlinked .rayignore)]
+    - ['n=$(cat raycast/rayignore; cat ~/.config/spotlight/exclusions.d/* 2>/dev/null | sed "s|.*|/&/|"); [ "$n" = "$(cat ~/.rayignore 2>/dev/null)" ] || printf "%s\n" "$n" > ~/.rayignore', Write the Raycast ignore file plus each private layer's Spotlight exclusions (Raycast ignores a symlinked .rayignore)]
     - ['[ "$(gh config get color_labels)" = enabled ] || gh config set color_labels enabled', Colour PR/issue labels in gh output (gh owns ~/.config/gh; its other defaults stand)]
     - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]

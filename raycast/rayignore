@@ -2,7 +2,7 @@
 # exclusions in mac/spotlight.sh (the SoT), in gitignore syntax relative to ~.
 # /opt/homebrew and /Library/Developer are outside Raycast's scopes, and
 # Library/Application Support is already in Raycast's built-in ignore patterns.
-/work/
+# install.conf.yaml appends ~/.config/spotlight/exclusions.d's folders.
 /Music/
 /Library/Fonts/
 /Library/Logs/

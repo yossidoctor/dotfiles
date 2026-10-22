@@ -5,7 +5,8 @@
 # search field and `mas` all read this index; Raycast owns ⌘Space separately
 # (mac/defaults.sh unbinds the Spotlight hotkeys).
 #
-# Excluded: the work tree, whose node_modules, .venv and build output are
+# Excluded: the work tree (named by a private layer in
+# ~/.config/spotlight/exclusions.d), whose node_modules, .venv and build output are
 # hundreds of thousands of files rewritten on every install and searched by
 # ripgrep, never Finder; Homebrew's prefix, rewritten on every upgrade;
 # ~/Library/Application Support and Application Scripts, the apps' own working
@@ -37,7 +38,6 @@
 set -uo pipefail
 
 exclusions=(
-  "$HOME/work"
   /opt/homebrew
   "$HOME/Library/Application Support"
   "$HOME/Library/Application Support/Linear"  # Kept, in case the line above is removed
@@ -47,6 +47,11 @@ exclusions=(
   "$HOME/Library/Fonts"
   "$HOME/Library/Logs"
 )
+# A private layer adds home-relative folders, one per line, in exclusions.d.
+for f in "$HOME"/.config/spotlight/exclusions.d/*; do
+  [ -r "$f" ] || continue
+  while IFS= read -r d; do [ -n "$d" ] && exclusions+=("$HOME/$d"); done < "$f"
+done
 
 volume=/System/Volumes/Data
 plist=$volume/.Spotlight-V100/VolumeConfiguration.plist
