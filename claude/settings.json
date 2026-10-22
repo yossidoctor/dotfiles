@@ -64,7 +64,7 @@
       "Bash(git * push * -d *)",
       "Bash(rg -r*)"
     ],
-    "defaultMode": "bypassPermissions",
+    "defaultMode": "auto",
     "additionalDirectories": [
       "/Users/yossidoctor/dotfiles"
     ]
