@@ -58,7 +58,8 @@
       "Bash(git push * --delete *)",
       "Bash(git push * -d *)",
       "Bash(git * push * --delete *)",
-      "Bash(git * push * -d *)"
+      "Bash(git * push * -d *)",
+      "Bash(rg -r*)"
     ],
     "defaultMode": "auto",
     "additionalDirectories": [
