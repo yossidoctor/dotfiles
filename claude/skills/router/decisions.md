@@ -54,10 +54,11 @@ IPv6         ipv6_service          disabled
 8. **5 GHz auto-channel off DFS.** `acs_dfs=0`. Action `restart_wireless` (drops Wi‑Fi ~40 s). Keeps 5 GHz on 36–48, so a radar hit can't cut a stream.
 9. **2.4 GHz at 20 MHz.** `wl0_bw=0`. Action `restart_wireless`. Apple's guidance; fewer collisions.
 10. **6 GHz OFDMA both directions.** `wl2_ofdma=3`. Action `restart_wireless`.
-11. **WPS off.** `wps_enable_x=0`, `wps_enable=0`. Action `restart_wpsie`.
-12. **Router Samba off.** `enable_samba=0`. Action `restart_ftpsamba`. No USB drive.
-13. **Web UI HTTPS only.** `http_enable=1`. Action `restart_httpd`. UI at `https://<router>:8443`.
-14. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
+11. **5 GHz group key every 10 minutes.** `wl1_wpa_gtk_rekey=600`. Action `restart_wireless`. When the Mac joins 5 GHz and moves to 6 GHz, the router keeps a dead 5 GHz entry for it until the next group-key change, and the TV box can't reach the Mac's Movies share while it lasts; 600 caps that at 10 minutes.
+12. **WPS off.** `wps_enable_x=0`, `wps_enable=0`. Action `restart_wpsie`.
+13. **Router Samba off.** `enable_samba=0`. Action `restart_ftpsamba`. No USB drive.
+14. **Web UI HTTPS only.** `http_enable=1`. Action `restart_httpd`. UI at `https://<router>:8443`.
+15. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
 
 ## Kept at factory
 
@@ -80,6 +81,7 @@ Wi‑Fi sec.:    nothing to restore: step 7 keeps the values Quick Internet Setu
 DFS:           ssh router 'nvram set acs_dfs=1; nvram commit; service restart_wireless'
 2.4 GHz width: ssh router 'nvram set wl0_bw=1; nvram commit; service restart_wireless'
 6 GHz OFDMA:   ssh router 'nvram set wl2_ofdma=1; nvram commit; service restart_wireless'
+5 GHz rekey:   ssh router 'nvram set wl1_wpa_gtk_rekey=3600; nvram commit; service restart_wireless'
 WPS:           ssh router 'nvram set wps_enable_x=1; nvram set wps_enable=1; nvram commit; service restart_wpsie'
 Samba:         ssh router 'nvram set enable_samba=1; nvram commit; service restart_ftpsamba'
 Web UI:        ssh router 'nvram set http_enable=2; nvram commit; service restart_httpd'

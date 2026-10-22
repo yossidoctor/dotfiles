@@ -33,7 +33,7 @@ Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(wl[0-9]*(\.[0-9]+)?|2g1
 
 ## General
 
-Page `Advanced_Wireless_Content.asp` (Wireless › General), built by `system.wlBandSeq` in `/www/js/asus.js`; Apply posts through `httpApi.nvramSet` and runs `restart_wireless`. With `sdn_mainfh` the page hides the fronthaul rows and drops `ssid`, `closed`, `auth_mode_x`, `wpa_psk`, `crypto`, `wpa_gtk_rekey`, `mfp`, `11be` and the Smart Connect keys from its post (the `isSupport("sdn_mainfh")` block in `apply()`), so on this unit it sets bandwidth and channel only; the other values belong to the MAINFH profile ([§ Guest Network Pro](#guest-network-pro)) *(unit)*.
+Page `Advanced_Wireless_Content.asp` (Wireless › General), built by `system.wlBandSeq` in `/www/js/asus.js`; Apply posts through `httpApi.nvramSet` and runs `restart_wireless`. With `sdn_mainfh` the page hides the fronthaul rows and drops `ssid`, `closed`, `auth_mode_x`, `wpa_psk`, `crypto`, `wpa_gtk_rekey`, `mfp`, `11be` and the Smart Connect keys from its post (the `isSupport("sdn_mainfh")` block in `apply()`), so on this unit it sets bandwidth and channel only; `wpa_gtk_rekey` has no profile key and is set on `wlX_` over SSH (table below), and the other values belong to the MAINFH profile ([§ Guest Network Pro](#guest-network-pro)) *(unit)*.
 
 ```
 KEY (per unit)    UI LABEL / VALUES                                          LANDS IN (live check)
@@ -60,7 +60,9 @@ auth_mode_x       open, openowe, owe, shared, psk, psk2, sae, pskpsk2,       hos
 crypto            aes, aes+gcmp256, tkip, tkip+aes, suite-b                  hostapd wpa_pairwise (aes → CCMP;
                   [trade-off](tradeoffs.md#wpa-encryption)                    aes+gcmp256 → CCMP GCMP-256 + SAE-EXT-KEY)
 wpa_psk           WPA pre-shared key                                         hostapd (redacted)
-wpa_gtk_rekey     Group key rotation interval, s, 0–2592000 (3600 here)      hostapd wpa_group_rekey
+wpa_gtk_rekey     Group key rotation interval, s, 0–2592000 (3600 here)      hostapd wpa_group_rekey of every VAP on the
+                                                                             radio, from wlX_ only; wlX.Y_ copies are
+                                                                             not read *(unit: wl1_ → ath1 + ath101)*
 mfp               PMF: 0 Disable, 1 Capable, 2 Required; 6 GHz forced 2      hostapd ieee80211w
                   [trade-off](tradeoffs.md#protected-management-frames)
 wep_x, key,       WEP 0 off / 1 64-bit / 2 128-bit, key index, keys,         —
