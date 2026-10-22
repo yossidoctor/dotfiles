@@ -1,21 +1,29 @@
 #!/bin/bash
 # PreToolUse Bash hook: long-running work goes off-thread.
 #
-# Two verdicts, split by whether backgrounding preserves the command's value:
-#   - REWRITTEN to run_in_background=true: follow streams and watch commands
-#     (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`,
-#     `journalctl -f`, `gh run watch`, `gh pr checks --watch`) — the output is
-#     what's wanted, off-thread is where it belongs, so the call is normalized
-#     rather than refused.
-#   - DENIED: a bare `sleep >=10` and sleep-loops. Backgrounding a wait yields
-#     nothing to consume, and a poll loop off-thread still burns a subprocess
-#     per tick — `ScheduleWakeup` and `Monitor` are the mechanisms that replace
-#     them. Under ten seconds the wait is part of one operation (reaping a
-#     killed process, settling a connect), so it passes.
+# Three verdicts:
+#   - REWRITTEN to run_in_background=true, so the call runs rather than being
+#     refused and retried:
+#       follow streams and watch commands (`tail -f`, `watch`, `kubectl logs -f`,
+#       `kubectl get -w`, `docker logs -f`, `journalctl -f`, `gh run watch`,
+#       `gh pr checks --watch`), whose output is the point;
+#       waits — a `sleep >=10` anywhere, or a `while`/`until` loop with a sleep
+#       in its body. A foreground wait holds the session for its whole length.
+#       Off-thread, the completion notification wakes the caller with the
+#       command's output and exit code, so the wait and the check it guards run
+#       as one backgrounded command and the caller ends its turn. That wake is
+#       the one the main thread and a subagent both have
+#       (~/dotfiles/docs/claude/subagent-harness.md); no session here carries
+#       `Monitor`, and `ScheduleWakeup` runs only under `/loop`.
+#   - DENIED: a job detached with a lone `&` and no `wait` — `( … &)`,
+#     `nohup … &`, `cmd & next`. The shell owns that job, not the harness, so
+#     its end wakes no one and the caller waits on a report that never comes.
+#   - PASSED: a sleep under ten seconds, a `for` loop's included — a pause
+#     inside one operation (reaping a killed process, settling a connect,
+#     pacing requests to a rate-limited site).
 #
 # Skips when run_in_background=true (off-thread already), and for a sleep whose
-# `description` is exactly `poll wait`. Both replacements the deny names are
-# main-thread tools an agent does not have. An agent waiting on its own process
+# `description` is exactly `poll wait`. An agent waiting on its own process
 # backgrounds it and ends its turn, and the harness wakes it on exit once its dispatcher is idle; the carve-out
 # is for a condition no process of its own signals (a reply landing on a thread),
 # where a backgrounded sleep the agent works past delays nothing and it polls in a
@@ -33,7 +41,7 @@ set -u
 # cwd, the description and the session id alongside the command.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
+  *sleep*|*'&'*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
   *) exit 0 ;;
 esac
 hook_parse_input
@@ -42,6 +50,16 @@ cmd="$HOOK_CMD"
 [ "$HOOK_RUN_IN_BACKGROUND" = "true" ] && exit 0
 
 cmd_unq=$(hook_command_shape)
+
+background() {  # $1=reason  $2=additionalContext -> allow with run_in_background=true, exit 0
+  printf '%s' "$HOOK_INPUT" | jq -c --arg r "$1" --arg c "$2" '{hookSpecificOutput: {
+    hookEventName: "PreToolUse",
+    permissionDecision: "allow",
+    permissionDecisionReason: $r,
+    updatedInput: ((.tool_input // {}) + {run_in_background: true}),
+    additionalContext: $c}}'
+  exit 0
+}
 
 # The agent poll-wait opt-out: `description` exactly `poll wait` on a command
 # that is one bare sleep. Anything else in the command (a `&&`, a second
@@ -71,27 +89,35 @@ if [ "$HOOK_DESCRIPTION" = "poll wait" ] &&
   exit 0
 fi
 
+# A lone `&` — not `&&`, `>&`, `&>`, `|&` — starts a job the shell owns; one
+# `wait` in the same command reaps it there, so that form passes.
+if printf '%s' "$cmd_unq" | grep -qE '(^|[^&>|<])&([^&>]|$)' && ! printf '%s' "$cmd_unq" | grep -qE '\bwait\b'; then
+  deny "A job detached with \`&\` (or \`( … &)\`, \`nohup … &\`) belongs to the shell, not the harness, so its end wakes no one and its report never comes. Run it as its own call with \`run_in_background: true\` and no \`&\`, then end your turn; the completion notification wakes you with its output."
+fi
+
+WAIT_CONTEXT="Moved to the background by enforce-foreground-polling.sh: a foreground wait holds the session for its whole length. End your turn now; the completion notification wakes you with this command's output and exit code. A wait carries its own check (\`until <check>; do sleep 10; done; <report>\`), so the wake brings the answer."
+
 # Fixed sleeps: N >= 10 (two-digit 10-99 or 3+ digits, optional `s` suffix), or
 # any N with an m/h/d suffix. Below ten seconds a wait is part of one operation —
 # letting a killed process reap, a device handshake settle — where the check
 # belongs in the same command and there is nothing to come back to.
 if printf '%s' "$cmd_unq" | grep -qE '\bsleep[[:space:]]+([1-9][0-9]|[1-9][0-9]{2,})([.][0-9]+)?s?\b|\bsleep[[:space:]]+[0-9]+([.][0-9]+)?[mhd]\b'; then
-  deny "Foreground \`sleep\` >=10s blocked. Main thread: waiting on a condition is \`Monitor\` (off-thread, notifies on exit); a single fixed delay before re-checking is \`ScheduleWakeup\` (no process at all — the session resumes and re-checks); work whose OUTPUT is the point is \`Bash\` with \`run_in_background: true\`. Subagent (none of those tools): when a process of yours will signal the condition — one you launch now, or one already running with \`run_in_background: true\` — end your turn and let the harness wake you on its exit once your dispatcher is idle; never sleep on it. Only for a condition no process of yours signals, a bare \`sleep N\` whose description is exactly \`poll wait\` passes and gets a timeout matching N. Backgrounding a bare wait is not the fix — it still burns a subprocess and still needs someone to come back for the answer. Sub-10s waits pass, for settling after a kill or a connect."
+  background "Backgrounded — a wait off-thread wakes the caller on exit." "$WAIT_CONTEXT"
 fi
 
-# Sleep-loops: polling pattern. Monitor runs off-thread + notifies on exit.
-# A poll loop has `sleep` between a loop keyword and the loop's closing `done`.
-# The body under test runs from the FIRST loop keyword to the LAST `done`
-# (`${x%done*}`), so it spans the whole outermost loop: a nested inner loop
-# closing first stays inside, a sleep before the loop opens or after it fully
-# closes drops out (`sleep 5; for x in a b; do echo $x; done` -> no sleep in
+# Poll loops: a `while`/`until` with `sleep` between its keyword and the loop's
+# closing `done`. A `for` loop over a list with short sleeps paces work rather
+# than polls, so it passes. The body under test runs from the FIRST loop keyword
+# to the LAST `done` (`${x%done*}`), so it spans the whole outermost loop: a
+# nested inner loop closing first stays inside, a sleep before the loop opens or
+# after it fully closes drops out (`sleep 5; while x; do y; done` -> no sleep in
 # the body).
 case "$cmd_unq" in
   *done*)
     loop_head=${cmd_unq%done*}
-    loop_body=$(printf '%s' "$loop_head" | grep -oE '(^|[;&|(][[:space:]]*|[[:space:]])(while|until|for)[[:space:]].*' | head -1)
+    loop_body=$(printf '%s' "$loop_head" | grep -oE '(^|[;&|(][[:space:]]*|[[:space:]])(while|until)[[:space:]].*' | head -1)
     if [ -n "$loop_body" ] && printf '%s' "$loop_body" | grep -qE '\bsleep\b'; then
-      deny "Foreground \`while|until|for ... sleep ...\` loop blocked. Main thread: \`Monitor\` with \`until <check>; do sleep 2; done\` — runs off-thread, notifies on exit; fire-and-forget loops: \`Bash\` with \`run_in_background: true\`. Subagent: one bare \`sleep N\` per call with description exactly \`poll wait\`, then the check as its own call — no loop."
+      background "Backgrounded — a poll loop off-thread wakes the caller when it exits." "$WAIT_CONTEXT"
     fi
     ;;
 esac
@@ -108,16 +134,6 @@ esac
 #   - `kubectl get -w` / `--watch`: kubectl's own watch, which never returns.
 #   - `gh run watch`, `gh pr checks --watch`: gh's own blocking waits, in either
 #     argument order.
-background() {  # $1=reason  $2=additionalContext -> allow with run_in_background=true, exit 0
-  printf '%s' "$HOOK_INPUT" | jq -c --arg r "$1" --arg c "$2" '{hookSpecificOutput: {
-    hookEventName: "PreToolUse",
-    permissionDecision: "allow",
-    permissionDecisionReason: $r,
-    updatedInput: ((.tool_input // {}) + {run_in_background: true}),
-    additionalContext: $c}}'
-  exit 0
-}
-
 if printf '%s' "$cmd_unq" | grep -qE '\btail\b[^|;&]*([[:space:]]-[a-zA-Z]*[fF][a-zA-Z]*\b|[[:space:]]--follow(=[^[:space:]]*)?\b)|(^|[;&|(])[[:space:]]*watch[[:space:]]|\bkubectl[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bkubectl[[:space:]]+get\b[^|;&]*([[:space:]]-w\b|[[:space:]]--watch(-only)?\b)|\bdocker(-compose|[[:space:]]+compose)?[[:space:]]+logs\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bjournalctl\b[^|;&]*([[:space:]]-[a-zA-Z]*f\b|--follow\b)|\bgh[[:space:]]+run[[:space:]]+watch\b|\bgh[[:space:]]+pr[[:space:]]+checks\b[^|;&]*[[:space:]]--watch\b'; then
   background "Backgrounded — a stream off-thread needs no confirmation." \
     "Follow stream / watch command moved off-thread by enforce-foreground-polling.sh: run_in_background=true. It streams, so the main thread never blocks on it; output arrives via the completion notification. Drop the follow flag for a one-shot read instead."
