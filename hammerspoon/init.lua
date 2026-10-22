@@ -112,12 +112,20 @@ aerospaceWindows:subscribe({ hs.window.filter.windowUnminimized, hs.window.filte
   floatedPhantoms[id] = nil
 end)
 
--- Every focus change: the `list-windows --focused` read is the #1615 retile
--- poke; a fullscreen focused window is raised (AeroSpace never manages
--- z-order); and when macOS and AeroSpace disagree on the focused window (a
--- restored window takes macOS focus AeroSpace never records) AeroSpace gets
--- the macOS one, re-read at callback time so a stale event cannot drag focus
--- back. A new window's first focus waits 400ms: extract-fullscreen-pair.sh
+-- Every focus change and every app activation (Cmd+Tab, Dock): the
+-- `list-windows --focused` read is the #1615 retile poke; a fullscreen
+-- focused window is raised (AeroSpace never manages z-order); and when macOS
+-- and AeroSpace disagree on the focused window AeroSpace gets the macOS one,
+-- re-read at callback time so a stale event cannot drag focus back. That
+-- resync is what switches workspace on a Cmd+Tab AeroSpace missed: it follows
+-- native focus only when the focused window id changes and the window has a
+-- workspace (focusCache.swift, focus.swift; upstream discussion #949, open).
+-- Three misses stay out of reach and are logged as "focus resync skipped":
+-- Cmd+Tab from an empty workspace back to the app last focused fires no
+-- macOS event at all (alt-N or Hyper+bracket instead, by design per #301);
+-- a minimized-only app refuses focus (Dock click restores it); an overlay or
+-- sheet leaves macOS reporting no window (Esc closes it, #1568).
+-- A new window's first focus waits 400ms: extract-fullscreen-pair.sh
 -- needs the ~100ms after detection in which the old window still reads as
 -- fullscreen (2026-10-04: 0/3 extractions with the call immediate, 2/2 without).
 -- aerospace.toml's Hyper+f binding calls this via `hs -c`.
@@ -129,16 +137,21 @@ function aerospaceRaiseFullscreen()
   end
   aerospace({ "list-windows", "--focused", "--format", "%{window-id} %{window-is-fullscreen}" }, function(out)
     local id, fullscreen = out:match("^(%d+) (%S+)")
-    if not id then return end
-    local w = hs.window.get(tonumber(id))
+    local w = id and hs.window.get(tonumber(id))
     if fullscreen == "true" and w then w:raise(); w:application():activate(); note("raised fullscreen", id); return end
     local front = hs.window.focusedWindow()
     local frontId = front and front:isStandard() and front:id()
-    if frontId and frontId ~= tonumber(id) then
+    local frontApp = front and front:application():name() or "no front window"
+    if not id or not frontId then
+      note("focus resync skipped", id or "no aerospace focus", frontId and "" or "nonstandard", frontApp)
+    elseif frontId ~= tonumber(id) then
       aerospace({ "focus", "--window-id", tostring(frontId) })
-      note("focus resync", id, "->", tostring(frontId), front:application():name())
+      note("focus resync", id, "->", tostring(frontId), frontApp)
     end
   end)
   floatPhantoms()
 end
 aerospaceWindows:subscribe(hs.window.filter.windowFocused, aerospaceRaiseFullscreen)
+aerospaceActivationWatcher = hs.application.watcher.new(function(_, event)
+  if event == hs.application.watcher.activated then aerospaceRaiseFullscreen() end
+end):start()
