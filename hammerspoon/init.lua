@@ -145,8 +145,15 @@ function aerospaceRaiseFullscreen()
     if not id or not frontId then
       note("focus resync skipped", id or "no aerospace focus", frontId and "" or "nonstandard", frontApp)
     elseif frontId ~= tonumber(id) then
-      aerospace({ "focus", "--window-id", tostring(frontId) })
-      note("focus resync", id, "->", tostring(frontId), frontApp)
+      -- Re-read after 300ms: on Cmd+Q macOS still reports the dying window
+      -- as focused for a moment (Notes, 2026-10-22), and following it sent
+      -- AeroSpace to the dead window's workspace.
+      hs.timer.doAfter(0.3, function()
+        local still = hs.window.focusedWindow()
+        if not still or still:id() ~= frontId then note("focus resync dropped", id, "->", tostring(frontId), frontApp); return end
+        aerospace({ "focus", "--window-id", tostring(frontId) })
+        note("focus resync", id, "->", tostring(frontId), frontApp)
+      end)
     end
   end)
   floatPhantoms()
