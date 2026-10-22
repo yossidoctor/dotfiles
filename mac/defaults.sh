@@ -67,23 +67,18 @@ defaults write com.apple.dock mineffect -string "scale"
 # opposed to the toggle) still lands is unverified.
 defaults write com.apple.dock mru-spaces -bool false
 
-# Desktop & Dock › Mission Control › "Displays have separate Spaces" · default on
-# Off (the key reads "spans displays"): one Space across all monitors, which
-# the AeroSpace guide recommends because the public window API it relies on
-# does not know Spaces exist (wrong window focused across monitors, #101).
-# Costs the menu bar on secondary monitors. Takes effect at the next login.
-defaults write com.apple.spaces spans-displays -bool true
-
 # Desktop & Dock › Mission Control › "Drag windows to top of screen to enter Mission Control" · default on
 # A window dragged against the menu bar stays a plain drag.
 defaults write com.apple.dock enterMissionControlByTopWindowDrag -bool false
 
 # Desktop & Dock › Mission Control › "Displays have separate Spaces" · default on
-# The key is the inverse of the checkbox: false = separate Spaces per display.
-# AeroSpace requires this — its APIs mis-handle windows crossing a Space that
-# spans displays. Cost: native fullscreen blanks the other monitor, so use
-# AeroSpace's fullscreen instead. Takes effect at next login.
-defaults write com.apple.spaces spans-displays -bool false
+# The key is the inverse of the checkbox: true = one Space across all displays.
+# The AeroSpace guide recommends off: with separate Spaces a window moved to
+# another monitor crosses Spaces, which the public API AeroSpace uses does
+# not know exist (wrong window focused across monitors, #101). Cost: native
+# fullscreen blanks the other monitor, so use AeroSpace's fullscreen, and the
+# menu bar shows on the main monitor only. Takes effect at next login.
+defaults write com.apple.spaces spans-displays -bool true
 
 # Desktop & Dock › Windows › "Drag windows to left or right edge of screen to tile" · default on
 # Desktop & Dock › Windows › "Drag windows to menu bar to fill screen" · default on
