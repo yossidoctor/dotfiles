@@ -27,10 +27,10 @@
 # backgrounds it and ends its turn, and the harness wakes it on exit once its dispatcher is idle; the carve-out
 # is for a condition no process of its own signals (a reply landing on a thread),
 # where a backgrounded sleep the agent works past delays nothing and it polls in a
-# hot loop. The payload carries no caller identity to key on
-# — session_id, transcript_path and cwd are the parent session's on an agent's
-# call too — so the opt-out is the description, which only a prompt that means it
-# sets. It names a bare sleep, never a poll loop.
+# hot loop. A subagent's payload carries `agent_id`, but the opt-out keys on the
+# description: only the prompt knows whether the condition has a process to wake
+# on, and only a prompt that means it sets the label. It names a bare sleep,
+# never a poll loop.
 
 set -u
 

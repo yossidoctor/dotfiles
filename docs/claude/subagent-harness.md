@@ -24,8 +24,8 @@ Re-verify: `rg -l '"name":"(ScheduleWakeup|Monitor)"' ~/.claude/projects/*/*/sub
 
 A sleep longer than the call's `timeout` is SIGTERMed (exit 143) and returns early, reading as a delay that silently did not happen. The default and the maximum are stated in the Bash tool's own description, read in the session that sets them.
 
-## The hook payload carries no caller identity
+## A subagent's hook payload names the agent
 
-`session_id`, `transcript_path` and `cwd` are the parent session's even on a subagent's call, so no hook can key on "is this a subagent."
+`session_id`, `transcript_path` and `cwd` are the parent session's even on a subagent's call, but a subagent's payload adds `agent_id` and `agent_type`, which a main-thread call's lacks, so a hook tells the two apart on `.agent_id`.
 
-Re-verify: in a PreToolUse hook, append `jq -c '{session_id, transcript_path, cwd}'` of the payload to a scratch log, then compare one main-thread call with one subagent call.
+Re-verify: in a PreToolUse hook, append `jq -c '{agent_id, agent_type, session_id}'` of the payload to a scratch log, then compare one main-thread call with one subagent call.
