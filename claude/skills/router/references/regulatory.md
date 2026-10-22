@@ -1,6 +1,6 @@
 # Channels and regulatory rules
 
-How the RT-BE90U decides which channels and power it may use on each band, how DFS behaves on its Qualcomm driver, what Israeli rules allow, and how clients pick their own country. Unit facts are *(read on RT-BE90U 3.0.0.6.102_58500)* unless a source is cited; re-read them with the command given. Applying any key below: [platform.md § Apply actions](platform.md#apply-actions).
+How the RT-BE90U decides which channels and power it may use on each band, how DFS behaves on its Qualcomm driver, what Israeli rules allow, and how clients pick their own country. Unit facts are *(unit)* unless a source is cited. Applying any key below: [platform.md § Apply actions](platform.md#apply-actions).
 
 ## Channel numbering
 
@@ -37,7 +37,7 @@ BAND / RANGE        LISTED CHANNELS        RULE                                 
 
 Wide groups follow from the list. 5 GHz: 40 MHz pairs 36+40 … 132+136 (140 has no partner without 144), 80 MHz groups 36–48, 52–64, 100–112, 116–128 (132–140 has none), 160 MHz groups 36–64 and 100–128. 6 GHz: 40/80/160 MHz groups start at channel 1 and tile up to 93 (24, 12, 6, 3 groups); the two 320 MHz groups that fit 5945–6425 MHz are 1–61 (centre 31) and 33–93 (centre 63). `iw dev` reads `channel 69 … width: 320 MHz, center1: 6265 MHz` on this unit, i.e. the 33–93 group.
 
-**Auto channel.** With Control Channel on Auto (`wlX_chanspec`/`wlX_channel` = 0, [wireless.md](wireless.md)) the driver's ACS picks the channel at radio start, skipping a block list rc writes into `/etc/Wireless/sh/prewifi_athN.sh` (`wifitool athN block_acs_channel …`) on each radio start. `wifitool athN block_acs_channel_get` prints the list in effect. rc derives it from the checkboxes: ath0 blocks `12,13` while `acs_ch13=0`; ath1 blocks `36` always and, with `acs_dfs=1`, the weather-band group `116,120,124,128` (the 80 MHz group overlapping 5600–5650 MHz, [§ DFS](#dfs)), or with `acs_dfs=0` every DFS channel `52–64,100–140`, so Auto then chooses among 40, 44 and 48 *(both lists read on RT-BE90U 3.0.0.6.102_58500)*; no source read states why 36 is blocked. Blocked channels stay selectable by hand. The Wireless › General checkboxes:
+**Auto channel.** With Control Channel on Auto (`wlX_chanspec`/`wlX_channel` = 0, [wireless.md](wireless.md)) the driver's ACS picks the channel at radio start, skipping a block list rc writes into `/etc/Wireless/sh/prewifi_athN.sh` (`wifitool athN block_acs_channel …`) on each radio start. `wifitool athN block_acs_channel_get` prints the list in effect. rc derives it from the checkboxes: ath0 blocks `12,13` while `acs_ch13=0`; ath1 blocks `36` always and, with `acs_dfs=1`, the weather-band group `116,120,124,128` (the 80 MHz group overlapping 5600–5650 MHz, [§ DFS](#dfs)), or with `acs_dfs=0` every DFS channel `52–64,100–140`, so Auto then chooses among 40, 44 and 48 *(unit, both lists)*; no source read states why 36 is blocked. Blocked channels stay selectable by hand. The Wireless › General checkboxes:
 
 ```
 KEY         UI LABEL (EN.dict)                                   SHOWN WHEN
@@ -132,11 +132,11 @@ US (FCC)         5.15–5.25 AP 1 W, 17 dBm/MHz; 5.25–5.35 and   LPI AP 30 dBm
 GB (this unit)   the driver's GB table in § Channels on this unit                                   iw reg get
 ```
 
-ETSI figures are mean EIRP; FCC 5 GHz figures are conducted output. The Ofcom texts for GB did not load (HTTP 403), so GB is described only by the driver's table.
+ETSI figures are mean EIRP; FCC 5 GHz figures are conducted output. GB is described by the driver's table only; no Ofcom source is cited.
 
 ## 6 GHz security and power
 
-WPA3 Specification v3.5 §11.2: an AP running a BSS in 6 GHz allows no TKIP, no WPA3-Personal transition mode, no 802.1X SHA-1 AKM, no SAE hunting-and-pecking, no Enhanced Open transition mode, and sets PMF Required; §11.3 adds that an association using EHT or MLO (Wi‑Fi 7) uses no PSK AKM ([Wi‑Fi Alliance](https://www.wi-fi.org/system/files/WPA3%20Specification%20v3.5.pdf)). On this unit the 6 GHz fronthaul reads `wl2.1_auth_mode_x=sae`, `wl2.1_mfp=2`, and its generated hostapd file `wpa_key_mgmt=SAE`, `sae_pwe=1` (hash-to-element only), `ieee80211w=2`, `op_class=137`: `grep -E '^(wpa_key_mgmt|sae_pwe|ieee80211w|op_class)=' /etc/Wireless/conf/hostapd_ath201.conf` (the file also holds `ap_pin` and the passphrase, so read it filtered). The security keys themselves are in [wireless.md](wireless.md).
+WPA3 Specification v3.5 §11.2: an AP running a BSS in 6 GHz allows no TKIP, no WPA3-Personal transition mode, no 802.1X SHA-1 AKM, no SAE hunting-and-pecking, no Enhanced Open transition mode, and sets PMF Required; §11.3 adds that an association using EHT or MLO (Wi‑Fi 7) uses no PSK AKM ([Wi‑Fi Alliance](https://www.wi-fi.org/system/files/WPA3%20Specification%20v3.5.pdf)). On this unit the 6 GHz fronthaul reads `wl2.1_auth_mode_x=sae`, `wl2.1_mfp=2`, and its generated hostapd file `wpa_key_mgmt=SAE`, `sae_pwe=1` (hash-to-element only), `ieee80211w=2`, `op_class=137`: `grep -E '^(wpa_key_mgmt|sae_pwe|ieee80211w|op_class)=' /etc/Wireless/conf/hostapd_ath201.conf` (the file also holds `ap_pin` and the passphrase, so *redact* any wider read). The security keys themselves are in [wireless.md](wireless.md).
 
 **Power class.** The GB table marks 5945–6425 MHz `NO-OUTDOOR`, i.e. low-power-indoor operation; nothing on the unit offers VLP or standard power. Standard-power 6 GHz with AFC is a US/Canada mechanism; the Wireless › General AFC switch (`httpApi.get_afc_enable`) is drawn only with `rc_support` `bcm_afc`, absent here, and no nvram key holds AFC state.
 

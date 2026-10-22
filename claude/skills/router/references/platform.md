@@ -1,6 +1,6 @@
 # Platform
 
-How the router is built, configured and maintained, and the Administration and USB pages. Facts marked *(read on RT-BE90U 3.0.0.6.102_58500)* come from this unit's shell; re-read them with the command given after a firmware change. Code facts cite [asuswrt-merlin.ng](https://github.com/RMerl/asuswrt-merlin.ng/tree/b053ba701af02e46a86d465d82cc2a7891a288a7) at commit b053ba7, whose generic `rc`, `httpd` and `libwebapi` code is shared with stock firmware; that tree carries no Qualcomm `sysdeps`, so Qualcomm-specific behaviour rests on the unit.
+How the router is built, configured and maintained, and the Administration and USB pages. Code facts cite [asuswrt-merlin.ng](https://github.com/RMerl/asuswrt-merlin.ng/tree/b053ba701af02e46a86d465d82cc2a7891a288a7) at commit b053ba7, whose generic `rc`, `httpd` and `libwebapi` code is shared with stock firmware; that tree carries no Qualcomm `sysdeps`, so Qualcomm-specific behaviour rests on the unit.
 
 ## Identity
 
@@ -17,13 +17,13 @@ kernel                   uname -a
 feature flags            nvram get rc_support   (space-separated; the web UI's isSupport())
 ```
 
-`rc_support` containing `qca` and `qcawifi` marks the Qualcomm platform; `wifi7`, `mlo`, `amas`, `bwdpi`, `wireguard`, `vpn_fusion` are other flags the UI branches on *(read on RT-BE90U 3.0.0.6.102_58500)*.
+`rc_support` containing `qca` and `qcawifi` marks the Qualcomm platform; `wifi7`, `mlo`, `amas`, `bwdpi`, `wireguard`, `vpn_fusion` are other flags the UI branches on *(unit)*.
 
 Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(HwId|asus_mfg|asus_mfg_flash|odmpid|productid|firmver|buildno|extendno|rc_support|model|modelname|hardware_version|HwVer|HwBom|DCode|CoBrand|boardnum|boardflags|blver|bl_version|buildinfo|build_name|build_time|nvramver|serial_no|secret_code|label_mac|et[0-9]macaddr|wl[0-9]macaddr|uuid|asus_device_list|innerver|swpjverno|cpurev|cpu_model)'`
 
 ## Hardware
 
-*(read on RT-BE90U 3.0.0.6.102_58500)*
+*(unit)*
 
 ```
 PART          WHAT THE UNIT REPORTS                                  READ WITH
@@ -46,7 +46,7 @@ QCN9274 is the device ID `0x1109` in Linux's ath12k driver ([pci.c](https://gith
 
 ## Interfaces
 
-Every interface in `ip -br link` *(read on RT-BE90U 3.0.0.6.102_58500)*:
+Every interface in `ip -br link` *(unit)*:
 
 ```
 INTERFACE                    ROLE                                                   PROOF
@@ -75,7 +75,9 @@ What each VAP serves and why `ath0`–`ath2` carry a hashed SSID is in [wireless
 
 ## Configuration model
 
-**nvram.** All persistent settings are nvram key=value pairs (`nvram show 2>/dev/null | wc -l`; `nvram show 2>&1 >/dev/null` prints used and free bytes). `nvram get <key>` reads one key per call, so several keys are read with a loop. `nvram set k=v` changes the running copy; `nvram commit` writes it to the `nvram` mtd partition (`cat /proc/mtd`). `/bin/nvram` accepts `commit` although its usage text omits it (`strings /bin/nvram | grep -x commit`) *(read on RT-BE90U 3.0.0.6.102_58500; the write itself unverified)*. `nvram show` prints credentials (PSKs, PPPoE, VPN keys), so list names with `nvram show 2>/dev/null | cut -d= -f1` and read values filtered: `nvram show 2>/dev/null | grep -viE 'psk|passw|key|secret|token|pin|phrase'`.
+**nvram.** All persistent settings are nvram key=value pairs (`nvram show 2>/dev/null | wc -l`; `nvram show 2>&1 >/dev/null` prints used and free bytes). `nvram set k=v` changes the running copy; `nvram commit` writes it to the `nvram` mtd partition (`cat /proc/mtd`). `/bin/nvram` accepts `commit` although its usage text omits it (`strings /bin/nvram | grep -x commit`) *(unit; the write itself unverified)*. `nvram show` prints credentials, so *redact* it ([SKILL.md § Reaching the router](../SKILL.md#reaching-the-router)).
+
+**Page labels.** A page's select options and row titles carry `<#N#>` tokens: `<#N#>` is line N+1 of `/www/EN.dict` (`sed -n "$((N+1))p" /www/EN.dict`).
 
 **Unit prefixes.** Per-instance settings carry a unit in their prefix: `wl0_`/`wl1_`/`wl2_` (2.4/5/6 GHz radio), `wl0.1_`… (VAP 1… of radio 0), `wan0_`/`wan1_` (WAN units), `apg1_`… (Guest Network Pro profiles), `vpn_client1_`… The unprefixed `wl_`, `wan_` forms are working copies the older pages edit (with `wl_unit`/`wl_subunit`, `wan_unit` naming the instance). The newer pages name bands as `2g1_`/`5g1_`/`6g1_`; httpd rewrites the Nth entry of `wlnband_list` (`2g1<5g1<6g1` on this unit) to `wlN_`, so `6g1_ssid` is `wl2_ssid` ([libwebapi webapi.c `wl_nband_to_wlx`](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/libwebapi/webapi.c#L622); the function is in the unit's `/usr/sbin/httpd`: `strings /usr/sbin/httpd | grep -x wl_nband_to_wlx`).
 
@@ -118,17 +120,17 @@ restart_all             sets sys_reboot_reason=rc_all and terminates init: reboo
 reboot                  WAN stop, full reboot                                         everything
 ```
 
-`restart_time` and `restart_net` kill the SSH session that ran them; `restart_wireless`, `restart_net*` and `reboot` drop a Wi‑Fi‑connected Mac. The UI countdown (`action_wait`) is a fixed timer, not a measurement; measured recovery markers are in [diagnostics.md § Restart safety](diagnostics.md#restart-safety).
+`restart_time` and `restart_net` kill the SSH session that ran them; `restart_wireless`, `restart_net*` and `reboot` drop a Wi‑Fi‑connected Mac. The UI countdown (`action_wait`) is a fixed timer, not a measurement; measured recovery markers are in [change.md](change.md).
 
 ## Files and persistence
 
-*(read on RT-BE90U 3.0.0.6.102_58500)* `/` is a read-only squashfs (`/dev/mtdblock6`, the `rootfs` partition named in `/proc/cmdline`); `/www` is a read-only overlay of it; `/tmp` is RAM, and `/etc`, `/root` and `/home` are symlinks into it (`ls -ld /etc /root /home`), so anything written there is gone after a reboot. `/jffs` is a UBIFS volume on flash (`mount | grep jffs`, about 64 MB) that survives reboots: SSH host keys (`/jffs/.ssh`), the syslog (`/jffs/syslog.log`, `-1`), `hostapd.log`, firmware-check log (`webs_upgrade.log`), AiMesh and speed-test data (`/jffs/.sys`), AiProtection data (`/jffs/asd*`, `aae.log`). `ls -la /jffs` lists it.
+*(unit)* `/` is a read-only squashfs (`/dev/mtdblock6`, the `rootfs` partition named in `/proc/cmdline`); `/www` is a read-only overlay of it; `/tmp` is RAM, and `/etc`, `/root` and `/home` are symlinks into it (`ls -ld /etc /root /home`), so anything written there is gone after a reboot. `/jffs` is a UBIFS volume on flash (`mount | grep jffs`, about 64 MB) that survives reboots: SSH host keys (`/jffs/.ssh`), the syslog (`/jffs/syslog.log`, `-1`), `hostapd.log`, firmware-check log (`webs_upgrade.log`), AiMesh and speed-test data (`/jffs/.sys`), AiProtection data (`/jffs/asd*`, `aae.log`). `ls -la /jffs` lists it.
 
 Stock firmware runs no user scripts: `/jffs/scripts` and the `service-event` hook are Asuswrt-Merlin features ([README-merlin.txt](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/README-merlin.txt)), and the unit's rc carries no `jffs/scripts` string (`strings /sbin/rc | grep -c jffs/scripts` prints 0). A change made outside nvram lasts until the file's owner rewrites it: the next service restart for generated files under `/tmp` and `/etc`, the next reboot at the latest.
 
 ## Firmware
 
-**Version and check.** The running build is `<firmver>.<buildno>_<extendno>` ([§ Identity](#identity)). The nightly check and the Check button write their result to nvram *(read on RT-BE90U 3.0.0.6.102_58500)*:
+**Version and check.** The running build is `<firmver>.<buildno>_<extendno>` ([§ Identity](#identity)). The nightly check and the Check button write their result to nvram *(unit)*:
 
 ```
 KEY                        MEANING
@@ -172,7 +174,7 @@ Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE 'restore_defaults'`
 
 ## SSH
 
-*(read on RT-BE90U 3.0.0.6.102_58500)* Administration › System › Service sets:
+*(unit)* Administration › System › Service sets:
 
 ```
 KEY             VALUES = UI LABEL                                   EFFECT
@@ -184,7 +186,7 @@ sshd_authkeys   public keys, one per line in the UI                 written to /
                                                                     at each sshd start
 ```
 
-The server is dropbear (`dropbear -V`), running as `dropbear -p 22 -a -s` on this unit (`ps w | grep dropbear`); `-a` lets any host connect to forwarded ports. The firewall opens the SSH port on WAN only when `sshd_enable=1` ([rc/firewall.c L5135](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/rc/firewall.c#L5135)); `iptables -S INPUT | grep -- '--dport 22'` prints nothing when SSH is LAN-only. Host keys are generated once into `/jffs/.ssh` and linked into `/etc/dropbear`, keys from `sshd_authkeys` are rewritten at every sshd start ([rc/ssh.c](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/rc/ssh.c#L17-L92)). The login name is the web admin account (`nvram get http_username`) with root rights. Saving the System page runs `restart_time`, which restarts sshd and ends open sessions. BusyBox lacks `id`; `ping` takes `-c`/`-W`/`-w`.
+The server is dropbear (`dropbear -V`), running as `dropbear -p 22 -a -s` on this unit (`ps w | grep dropbear`); `-a` lets any host connect to forwarded ports. The firewall opens the SSH port on WAN only when `sshd_enable=1` ([rc/firewall.c L5135](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/rc/firewall.c#L5135)); `iptables -S INPUT | grep -- '--dport 22'` prints nothing when SSH is LAN-only. Host keys are generated once into `/jffs/.ssh` and linked into `/etc/dropbear`, keys from `sshd_authkeys` are rewritten at every sshd start ([rc/ssh.c](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/rc/ssh.c#L17-L92)). The login name is the web admin account (`nvram get http_username`) with root rights. Saving the System page runs `restart_time`, which restarts sshd and ends open sessions.
 
 Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(sshd_.*|telnetd_.*|shell_timeout(_x)?|access_(ssh|telnet|webui)|dropbear_.*)'`
 
@@ -267,9 +269,3 @@ Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(MFP_busy|mfp_ip_.*|misc
 Keys no page sets and no other section owns: bookkeeping that daemons write at runtime (`*_state`, `*_ready`, `*_pid`, timestamps), factory test (`Ate*`), and helpers of features this unit does not run. Read them for diagnosis; their writers are the daemons named by the prefix (`strings /sbin/rc | grep -w <key>` finds rc's uses).
 
 Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(atcover_.*|asn_name|coordinate|3rd-party|disiosdet|enable_cloudcheck|guard_mode|link_ap|wsup_dbg|Ate.*|ate_.*|env_.*|shell|freeze|noconsole|monitorproc|chknvram|nvram_.*|temp_.*|pwr_.*|asd_.*|asdfile|ubifs_.*|sd_.*|[0-9a-f]{8}.*)'`
-
-## Page-only fields
-
-Names the pages use as form controls, JavaScript template fragments (`_addr`, `_psk`… joined to a unit prefix at runtime) or fields of features this unit lacks (DSL, captive portal, Quantenna, Broadcom runner). None is an nvram key on this unit, so the filter below prints nothing; a name that starts to print has become a stored key, and `grep -l '<name>' /www/*.asp` finds the page that writes it.
-
-Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE 'ATEMODE|_(addr|aips|alive|dns|ep_addr|ep_port|errno|mtu|nat|ppub|priv|proto|psk|state)|_pptpd_clients_(start|end)|applybutton|attach_(cfgfile|iptables|modemlog|syslog|wlanlog)|autodet1_(auxstate|state)|autodet_plc_state|button|bw_enabled_x|bw_setting_name|captcha_text|captive_portal(_enable|_adv_enable|_adv_profile)?|casignedcert|changePermissionBtn|check_beta|chilli_(lease|net)|clientList|client_name|cnonce|cp_(lease|net)|d3g|detect_(count|interval)|dm_http_port|dot|dotPresets|dsllog_.*|dsltmp_transmode|dslx_.*|dual_wan_flag|dummyShareway|edit_vpn_crt_server1_.*|eula_checkbox|ewan_(dot1p|vid)|fc_disable|feedbackresponse|file|file_(cert|key)|foilautofill|folder|force_chgpass|fw_upload_interrupted|g3err_pin|gen_tarball|gwlu|hndwr|[io]bw1?|id|ikev2_cert_state|import_cert_file|layer_order|letsEncryptTerm_check|mobile_upgrade_.*|mode|motion|msglength|nt_action_(email|webapp)|passwd1|password|permission1?|plc_sleep_enabled|pool|prev_page|protocol|qtn_ready|rb_(enable|enable_orig|toggle)|rbk_opt|reboot_time_x_(hour|min)|router_sync_(desc|rule)|runner_disable|sambaclient_.*|service_region|show_pass_1|support_cdma|sw_mode_radio|sync_with_[25]ghz|system_time|test_flag|type_[APV]_(audio|image|video)|update|upload|usbclient_.*|usericon_mac|version|wan|wave_ready|web_svg|wpas[01]_reason|zoom|wl[0-9]_(dns|mtu|proto)'`

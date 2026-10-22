@@ -1,6 +1,6 @@
 # Router setup
 
-How this home's ASUS RT-BE90U is set up, in the order to apply it on a fresh or reset unit. Each step gives the setting, the nvram keys, the apply action, and one line of why. How each setting works is in the [skill](SKILL.md) and its references. This file is public, so no MAC address, Wi‑Fi name, password or public IP goes in it.
+How this home's ASUS RT-BE90U is set up, in the order to apply it on a fresh or reset unit. Each step gives the setting, the nvram keys, the apply action, and one line of why. How each setting works is in the [skill](SKILL.md) and its references; what this file may carry is [SKILL.md § Making a change](SKILL.md#making-a-change) step 5.
 
 ## Factory baseline
 
@@ -50,7 +50,7 @@ IPv6         ipv6_service          disabled
    ```
 5. **UPnP on, secure mode.** `wan0_upnp_enable=1`, `upnp_enable=1`, `upnp_secure=1`, `upnp_mnp=1`. Action `"restart_upnp;restart_firewall"`. Transmission opens its own port, so nothing needs a manual forward.
 6. **Band plan: main network on 5 + 6 GHz, IoT network on 2.4 GHz.** On the Network page, set the main network to 5 + 6 GHz. Then add an IoT network on 2.4 GHz only, WPA2-Personal, same password, same subnet, not isolated. Re-pair the 2.4 GHz-only devices to it: the Switchers, the vacuum and the soundbar. This keeps the TV box off 2.4 GHz, and the shared subnet keeps Spotify Connect, AirPlay and MusicCast working. Over SSH, the steps are in [wireless.md § Guest Network Pro](references/wireless.md#guest-network-pro).
-7. **Wi‑Fi security.** 5 GHz: WPA2/WPA3 mixed (`psk2sae`), because the TV box won't join a WPA3-only network. 6 GHz: WPA3 only.
+7. **Wi‑Fi security.** 5 GHz: WPA2/WPA3 mixed (`psk2sae`), because the TV box won't join a WPA3-only network. 6 GHz: WPA3 only (`sae`). Keys: the main network's `apm1_security`, whose 2.4/5 GHz band codes (`3`, `13`) carry `psk2sae` and 6 GHz codes (`16`, `96`) carry `sae`; Quick Internet Setup writes these values ([wireless.md § General](references/wireless.md#general)), so on a fresh unit this step is a read: `nvram get apm1_security | tr '<' '\n' | cut -d'>' -f1-3`. Action, when a value differs: `"restart_wireless;restart_sdn 1"`.
 8. **5 GHz auto-channel off DFS.** `acs_dfs=0`. Action `restart_wireless` (drops Wi‑Fi ~40 s). Keeps 5 GHz on 36–48, so a radar hit can't cut a stream.
 9. **2.4 GHz at 20 MHz.** `wl0_bw=0`. Action `restart_wireless`. Apple's guidance; fewer collisions.
 10. **6 GHz OFDMA both directions.** `wl2_ofdma=3`. Action `restart_wireless`.
@@ -76,6 +76,7 @@ DNS + DoT:     ssh router 'nvram set wan0_dnsenable_x=1; nvram set wan0_dns1_x=;
 DHCP:          ssh router 'nvram set dhcp_start=$(nvram get lan_ipaddr | sed "s/\.1$/.2/"); nvram set dhcp_static_x=0; nvram set dhcp_staticlist=; nvram commit; service restart_dnsmasq'
 UPnP:          ssh router 'nvram set wan0_upnp_enable=0; nvram set upnp_enable=0; nvram commit; service "restart_upnp;restart_firewall"'
 Band plan:     ssh router 'nvram set apm1_dut_list="<*>87>"; nvram set "sdn_rl=$(nvram get sdn_rl | sed "s/<3>IoT>[^<]*//")"; nvram set apg1_enable=0; nvram commit; rc sync_apgx_to_wlunit; service "restart_wireless;restart_sdn"'
+Wi‑Fi sec.:    nothing to restore: step 7 keeps the values Quick Internet Setup writes
 DFS:           ssh router 'nvram set acs_dfs=1; nvram commit; service restart_wireless'
 2.4 GHz width: ssh router 'nvram set wl0_bw=1; nvram commit; service restart_wireless'
 6 GHz OFDMA:   ssh router 'nvram set wl2_ofdma=1; nvram commit; service restart_wireless'

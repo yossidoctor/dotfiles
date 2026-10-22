@@ -1,10 +1,6 @@
 # Trade-offs
 
-Per setting whose value is contestable: what each value costs and gains, and the conditions under which another value wins. No value here is a recommendation; the choice belongs to the user. Each entry links the section that owns the setting's keys, values and commands; facts stated there are not repeated here.
-
-## Country code
-
-Decided by the user: the radios keep the factory country GB (`territory_code` EU/01), and no switch to IL is pursued. The GB channel and power table, and how it compares with Israel's rules, are in [regulatory.md § Israel](regulatory.md#israel).
+Per setting whose value is contestable: what each value costs and gains, and the conditions under which another value wins. Each entry links the section that owns the setting's keys, values and commands; facts stated there are not repeated here.
 
 ## Wireless
 

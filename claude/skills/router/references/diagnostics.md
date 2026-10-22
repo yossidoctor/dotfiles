@@ -1,6 +1,6 @@
 # Diagnostics
 
-Where the router records what happened, how to read its live state, and what a normal reading looks like. Paths, formats and readings are *(read on RT-BE90U 3.0.0.6.102_58500)* unless a source is cited; a "now" reading was taken at about 20 minutes uptime, idle, with two Wi‑Fi clients, so a reading under load or with more clients is compared against the conditions, not the number. Every command here is a read; the commands that change state live in [platform.md § Apply actions](platform.md#apply-actions).
+Where the router records what happened, how to read its live state, and what a normal reading looks like. Paths, formats and readings are *(unit)* unless a source is cited; a "now" reading was taken at about 20 minutes uptime, idle, with two Wi‑Fi clients, so a reading under load or with more clients is compared against the conditions, not the number. Every command here is a read; the commands that change state live in [platform.md § Apply actions](platform.md#apply-actions), and confirming a restart in [change.md](change.md).
 
 ## Logs
 
@@ -166,40 +166,6 @@ Wi‑Fi radios                for w in wifi0 wifi1 wifi2; do thermaltool -i $w -
 `thermald -c /etc/thermal/thermald.conf` samples every 5 s and shuts the router down at the threshold in that file (`cat /etc/thermal/thermald.conf`). Each radio's firmware throttles itself: `thermaltool -i wifi<N> -get` prints its levels (on wifi1: level 1 from 95 °C switches the radio off 40 % of the time, level 2 from 100 °C 50 %, level 3 from 105 °C 60 %), the current level and the time spent in each; `current level` above 0 or a non-zero `entry count` above level 0 means the radio has been duty-cycling for heat. The web UI's temperature readout comes from httpd's `get_cpu_temperature()` and `get_fanctrl_info()` (`/www/ajax_coretmp.asp`); which sensor it reports is not established. `fan_gpio` names a fan control GPIO; whether this board has a fan is not established.
 
 Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE '(have_)?fan_gpio'`
-
-## Restart safety
-
-A restart is confirmed by the router answering, by a fresh uptime or a new `notify_rc` line, and by each radio reporting its VAPs up. `service` returns before the restart begins, so for a few seconds after it SSH still answers and `wlready` still reads 1, and a loop that only checks those exits at once, before the Wi‑Fi link drops *(read on RT-BE90U 3.0.0.6.102_58500: `restart_wireless` issued at uptime 4355, VAPs back up at 4390–4394)*. The wait therefore keys on a marker newer than the call: record `T0=$(cut -d. -f1 /proc/uptime)` in the same SSH call as the `service`, then loop until the marker's kernel timestamp exceeds it, e.g. for a radio restart `until ssh -o ConnectTimeout=3 router "dmesg | grep 'mlme_ext_vap_up: VAP (ath201)' | tail -1 | awk -F'[][]' '{exit !(\$2 > $T0)}'"; do sleep 3; done`, and for a reboot `until ssh -o ConnectTimeout=3 router "test \$(cut -d. -f1 /proc/uptime) -lt $T0"; do sleep 3; done`, run inside the background call that SKILL.md describes. After it returns:
-
-```
-CHECK                              COMMAND                                                 DONE WHEN
---------------------------------   -----------------------------------------------------   ------------------------------
-the router rebooted                cat /proc/uptime                                         smaller than before the write
-rc finished starting services      nvram get svc_ready; nvram get success_start_service     1 and 1
-Wi‑Fi init finished                nvram get wlready                                        1 (rc sets 0 while it starts
-                                                                                            the radios)
-each VAP is up                     dmesg | grep -E 'is up, vdev' | tail                     a line for ath001, ath101,
-                                                                                            ath201 after the restart
-a DFS channel finished its wait    dmesg | grep CAC_COMPLETED | tail -1                     present after the last
-                                                                                            CAC_START
-WAN is back                        grep -E 'WAN\(0\) Connection: WAN was restored' \        newest line after the restart
-                                   /jffs/syslog.log | tail -1
-```
-
-`wlready` gates the watchdog's Wi‑Fi checks ([watchdog.c](https://github.com/RMerl/asuswrt-merlin.ng/blob/b053ba701af02e46a86d465d82cc2a7891a288a7/release/src/router/rc/watchdog.c#L5582)); it reads 1 between restarts.
-
-**Measured durations** (kernel timestamps of restarts already in the log):
-
-```
-EVENT                                   2.4 GHz up   6 GHz up   5 GHz up (ch 100, DFS)   WAN restored
--------------------------------------   ----------   --------   ----------------------   ------------
-boot (after a firmware flash)           47 s         52 s       113 s (CAC 50.8–112.9)   ~48 s
-restart_wireless (from VAPs down)       34 s         38 s       99 s (CAC 62 s)          not dropped
-```
-
-A 5 GHz channel outside the DFS range skips the CAC, so 5 GHz then comes up with the other bands; a DFS channel adds the 60‑second-class wait that [regulatory.md § DFS](regulatory.md#dfs) defines. During the CAC the 5 GHz VAPs are down while 2.4 and 6 GHz serve clients.
-
-Keys: `nvram show 2>/dev/null | cut -d= -f1 | grep -xE 'wlready|svc_ready|success_start_service'`
 
 ## Network tools and status pages
 
