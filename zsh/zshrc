@@ -11,6 +11,13 @@ HISTSIZE=100000
 SAVEHIST=100000
 setopt EXTENDED_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS
 
+# Claude Code's Bash tool replays this file's options into every call. Its
+# commands are written in bash idiom: a bare `echo ====` is a command lookup
+# under EQUALS, and an unmatched glob aborts the line under NOMATCH, each
+# killing every command after it. Off for Claude only; an unmatched glob then
+# passes through literally, as in bash.
+[[ -n $CLAUDECODE ]] && unsetopt equals nomatch
+
 # Completion. Homebrew's site-functions go on fpath first: the system zsh does
 # not look there, and it is where brew formulae ship their completions (gh,
 # fd, rg, aerospace, uv, …). -C trusts the existing dump instead of
