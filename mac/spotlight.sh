@@ -27,8 +27,10 @@
 # .metadata_never_index marker is ignored on this macOS too. The one writer
 # is System Settings › Spotlight › Search Privacy. This script therefore
 # turns indexing on, reads the live list, and when it differs from the one
-# above says exactly what to add and remove there, exiting 1. ./install runs
-# it last, with a TTY for sudo, so that message is the last thing on screen.
+# above says exactly what to add and remove there, exiting 1; when it matches
+# it prints nothing. mac/needs-you.sh runs it from ./install, with a TTY for
+# sudo. On macOS 27 `mdutil -s` reports a working index as "Index is
+# read-only." and an off one as "Indexing and searching disabled.".
 # Entries whose folder no longer exists are ignored: the sheet hides them,
 # so they cannot be removed, and they exclude nothing.
 # Reading the list needs sudo; by hand:  sudo bash mac/spotlight.sh
@@ -50,7 +52,7 @@ volume=/System/Volumes/Data
 plist=$volume/.Spotlight-V100/VolumeConfiguration.plist
 pb=/usr/libexec/PlistBuddy
 
-if ! mdutil -s "$volume" | grep -q "Indexing enabled"; then
+if mdutil -s "$volume" | grep -q disabled; then
   sudo mdutil -i on "$volume" || exit 1
   for _ in 1 2 3 4 5 6 7 8 9 10; do [ -e "$plist" ] && break; sleep 1; done
 fi
@@ -58,10 +60,7 @@ fi
 current=$(sudo "$pb" -c 'Print :Exclusions' "$plist" 2>/dev/null | sed -e '1d' -e '$d' -e 's/^ *//' | while IFS= read -r d; do [ -e "$d" ] && printf '%s\n' "$d"; done | sort)
 wanted=$(printf '%s\n' "${exclusions[@]}" | sort)
 
-mdutil -s "$volume"
-if [ "$current" = "$wanted" ]; then
-  echo "Search Privacy list matches."; exit 0
-fi
+[ "$current" = "$wanted" ] && exit 0
 echo "Search Privacy list differs from mac/spotlight.sh. In System Settings › Spotlight › Search Privacy:"
 comm -13 <(printf '%s\n' "$current") <(printf '%s\n' "$wanted") | sed 's/^/  add:    /'
 comm -23 <(printf '%s\n' "$current") <(printf '%s\n' "$wanted") | sed 's/^/  remove: /'
