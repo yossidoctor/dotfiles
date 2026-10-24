@@ -16,7 +16,7 @@ adb connect <ip>:5555
 adb -s <ip>:5555 shell '<command>' </dev/null
 ```
 
-`adb connect` and `adb shell` block for minutes when nothing listens on the port, so `nc -z -G 3 <ip> 5555`, which answers within 3 seconds, runs before the first adb call of a session or task and again after anything that ends the session. The box has no Ethernet port ([hardware.md](references/hardware.md)), so ADB rides its Wi‑Fi, and a reboot, a Wi‑Fi change or a router Wi‑Fi restart ends it until the user re-enables Wireless debugging on the TV ([platform.md § ADB](references/platform.md#adb)). An open port means the adb calls that follow run plain; a closed port has three causes, told apart by `ssh router 'ping -c 2 -W 2 <ip>'`: the box is off (the router gets no reply), Wireless debugging needs re-enabling (both the router's ping and the Mac's ping get replies), or the Mac cannot reach the box (the router's ping gets replies while the Mac's does not). In the third case asking the user to re-enable debugging changes nothing; the router's client tables locate the break ([router skill, diagnostics.md](../router/references/diagnostics.md)).
+`adb connect` and `adb shell` block for minutes when nothing listens on the port, so `nc -z -G 3 <ip> 5555`, which answers within 3 seconds, runs before the first adb call of a session or task and again after anything that ends the session. The box has no Ethernet port ([hardware.md](references/hardware.md)), so ADB rides its Wi‑Fi: the box listens on 5555 after every boot while USB debugging is on, independent of the Wireless debugging toggle, and a reboot drops it for about 2 minutes ([platform.md § ADB](references/platform.md#adb)). An open port means the adb calls that follow run plain; a closed port has three causes, told apart by `ssh router 'ping -c 2 -W 2 <ip>'`: the box is off (the router gets no reply), USB debugging is off or the box is still booting (both the router's ping and the Mac's ping get replies), or the Mac cannot reach the box (the router's ping gets replies while the Mac's does not). In the third case asking the user to turn debugging on changes nothing; the router's client tables locate the break ([router skill, diagnostics.md](../router/references/diagnostics.md)).
 
 `adb shell` forwards the caller's stdin to the box (`adb --help`: `-n: don't read from stdin`), so a call inside a loop or script takes `</dev/null` or `-n`, or it swallows the loop's remaining input. The host key is `~/.android/adbkey`; the box shows an "Allow USB debugging?" prompt the first time a key connects, and the user accepts it on the TV. ADB setup, ports, persistence and what the shell user may do: [platform.md](references/platform.md).
 
@@ -31,11 +31,11 @@ Done when each changed value reads back as set, its live effect is visible where
 
 ## Reference files
 
-- [platform.md](references/platform.md) — identity properties, the shell user's permissions, ADB (network, pairing, keys, persistence), logs, dumpsys, bugreport, screenshots.
+- [platform.md](references/platform.md) — identity properties, the shell user's permissions, ADB (network, pairing, keys, persistence), bootloader state, root and CoreELEC, logs, dumpsys, bugreport, screenshots.
 - [settings.md](references/settings.md) — the `settings` command and every TV-relevant key in global / secure / system, with AOSP meaning and values.
 - [commands.md](references/commands.md) — `cmd` services: which subcommands only read, and each service's gotchas; `cmd <svc> help` prints the syntax.
 - [av.md](references/av.md) — display modes, HDR, frame-rate matching, surround audio formats, HDMI-CEC settings and bus, readable HDMI sysfs and EDID.
 - [network.md](references/network.md) — Wi‑Fi chip, country code and channel lists, connection fields, verbose logging, Private DNS.
-- [packages.md](references/packages.md) — package states and how to restore them, the home app and HOME role, overlays, Google TV packages.
+- [packages.md](references/packages.md) — package states and background restriction and how to restore them, the home app and replacing it, installing apps, overlays, Google TV packages.
 - [hardware.md](references/hardware.md) — Xiaomi TV Box S (3rd Gen) specifications and where sources disagree.
-- [setup.md](references/setup.md) — the user's living room: wiring, the remotes and what each controls, the Mac's Movies share in VLC.
+- [setup.md](references/setup.md) — the user's living room: wiring, the remotes and what each controls, which apps the user switched off and why, the Mac's Movies share in VLC.

@@ -58,7 +58,9 @@ IPv6         ipv6_service          disabled
 12. **WPS off.** `wps_enable_x=0`, `wps_enable=0`. Action `restart_wpsie`.
 13. **Router Samba off.** `enable_samba=0`. Action `restart_ftpsamba`. No USB drive.
 14. **Web UI HTTPS only.** `http_enable=1`. Action `restart_httpd`. UI at `https://<router>:8443`.
-15. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
+15. **Block Xiaomi's TV log upload.** Firewall › URL Filter: `url_enable_x=1`, `url_mode_x=0`, `url_rulelist=<1>ALL>other.tv.global.mi.com`. Action `restart_firewall`. The TV box's `mitv.service` uploads logs to that host and can't be disabled; the filter drops DNS queries for the name (a `--hex-string` match on UDP 53) and HTTP requests to it, and the box then reads `unknown host`. `misc.tv.global.mi.com` (device and Netflix keys) stays reachable.
+16. **Every device's DNS goes through the router.** Field 9 of each `sdn_rl` entry = `11`, `dnsfilter_enable_x=1`, `dnsfilter_mode=11` ([wan-lan.md § Parental controls](references/wan-lan.md#parental-controls)). Action `restart_firewall`. A device with hard-coded DNS (Google TV is documented to use 8.8.8.8) still gets AdGuard's answers. Proof: `dig tracking.miui.com @8.8.8.8` from a LAN client returns `0.0.0.0`.
+17. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
 
 ## Kept at factory
 
@@ -85,5 +87,7 @@ DFS:           ssh router 'nvram set acs_dfs=1; nvram commit; service restart_wi
 WPS:           ssh router 'nvram set wps_enable_x=1; nvram set wps_enable=1; nvram commit; service restart_wpsie'
 Samba:         ssh router 'nvram set enable_samba=1; nvram commit; service restart_ftpsamba'
 Web UI:        ssh router 'nvram set http_enable=2; nvram commit; service restart_httpd'
+DNS redirect:  ssh router 'nvram set "sdn_rl=$(nvram get sdn_rl | awk "BEGIN{RS=\"<\";ORS=\"\"} NF{sub(/\n$/,\"\"); n=split(\$0,f,\">\"); f[9]=0; s=f[1]; for(i=2;i<=n;i++) s=s\">\"f[i]; print \"<\"s}")"; nvram set dnsfilter_enable_x=0; nvram set dnsfilter_mode=0; nvram commit; service restart_firewall'
+URL filter:    ssh router 'nvram set url_enable_x=0; nvram set url_rulelist=; nvram commit; service restart_firewall'
 SSH:           Administration › System › Enable SSH: No
 ```

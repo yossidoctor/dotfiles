@@ -67,7 +67,51 @@ One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into 
 - The Xiaomi remote is paired over Bluetooth (bonded device "Xiaomi RC").
 - Volume reaches the soundbar over HDMI-CEC: CEC volume control is on and the YAS-209 is the audio system at logical address 5.
 - The TV does not appear on the CEC bus, and the box's `<Text View On>` messages to it go unanswered (`NACK`), so TV power is on the Samsung remote.
-- The Netflix (`com.netflix.ninja`) and Prime Video (`com.amazon.amazonvideo.livingroom`) apps are disabled on the box; YouTube (`com.google.android.youtube.tv`) is enabled. The remote has Netflix, Prime Video and YouTube buttons (user diagram); its key layout (`/vendor/usr/keylayout/Vendor_2717_Product_32b9.kl`) maps the app buttons to generic `BUTTON_n` codes, and which app each one opens is handled by the box's software.
+- The remote has Netflix, Prime Video and YouTube buttons (user diagram); which of those apps are installed and enabled is in [§ Apps on the box](#apps-on-the-box). Its key layout (`/vendor/usr/keylayout/Vendor_2717_Product_32b9.kl`) maps the app buttons to generic `BUTTON_n` codes, and which app each one opens is handled by the box's software.
+
+## Apps on the box
+
+What the user chose to switch off and why. The box holds the live state, `pm list packages -d --user 0`, `pm list packages -u` minus `pm list packages --user 0` for the uninstalled, and `cmd appops get <pkg> RUN_ANY_IN_BACKGROUND`; a package below that reads enabled again was turned back on by an update or a reset, and the user decides whether it goes again. How each state is set and reversed: [packages.md](packages.md).
+
+**Home screen.** Google TV's own home (`launcherx`) is the user's launcher, because the Google Photos screensaver album needs it enabled and an enabled `launcherx` keeps the HOME key ([packages.md § The home app](packages.md#the-home-app)). The third-party launchers weighed against it were LtvLauncher (open source, 117 MB PSS here), Projectivy (closed source, 175–265 MB) and Arc Launcher; none is installed.
+
+```
+DISABLED (pm disable-user --user 0)            WHY
+--------------------------------------------   -------------------------------------------------
+com.xiaomi.mi_connect_service                  Xiaomi phone link: unused
+com.xiaomi.android.tvsetup.partnercustomizer   Xiaomi setup tweaks: unused after setup
+com.xiaomi.wfdsinkhelperservice                Miracast: unused
+com.xiaomo.tv.milegal, com.xm.webcontent       Xiaomi legal pages, Xiaomi web viewer
+com.android.printspooler                       printing
+com.android.dynsystem                          installing test system images
+com.android.healthconnect.controller,          Health Connect: no use on a TV
+ com.android.health.connect.backuprestore
+com.android.adservices.api,                    ad targeting and personalization
+ com.android.ondevicepersonalization.services,
+ com.android.federatedcompute.services
+com.google.android.marvin.talkback             screen reader: unused
+android.autoinstalls.config.soc.amlogic        Play Auto Install config: installs partner apps
+com.google.android.syncadapters.calendar       calendar sync: nothing on the TV reads it
+other Xiaomi, Google, Amazon and Netflix       disabled by an earlier debloat; reasons
+ packages in pm list packages -d --user 0       not recorded
+```
+
+```
+UNINSTALLED FOR USER 0 (pm uninstall --user 0)   WHY
+----------------------------------------------   -----------------------------------------------
+com.netflix.ninja                                Netflix: not wanted
+```
+
+```
+BACKGROUND-RESTRICTED                WHY
+----------------------------------   -------------------------------------------------------
+com.google.android.youtube.tv        stops its home-screen recommendations process
+org.videolan.vlc                     plays only with the app open
+```
+
+Telemetry settings the user turned off ([settings.md § Telemetry](settings.md#telemetry-and-error-reporting)): `send_action_app_error` 0 in global and secure (crash reports), `upload_log_pref` 0 in secure (Xiaomi's log-upload preference; whether `mitv.service` honours it is not established). On the TV itself: Settings › Privacy › Usage & Diagnostics off, and Ads › Delete advertising ID; those live in Play services, out of the shell's reach.
+
+Kept on purpose: the Google Photos screensaver (`com.google.android.apps.tv.dreamx`) and the three packages its album loading needs, Google TV home (`launcherx`), the setup wizard (`com.google.android.tungsten.setupwraith`) and Chromecast built-in (`com.google.android.apps.mediashell`) ([packages.md § The home app](packages.md#the-home-app)). Offered and not chosen: the Assistant (`com.google.android.katniss`), the phone-remote service (`com.google.android.tv.remote.service`), Xiaomi system updates (`com.xiaomi.mitv.updateservice`) and Spotify's background (Spotify Connect).
 
 ## Movies share
 
@@ -89,7 +133,7 @@ CEC devices on the bus            dumpsys hdmi_control | grep -E 'logical_addres
 CEC volume / power settings       cmd hdmi_control cec_setting get volume_control_enabled
                                   cmd hdmi_control cec_setting get power_control_mode
 TV answering CEC                  dumpsys hdmi_control | grep -E '40:0D|40:8F'   (ACK = answered)
-streaming apps enabled            pm list packages -e | grep -iE 'youtube|netflix|amazon'
+streaming apps enabled            pm list packages -e --user 0 | grep -iE 'youtube|netflix|amazon'
 what the chain reports            cat /sys/class/amhdmitx/amhdmitx0/edid ; …/aud_cap ; …/disp_cap
 VLC's SMB logins and errors       logcat -d | grep ' VLC ' | grep -iE 'creds|login|unable'
 ```
