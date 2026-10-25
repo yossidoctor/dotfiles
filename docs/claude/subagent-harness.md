@@ -16,7 +16,7 @@ Re-verify: `rg -n 'handback-send-enforce' <agent>` on a parent agent that dispat
 
 ## `ScheduleWakeup` and `Monitor` are main-thread only
 
-An agent waiting on its own process backgrounds it and ends its turn (above). A condition no process of its own signals — a reply landing on a thread — gives it no event to wake on, and a hook that denies a foreground sleep and names the main-thread tools is unsatisfiable there, so the agent invents a workaround; `~/dotfiles/claude/hooks/enforce-foreground-polling.sh` carves out `description: "poll wait"` for exactly this and sets the call's timeout from the sleep's own duration (its header owns the mechanics). A message reaches the agent only when that sleep returns, so the sleep's length is also its reply latency.
+An agent waiting on its own process backgrounds it and ends its turn (above). A condition no process of its own signals — a reply landing on a thread — gets one from a bare `sleep N` sent with `run_in_background: true`, after which the agent ends its turn and the sleep's exit wakes it to check again. Claude Code refuses a standalone foreground sleep before any hook runs (`~/dotfiles/claude/hooks/enforce-foreground-polling.sh` header). A message reaches the agent only when that sleep ends, so the sleep's length is also its reply latency.
 
 Re-verify: `rg -l '"name":"(ScheduleWakeup|Monitor)"' ~/.claude/projects/*/*/subagents/*.jsonl` prints nothing.
 

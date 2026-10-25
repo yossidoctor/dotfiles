@@ -22,15 +22,13 @@
 #     inside one operation (reaping a killed process, settling a connect,
 #     pacing requests to a rate-limited site).
 #
-# Skips when run_in_background=true (off-thread already), and for a sleep whose
-# `description` is exactly `poll wait`. An agent waiting on its own process
-# backgrounds it and ends its turn, and the harness wakes it on exit once its dispatcher is idle; the carve-out
-# is for a condition no process of its own signals (a reply landing on a thread),
-# where a backgrounded sleep the agent works past delays nothing and it polls in a
-# hot loop. A subagent's payload carries `agent_id`, but the opt-out keys on the
-# description: only the prompt knows whether the condition has a process to wake
-# on, and only a prompt that means it sets the label. It names a bare sleep,
-# never a poll loop.
+# Skips when run_in_background=true (off-thread already).
+#
+# Claude Code refuses a standalone foreground sleep (`sleep 30` refused,
+# `sleep 12` passed) before any PreToolUse hook runs, so no hook verdict can
+# allow one. An agent polling a condition no process of its own signals (a reply
+# landing on a thread) sends the bare sleep with run_in_background=true and ends
+# its turn; the sleep's exit wakes it to check again.
 
 set -u
 
@@ -60,34 +58,6 @@ background() {  # $1=reason  $2=additionalContext -> allow with run_in_backgroun
     additionalContext: $c}}'
   exit 0
 }
-
-# The agent poll-wait opt-out: `description` exactly `poll wait` on a command
-# that is one bare sleep. Anything else in the command (a `&&`, a second
-# statement, a loop) falls through to the checks below, so the label buys a wait
-# and never a chained workaround. The follow-stream rewrite at the end of the
-# file is outside this gate — its output is the point wherever it runs.
-#
-# The sleep's own duration sets the call timeout, because the Bash default is
-# 2 minutes: a longer wait is SIGTERMed mid-sleep (exit 143) and comes back short,
-# which reads as a delay that silently did not happen. The harness caps a timeout
-# at 600000 ms, so a sleep past 590 s is capped there and still returns early.
-if [ "$HOOK_DESCRIPTION" = "poll wait" ] &&
-   printf '%s' "$cmd_unq" | grep -qE '^[[:space:]]*sleep[[:space:]]+[0-9]+([.][0-9]+)?[smhd]?[[:space:]]*;?[[:space:]]*$'; then
-  printf '%s' "$HOOK_INPUT" | jq -c '
-    ((.tool_input.command | capture("sleep[[:space:]]+(?<n>[0-9]+([.][0-9]+)?)(?<u>[smhd]?)"))
-      | (.n | tonumber) * (if .u == "m" then 60 elif .u == "h" then 3600 elif .u == "d" then 86400 else 1 end)
-    ) as $secs
-    | (($secs * 1000 + 10000) | floor | if . > 600000 then 600000 else . end) as $ms
-    | if (.tool_input.timeout // 0) >= $ms then empty else
-      {hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "allow",
-        permissionDecisionReason: "Poll wait — a labelled sleep is an agent'"'"'s delay for a condition no process of its own signals.",
-        updatedInput: ((.tool_input // {}) + {timeout: $ms}),
-        additionalContext: ("Poll wait allowed by enforce-foreground-polling.sh, timeout set to \($ms)ms — the Bash default of 2 minutes would SIGTERM this sleep mid-wait and return early.")}}
-      end'
-  exit 0
-fi
 
 # A lone `&` — not `&&`, `>&`, `&>`, `|&` — starts a job the shell owns; one
 # `wait` in the same command reaps it there, so that form passes.
