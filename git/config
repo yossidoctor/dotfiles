@@ -43,6 +43,13 @@
 	helper = !$HOME/dotfiles/git/credential-helper.sh
 	useHttpPath = true
 
+# A transfer that stalls mid-stream otherwise waits forever, and so does every
+# tool driving git (a poetry relock's clone sat 8 min at 0% CPU): below 1 KB/s
+# for 60 s, git aborts with an error the caller can retry.
+[http]
+	lowSpeedLimit = 1000
+	lowSpeedTime = 60
+
 [init]
 	defaultBranch = main
 
