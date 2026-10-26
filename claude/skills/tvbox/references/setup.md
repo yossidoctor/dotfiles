@@ -73,11 +73,12 @@ One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into 
 
 What the user chose to switch off and why. The box holds the live state, `pm list packages -d --user 0`, `pm list packages -u` minus `pm list packages --user 0` for the uninstalled, and `cmd appops get <pkg> RUN_ANY_IN_BACKGROUND`; a package below that reads enabled again was turned back on by an update or a reset, and the user decides whether it goes again. How each state is set and reversed: [packages.md](packages.md).
 
-**Home screen.** Google TV's own home (`launcherx`) is the user's launcher, because the Google Photos screensaver album needs it enabled and an enabled `launcherx` keeps the HOME key ([packages.md § The home app](packages.md#the-home-app)). The third-party launchers weighed against it were LtvLauncher (open source, 117 MB PSS here), Projectivy (closed source, 175–265 MB) and Arc Launcher; none is installed.
+**Home screen.** LtvLauncher (`com.leanbitlab.ltvL`, GPL-3, `armeabi-v7a` build from [its GitHub releases](https://github.com/leanbitlab-org/LtvLauncher/releases)) answers the Home key through its accessibility service `com.leanbitlab.ltvL/.LauncherAccessibilityService` ("Home Button Fix"), and holds the HOME role, with Google TV's home (`launcherx`) disabled. The setup wizard stays enabled for the screensaver, so its `RecoveryActivity` (HOME priority 1) is what Android opens at boot: about 10 s of black screen, then LtvLauncher. Choosing a different screensaver album takes `launcherx` enabled for the duration ([packages.md § The home app](packages.md#the-home-app)). Projectivy (closed source, 175–265 MB PSS here) and Arc Launcher (no accessibility service of its own) were weighed and are not installed.
 
 ```
 DISABLED (pm disable-user --user 0)            WHY
 --------------------------------------------   -------------------------------------------------
+com.google.android.apps.tv.launcherx           replaced by LtvLauncher (above)
 com.xiaomi.mi_connect_service                  Xiaomi phone link: unused
 com.xiaomi.android.tvsetup.partnercustomizer   Xiaomi setup tweaks: unused after setup
 com.xiaomi.wfdsinkhelperservice                Miracast: unused
@@ -111,7 +112,7 @@ org.videolan.vlc                     plays only with the app open
 
 Telemetry settings the user turned off ([settings.md § Telemetry](settings.md#telemetry-and-error-reporting)): `send_action_app_error` 0 in global and secure (crash reports), `upload_log_pref` 0 in secure (Xiaomi's log-upload preference; whether `mitv.service` honours it is not established). On the TV itself: Settings › Privacy › Usage & Diagnostics off, and Ads › Delete advertising ID; those live in Play services, out of the shell's reach.
 
-Kept on purpose: the Google Photos screensaver (`com.google.android.apps.tv.dreamx`) and the three packages its album loading needs, Google TV home (`launcherx`), the setup wizard (`com.google.android.tungsten.setupwraith`) and Chromecast built-in (`com.google.android.apps.mediashell`) ([packages.md § The home app](packages.md#the-home-app)). Offered and not chosen: the Assistant (`com.google.android.katniss`), the phone-remote service (`com.google.android.tv.remote.service`), Xiaomi system updates (`com.xiaomi.mitv.updateservice`) and Spotify's background (Spotify Connect).
+Kept on purpose: the Google Photos screensaver (`com.google.android.apps.tv.dreamx`) and the two packages its album playback needs, the setup wizard (`com.google.android.tungsten.setupwraith`) and Chromecast built-in (`com.google.android.apps.mediashell`) ([packages.md § The home app](packages.md#the-home-app)). Offered and not chosen: the Assistant (`com.google.android.katniss`), the phone-remote service (`com.google.android.tv.remote.service`), Xiaomi system updates (`com.xiaomi.mitv.updateservice`) and Spotify's background (Spotify Connect).
 
 ## Movies share
 
