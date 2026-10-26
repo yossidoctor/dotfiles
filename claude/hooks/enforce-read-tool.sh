@@ -6,18 +6,22 @@
 # renders images, PDFs and notebooks. A shell read gets none of that, and the
 # auto-mode system prompt invites one, so text alone loses that contest.
 #
-# DENIED: the whole command is ONE of these on ONE existing regular file:
+# The command is split into list segments at ; && || and newlines, and each
+# segment is judged alone, so `cat a.md; ls dir` is caught by its first segment.
+#
+# DENIED: any segment that is ONE of these on ONE existing regular file:
 #   cat [-n] [--] FILE
 #   head|tail [-n N | -N] [--] FILE
 #   sed -n 'Np' | 'N,Mp' FILE
 # The reason names the file and the Read form (offset/limit for a slice).
 #
-# PASSED (deliberately): anything with a pipe, redirect, separator, heredoc or
-# substitution (`cat a | jq`, `cat > f <<EOF`, `cmd; cat f`), several files,
-# any other flag (`tail -f` belongs to enforce-foreground-polling.sh), a path
-# under /dev /proc /sys, and a path that does not resolve to a file — including
-# a quoted path with spaces, which this whitespace split cannot rebuild, so it
-# fails open. A remote read (`ssh host cat …`) never starts with the tool name.
+# PASSED (deliberately): a segment with a pipe, redirect, background `&` or
+# substitution (`cat a | jq`, `cat a > b`, `x=$(cat f)`), several files, any
+# other flag (`tail -f` belongs to enforce-foreground-polling.sh), a path under
+# /dev /proc /sys, a path that does not resolve to a file — including a quoted
+# path with spaces, which this whitespace split cannot rebuild, so it fails
+# open — and any command holding a heredoc, whose body lines are data. A remote
+# read (`ssh host cat …`) never starts with the tool name.
 
 set -u
 
@@ -29,53 +33,65 @@ case "$HOOK_INPUT" in
   *) exit 0 ;;
 esac
 hook_parse_input
-cmd=$(printf '%s' "$HOOK_CMD" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-[ -z "$cmd" ] && exit 0
-# shellcheck disable=SC2016  # literal `$(`, not an expansion
-case "$cmd" in
-  *'|'*|*';'*|*'&'*|*'<'*|*'>'*|*'$('*|*'`'*|*'
-'*) exit 0 ;;
-esac
+[ -z "$HOOK_CMD" ] && exit 0
+case "$HOOK_CMD" in *'<<'*) exit 0 ;; esac
 
 unquote() { local s=$1; s=${s#[\'\"]}; s=${s%[\'\"]}; printf '%s' "$s"; }
 
-read -r -a w <<EOF
-$cmd
+# One segment -> 0 with HIT/RANGE/TOOL set when it is a lone local file read.
+judge() {
+  local seg=$1 file='' tool
+  # shellcheck disable=SC2016  # literal `$(`, not an expansion
+  case "$seg" in *'|'*|*'&'*|*'<'*|*'>'*|*'$('*|*'`'*) return 1 ;; esac
+  local -a w
+  read -r -a w <<EOF
+$seg
 EOF
-tool=${w[0]##*/}
-file='' range=''
-set -- "${w[@]:1}"
-case "$tool" in
-  cat)
-    [ "${1:-}" = "-n" ] && shift
-    [ "${1:-}" = "--" ] && shift
-    [ $# -eq 1 ] || exit 0
-    file=$1 ;;
-  head|tail)
-    case "${1:-}" in
-      -n) [ $# -ge 2 ] || exit 0; range=" ${2}"; shift 2 ;;
-      -n[0-9]*|-[0-9]*) range=" ${1#-n}"; range=${range#-}; shift ;;
-    esac
-    [ "${1:-}" = "--" ] && shift
-    [ $# -eq 1 ] || exit 0
-    file=$1 ;;
-  sed)
-    [ $# -eq 3 ] && [ "$1" = "-n" ] || exit 0
-    printf '%s' "$(unquote "$2")" | grep -qE '^[0-9]+(,[0-9]+)?p$' || exit 0
-    range=" $(unquote "$2")"
-    file=$3 ;;
-  *) exit 0 ;;
-esac
+  [ "${#w[@]}" -gt 1 ] || return 1
+  tool=${w[0]##*/} RANGE=''
+  set -- "${w[@]:1}"
+  case "$tool" in
+    cat)
+      [ "${1:-}" = "-n" ] && shift
+      [ "${1:-}" = "--" ] && shift
+      [ $# -eq 1 ] || return 1
+      file=$1 ;;
+    head|tail)
+      case "${1:-}" in
+        -n) [ $# -ge 2 ] || return 1; RANGE=" $2"; shift 2 ;;
+        -n[0-9]*|-[0-9]*) RANGE=" ${1#-n}"; RANGE=${RANGE#-}; shift ;;
+      esac
+      [ "${1:-}" = "--" ] && shift
+      [ $# -eq 1 ] || return 1
+      file=$1 ;;
+    sed)
+      [ $# -eq 3 ] && [ "$1" = "-n" ] || return 1
+      printf '%s' "$(unquote "$2")" | grep -qE '^[0-9]+(,[0-9]+)?p$' || return 1
+      RANGE=" $(unquote "$2")"
+      file=$3 ;;
+    *) return 1 ;;
+  esac
+  file=$(unquote "$file")
+  case "$file" in -*) return 1 ;; esac
+  HIT=$(hook_abspath "$file")
+  case "$HIT" in /dev/*|/proc/*|/sys/*) return 1 ;; esac
+  [ -f "$HIT" ] || return 1
+  TOOL=$tool
+}
 
-file=$(unquote "$file")
-case "$file" in -*) exit 0 ;; esac
-p=$(hook_abspath "$file")
-case "$p" in /dev/*|/proc/*|/sys/*) exit 0 ;; esac
-[ -f "$p" ] || exit 0
+segs=$(printf '%s\n' "$HOOK_CMD" | awk '{ gsub(/&&|\|\||;/, "\n"); print }')
+HIT='' RANGE='' TOOL=''
+while IFS= read -r seg; do
+  judge "$seg" && break
+  HIT=''
+done <<EOF
+$segs
+EOF
+[ -z "$HIT" ] && exit 0
 
-if [ -n "$range" ]; then
-  form="offset/limit for the${range} slice; "
+if [ -n "$RANGE" ]; then
+  form="offset/limit for the${RANGE} slice; "
 else
   form=''
 fi
-deny "${p} is a local file, so it is read with the Read tool (${form}allow_large past 256 KB): Read numbers lines for path:line, counts as the read an Edit needs, and is where Read deny rules apply. A ${tool} inside a pipeline, over several files, or of a remote file is untouched by enforce-read-tool.sh."
+deny "${HIT} is a local file, so it is read with the Read tool (${form}allow_large past 256 KB), as its own call; the rest of this command runs after it in Bash. Read numbers lines for path:line, counts as the read an Edit needs, and is where Read deny rules apply. A ${TOOL} inside a pipeline, over several files, or of a remote file is untouched by enforce-read-tool.sh."

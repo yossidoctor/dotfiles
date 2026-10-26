@@ -63,7 +63,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 | Event | Hook |
 |---|---|
 | `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) and waits (`sleep >=10`, `while`/`until` poll loops) to run off-thread; denies a job detached with `&`. |
-| `PreToolUse: Bash` | `enforce-read-tool.sh` — denies a lone `cat`/`head`/`tail`/`sed -n` of one local file and names the Read call instead; pipelines, multi-file and remote reads pass. |
+| `PreToolUse: Bash` | `enforce-read-tool.sh` — denies an unpiped `cat`/`head`/`tail`/`sed -n` of one local file, alone or anywhere in a `;`/`&&`/`||` chain, and names the Read call instead; pipelines, multi-file and remote reads pass. |
 | `PreToolUse: Bash` | `ask-risky-git-outside-worktree.sh` — asks before `reset --hard`, `branch -D`, `tag -d`, `checkout --`, `clean`, `stash drop|clear`, `push --force-with-lease`, except inside a sandbox worktree. |
 | `UserPromptSubmit` | `caffeinate-claude.sh` — keeps macOS awake while Claude works. |
 | `Stop` | `caffeinate-claude.sh` — 30-min post-turn linger. |
