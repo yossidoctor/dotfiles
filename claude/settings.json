@@ -83,6 +83,10 @@
           },
           {
             "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/enforce-read-tool.sh"
+          },
+          {
+            "type": "command",
             "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh"
           }
         ]

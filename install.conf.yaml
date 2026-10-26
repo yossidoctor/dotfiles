@@ -41,6 +41,7 @@
     ~/.claude/subagent-statusline.sh: claude/subagent-statusline.sh
     ~/.claude/hooks/hook-lib.sh: claude/hooks/hook-lib.sh
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
+    ~/.claude/hooks/enforce-read-tool.sh: claude/hooks/enforce-read-tool.sh
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
     ~/.claude/hooks/ask-risky-git-outside-worktree.sh: claude/hooks/ask-risky-git-outside-worktree.sh
     ~/.claude/skills: claude/skills

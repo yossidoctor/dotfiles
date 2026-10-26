@@ -39,6 +39,7 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 
 ## Shell commands
 
+- **Read a local file with `Read` (`offset`/`limit` for a slice); `cat`/`head`/`sed` are for a pipeline, several files, or a remote host.** Read numbers lines for `path:line`, counts as the read an Edit needs, and is where Read deny rules apply; `enforce-read-tool.sh` denies the lone shell form.
 - **Change a tracked file with `Edit`, or `Write` for a new one.** Edit requires an exact, unique match against the file as it sits on disk now, so a stale anchor fails instead of landing. A Python `open(p,'w')` or `sed -i` rewrite has no such guard. Shell writes are for scratch files and for one mechanical rewrite across many files.
 - **Read JSON with `jq`, and let a missing field fail: `jq -er '.data.nodes[].id'`.** Add `?` or `// empty` only where absence is expected. An error reply like `{"errors":[…]}` then fails with a nonzero exit, where `[]?` prints nothing, exits 0, and reads as "no results". Python guesses crash with `KeyError`. Python is for a real program: state across files, or loops jq would contort.
 - **Write zsh, not bash: hold a list or a command in an array (`F=(a b)`, `S=(python3 x.py)`), and name no variable `path`.** An unquoted `$F` holding `"a b"` stays one word. `path` is zsh's array form of `PATH`, so `local path=$1` turns every later command into `command not found`.
