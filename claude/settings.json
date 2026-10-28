@@ -61,13 +61,14 @@
       "Bash(git * push * -d *)",
       "Bash(rg -r*)"
     ],
-    "defaultMode": "auto",
+    "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "/Users/yossidoctor/dotfiles"
     ]
   },
   "model": "opus",
   "availableModels": [
+    "fable",
     "opus",
     "sonnet",
     "haiku"
@@ -195,7 +196,8 @@
   "agentPushNotifEnabled": true,
   "autoMode": {
     "allow": [
-      "$defaults"
+      "$defaults",
+      "Git push from a Dono sandbox worktree (a path under ~/Dono/<repo>/.worktrees/<sandbox>/) of that worktree's own feature branch, including `git push --force-with-lease` after a rebase: the user approved every push from a sandbox. Not a push to a repo's default branch (main/master)."
     ]
   }
 }
