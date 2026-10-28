@@ -91,6 +91,15 @@
             "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh"
           }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/enforce-sliced-spill-read.sh"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
