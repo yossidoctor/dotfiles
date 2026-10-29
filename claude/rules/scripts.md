@@ -7,4 +7,4 @@ paths:
 
 # Scripts
 
-- A script's header and its README each say the thing the other cannot. The split is `~/dotfiles/README.md` § Script conventions; what it does not say is that the header is maintained rather than thinned, and that a mechanic told in both has no owner.
+- A script's header carries its behaviour and rationale, and its README section only orients and points at it (`~/dotfiles/README.md` § Script conventions). Edit the header in place as the script changes, never thinning it, and tell each mechanic in the header alone, since one told in both drifts in one of them.

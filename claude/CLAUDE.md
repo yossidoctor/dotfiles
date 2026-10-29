@@ -8,7 +8,7 @@ How Claude Code works, everywhere, on every task. A rule here yields to its own 
 
 ## Hard rules for everything you make
 
-*Everything you author or change. Rules for one surface — code, hot-path scripts, instructional text — live in `~/.claude/rules/` and load when a file of that kind is touched; the rules here bind everywhere.*
+*Everything you author or change. Rules for one surface live in `~/.claude/rules/` (`ls` lists them) and load when a file of that kind is touched; the rules here bind everywhere.*
 
 ### Is it true
 
