@@ -4,10 +4,11 @@
       force: true
 
 # A link whose source left this repo is otherwise left dangling in place.
-- clean: [~/.claude/hooks, ~/.local/bin, ~/.config, ~/.config/homebrew/Brewfile.d, ~/.config/daily.d, ~/.config/spotlight/exclusions.d]
+- clean: [~/.claude/hooks, ~/.claude/rules, ~/.local/bin, ~/.config, ~/.config/homebrew/Brewfile.d, ~/.config/daily.d, ~/.config/spotlight/exclusions.d]
 
 - create:
     - ~/.claude/hooks
+    - ~/.claude/rules
     - ~/.local/bin
     - ~/.config/git/identities.d
     - ~/.config/homebrew/Brewfile.d
@@ -46,7 +47,10 @@
     ~/.claude/hooks/caffeinate-claude.sh: claude/hooks/caffeinate-claude.sh
     ~/.claude/hooks/ask-risky-git-outside-worktree.sh: claude/hooks/ask-risky-git-outside-worktree.sh
     ~/.claude/skills: claude/skills
-    ~/.claude/rules: claude/rules
+    # per file, so a layer can deploy its own rule beside these
+    ~/.claude/rules/scripts.md: claude/rules/scripts.md
+    ~/.claude/rules/hot-path-scripts.md: claude/rules/hot-path-scripts.md
+    ~/.claude/rules/instructional-text.md: claude/rules/instructional-text.md
     ~/.claude/output-styles: claude/output-styles
     "~/Library/Application Support/Code/User/settings.json": vscode/settings.json
 
