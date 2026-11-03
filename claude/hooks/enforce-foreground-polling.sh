@@ -13,8 +13,9 @@
 #       command's output and exit code, so the wait and the check it guards run
 #       as one backgrounded command and the caller ends its turn. That wake is
 #       the one the main thread and a subagent both have
-#       (~/dotfiles/docs/claude/subagent-harness.md); no session here carries
-#       `Monitor`, and `ScheduleWakeup` runs only under `/loop`.
+#       (~/dotfiles/docs/claude/subagent-harness.md); `Monitor` arrives only as
+#       a deferred tool behind a ToolSearch load, and `ScheduleWakeup` runs only
+#       under `/loop`.
 #   - DENIED: a job detached with a lone `&` and no `wait` — `( … &)`,
 #     `nohup … &`, `cmd & next`. The shell owns that job, not the harness, so
 #     its end wakes no one and the caller waits on a report that never comes.
