@@ -8,6 +8,8 @@
 #
 # The command is split into list segments at ; && || and newlines, and each
 # segment is judged alone, so `cat a.md; ls dir` is caught by its first segment.
+# A relative path resolves against the session cwd as moved by any earlier
+# `cd DIR` segment of the same command (`cd x && cat README.md` names x/README.md).
 #
 # DENIED: any segment that is ONE of these on ONE existing regular file:
 #   cat [-n] [--] FILE
@@ -79,9 +81,27 @@ EOF
   TOOL=$tool
 }
 
+# A `cd [DIR]` segment moves the cwd later segments resolve against. A target
+# that is not a literal existing directory (`cd -`, `cd $X`) leaves the cwd
+# unknown, so later relative paths resolve nowhere and pass.
+follow_cd() {
+  local -a w
+  read -r -a w <<EOF
+$1
+EOF
+  [ "${w[0]:-}" = cd ] || return 1
+  case ${#w[@]} in
+    1) HOOK_CWD=$HOME ;;
+    2) HOOK_CWD=$(hook_abspath "$(unquote "${w[1]}")")
+       [ -d "$HOOK_CWD" ] || HOOK_CWD=/nonexistent ;;
+    *) HOOK_CWD=/nonexistent ;;
+  esac
+}
+
 segs=$(printf '%s\n' "$HOOK_CMD" | awk '{ gsub(/&&|\|\||;/, "\n"); print }')
 HIT='' RANGE='' TOOL=''
 while IFS= read -r seg; do
+  follow_cd "$seg" && continue
   judge "$seg" && break
   HIT=''
 done <<EOF

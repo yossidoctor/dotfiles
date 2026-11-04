@@ -16,9 +16,12 @@
 #       (~/dotfiles/docs/claude/subagent-harness.md); `Monitor` arrives only as
 #       a deferred tool behind a ToolSearch load, and `ScheduleWakeup` runs only
 #       under `/loop`.
-#   - DENIED: a job detached with a lone `&` and no `wait` — `( … &)`,
-#     `nohup … &`, `cmd & next`. The shell owns that job, not the harness, so
-#     its end wakes no one and the caller waits on a report that never comes.
+#   - DENIED: a job detached with a lone `&` the same command does not reap —
+#     `( … &)`, `nohup … &`, `cmd & next`. The shell owns that job, not the
+#     harness, so its end wakes no one and the caller waits on a report that
+#     never comes. A command that reaps its own jobs is self-contained and
+#     passes: one holding a `wait`, or one that captures a `$!` per `&` job and
+#     `kill`s (`cmd & p=$!; …; kill $p`).
 #   - PASSED: a sleep under ten seconds, a `for` loop's included — a pause
 #     inside one operation (reaping a killed process, settling a connect,
 #     pacing requests to a rate-limited site).
@@ -60,9 +63,14 @@ background() {  # $1=reason  $2=additionalContext -> allow with run_in_backgroun
   exit 0
 }
 
-# A lone `&` — not `&&`, `>&`, `&>`, `|&` — starts a job the shell owns; one
-# `wait` in the same command reaps it there, so that form passes.
-if printf '%s' "$cmd_unq" | grep -qE '(^|[^&>|<])&([^&>]|$)' && ! printf '%s' "$cmd_unq" | grep -qE '\bwait\b'; then
+# A lone `&` — not `&&`, `>&`, `&>`, `|&` — starts a job the shell owns. It is
+# reaped in the same command by a `wait`, or by a `kill` when there are at least
+# as many `$!` captures as jobs; `$!` is counted on the quote-intact form, since
+# `p="$!"` keeps it inside quotes.
+jobs_n=$(printf '%s' "$cmd_unq" | grep -oE '(^|[^&>|<])&([^&>]|$)' | wc -l)
+if [ "$jobs_n" -gt 0 ] && ! printf '%s' "$cmd_unq" | grep -qE '\bwait\b' \
+  && ! { printf '%s' "$cmd_unq" | grep -qE '(^|[^[:alnum:]_-])kill\b' \
+    && [ "$(hook_command_joined | grep -oF '$!' | wc -l)" -ge "$jobs_n" ]; }; then
   deny "A job detached with \`&\` (or \`( … &)\`, \`nohup … &\`) belongs to the shell, not the harness, so its end wakes no one and its report never comes. Run it as its own call with \`run_in_background: true\` and no \`&\`, then end your turn; the completion notification wakes you with its output."
 fi
 
