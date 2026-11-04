@@ -6,7 +6,8 @@
 #
 # <keys-xml> is the job's keys after Label; this wraps them in the plist
 # document. Writes ~/Library/LaunchAgents/<label>.plist and bootstraps it. An
-# unchanged plist exits without touching launchd. bootout returns before
+# unchanged plist whose job launchd already holds exits without touching
+# launchd; an unchanged one launchd lost is bootstrapped again. bootout returns before
 # launchd has torn the job down, and a bootstrap that lands inside that window
 # fails with "Input/output error"; a second try a moment later succeeds, hence
 # the retries.
@@ -23,7 +24,8 @@ install_launchagent() {
 $2
 </dict>
 </plist>"
-  if [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plist_new" ]; then
+  if [ -e "$plist_dst" ] && [ "$(cat "$plist_dst")" = "$plist_new" ] \
+    && launchctl print "gui/$(id -u)/$label" >/dev/null 2>&1; then
     return 0
   fi
   mkdir -p "$HOME/Library/LaunchAgents"
