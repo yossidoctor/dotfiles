@@ -11,9 +11,12 @@ Xiaomi TV Box S        source, everything daily   HDMI out; Bluetooth remote
 Mac                    occasional source          native HDMI out, shares the box's cable
 Yamaha YAS-209         soundbar, HDMI repeater    decodes PCM, Dolby Digital 5.1, DTS 5.1;
                                                   HDMI IN, HDMI OUT (ARC), TV optical in
-Samsung UA40F5000      display only               2012/2013 model, 1080p, no HDR; ports HDMI (STB),
-                                                  HDMI (DVI), optical out, RF, USB
+Samsung UA40F5000      display only               2012/2013 model, 1080p, no HDR; ports HDMI IN 1 (STB),
+                                                  HDMI IN 2 (DVI), USB (5 V 0.5 A), component / AV in,
+                                                  3.5 mm audio out, optical out, ANT IN
 ```
+
+The Samsung's rear label (user photo, 2026-11-02) reads Model code `UA40F5000AMXSQ`, Version `HH04`, AC 220–240 V 50/60 Hz 104 W; the side jack strip is BN68-05188B-01 and the rear jack panel BN64-02224C-00. Inside (user photo, back cover off): panel `CY-HF400BGSV1V`, made 2013-10-09; main board on the left (`BN94-06784U`, PCB BN41-01955, tuner BN40-00254B, sticker dated 2013-11-12), power board on the right (`BN44-00609E`, "42" SF"), and a separate T-con board at the bottom centre (`RUNTK 5351TP 0055FV ZZ`), fed by a wide flat ribbon (LVDS, `BN96-24278T`) from the main board and joined to the panel by two orange flex strips (M1432); speakers bottom left and right. Samsung fits different boards to one model by region and version, so a replacement board is matched by the BN94 / LJ94 / BN96 number on the board's own sticker, with the model code and version as the cross-check ([tvpartsguy.com](https://www.tvpartsguy.com/samsung-un40f5000af-main-board-bn41-01930c-bn97-07772a-bn94-06999y/)).
 
 ## Wiring
 
