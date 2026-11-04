@@ -1,6 +1,6 @@
 {
   "cleanupPeriodDays": 30,
-  "skillListingBudgetFraction": 0.03,
+  "skillListingBudgetFraction": 0.01,
   "env": {
     "PATH": "/Users/yossidoctor/.local/share/fnm/aliases/default/bin:/Users/yossidoctor/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "DISABLE_AUTOUPDATER": "1",
