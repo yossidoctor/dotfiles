@@ -71,7 +71,7 @@ jobs_n=$(printf '%s' "$cmd_unq" | grep -oE '(^|[^&>|<])&([^&>]|$)' | wc -l)
 if [ "$jobs_n" -gt 0 ] && ! printf '%s' "$cmd_unq" | grep -qE '\bwait\b' \
   && ! { printf '%s' "$cmd_unq" | grep -qE '(^|[^[:alnum:]_-])kill\b' \
     && [ "$(hook_command_joined | grep -oF '$!' | wc -l)" -ge "$jobs_n" ]; }; then
-  deny "A job detached with \`&\` (or \`( … &)\`, \`nohup … &\`) belongs to the shell, not the harness, so its end wakes no one and its report never comes. Run it as its own call with \`run_in_background: true\` and no \`&\`, then end your turn; the completion notification wakes you with its output."
+  deny "Nothing in this command ran — re-run the whole command, every part before and after the job (a heredoc that writes a file included), not only the \`&\` part. A job detached with \`&\` (or \`( … &)\`, \`nohup … &\`) belongs to the shell, not the harness, so its end wakes no one and its report never comes. Re-run it with \`run_in_background: true\` on the Bash call and no \`&\`, then end your turn; the completion notification wakes you with its output."
 fi
 
 WAIT_CONTEXT="Moved to the background by enforce-foreground-polling.sh: a foreground wait holds the session for its whole length. End your turn now; the completion notification wakes you with this command's output and exit code. A wait carries its own check (\`until <check>; do sleep 10; done; <report>\`), so the wake brings the answer."
