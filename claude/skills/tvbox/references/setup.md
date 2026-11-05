@@ -7,20 +7,46 @@ The user's own setup: which device connects to which, and which remote controls 
 ```
 DEVICE                 ROLE                       NOTES
 --------------------   ------------------------   ----------------------------------------------------
-Xiaomi TV Box S        source, everything daily   HDMI out; Bluetooth remote
-Mac                    occasional source          native HDMI out, shares the box's cable
+Xiaomi TV Box S        unplugged; the TV's own    HDMI out; Bluetooth remote
+                       apps are the daily source
+Mac                    occasional source          native HDMI out, shares the box's cable; AirPlay
+                                                  to the TV
 Yamaha YAS-209         soundbar, HDMI repeater    decodes PCM, Dolby Digital 5.1, DTS 5.1;
                                                   HDMI IN, HDMI OUT (ARC), TV optical in
-Samsung UA40F5000      display only               2012/2013 model, 1080p, no HDR; ports HDMI IN 1 (STB),
-                                                  HDMI IN 2 (DVI), USB (5 V 0.5 A), component / AV in,
-                                                  3.5 mm audio out, optical out, ANT IN
+Samsung UA65AU7700KXXT display                    2021 AU7700, 65" 4K60 VA, HDR10 / HDR10+ / HLG, no
+                                                  Dolby Vision; HDMI 1–3 (HDMI 3 eARC), USB, LAN,
+                                                  optical out, ANT IN; Wi‑Fi 5, BT 4.2; Tizen 6.0;
+                                                  remotes TM2180A Smart Control + TM1240A (Samsung TH)
 ```
 
-The Samsung's rear label (user photo, 2026-11-02) reads Model code `UA40F5000AMXSQ`, Version `HH04`, AC 220–240 V 50/60 Hz 104 W; the side jack strip is BN68-05188B-01 and the rear jack panel BN64-02224C-00. Inside (user photo, back cover off): panel `CY-HF400BGSV1V`, made 2013-10-09; main board on the left (`BN94-06784U`, PCB BN41-01955, tuner BN40-00254B, sticker dated 2013-11-12), power board on the right (`BN44-00609E`, "42" SF"), and a separate T-con board at the bottom centre (`RUNTK 5351TP 0055FV ZZ`), fed by a wide flat ribbon (LVDS, `BN96-24278T`) from the main board and joined to the panel by two orange flex strips (M1432); speakers bottom left and right. Samsung fits different boards to one model by region and version, so a replacement board is matched by the BN94 / LJ94 / BN96 number on the board's own sticker, with the model code and version as the cross-check ([tvpartsguy.com](https://www.tvpartsguy.com/samsung-un40f5000af-main-board-bn41-01930c-bn97-07772a-bn94-06999y/)).
+## The TV
+
+Samsung UA65AU7700KXXT (Thai-market SKU), bought second-hand in November 2026 and factory reset. Settings › Support › About This TV (user photo, 2026-11-04) reads software `T-KSU2EUABC-2310.0`, Sub-micom `T-KUEINTV-1107`; the same screen shows the serial number. Its QR code encodes `MN` model, `PD` production date (blank on this unit), `SN` serial, `FW` firmware, `FC` firmware package (`SWU-OU_T-KSU2EUABC_2310_260721`), `MI` firmware line (`T-KSU2EUABC`), `LS` region (`ED_THAI`), `DI` a device ID, `MA` a MAC address that differs from the Wi‑Fi one in the router's lease table, and `SC` the status code; serial, device ID and MAC are kept out of this public file. Specs: [Samsung TH business page](https://www.samsung.com/th/business/tvs/uhd-4k-tv/tv-65-uhd-series-au7700-ua65au7700kxxt/) (VESA 400 × 300) and retailer listings ([IRIS](https://iristechworld.com/product/samsung-tv-65-uhd-series-au7700-ua65au7700kxxt/): 1449.4 × 830.3 × 59.9 mm and 20.6 kg without stand, 1449.4 × 906.6 × 282.1 mm and 20.9 kg with it, stand footprint 1185.5 × 282.1 mm, 200 W max, 20 W 2-channel speakers). Reviews of the AU7700 line describe a VA panel with no local dimming ([Tecnoblog](https://tecnoblog.net/testamos/tv-4k-samsung-au7700-review/), [Canaltech](https://canaltech.com.br/produtos/review-samsung-au7700-195855/)); neither tested the 65". Model years map to Tizen versions in [Samsung's general specifications](https://developer.samsung.com/smarttv/develop/specifications/general-specifications.html) (2021: Tizen 6.0).
+
+What reaches the TV through the soundbar: 4K60 with HDR10 or HLG. The YAS-209 passes neither HDR10+ nor Dolby Vision ([Yamaha specs](https://usa.yamaha.com/products/audio_visual/sound_bar/yas-209/specs.html)), and Samsung TVs have no Dolby Vision. Over ARC the TV sends Dolby Digital or DD+ and never DTS; multichannel PCM needs eARC, which the YAS-209 lacks ([Samsung ARC/eARC table](https://www.samsung.com/ph/support/tv-audio-video/what-is-earc-and-how-to-set-on-samsung-smart-tv/)); the YAS-209 decodes Dolby Digital but not DD+. Settings › Sound › Expert Settings (user photos, Hebrew menu) holds Balance and Equalizer (greyed out while sound goes to the soundbar), HDMI-eARC Mode, Digital Output Audio Format with PCM / Auto / Pass-through and no Dolby Digital entry, Digital Output Audio Delay (lip-sync offset, offered only with a device on HDMI-ARC or eARC), Dolby Atmos and Auto Volume. Auto picks a format from what the soundbar reports it accepts; PCM is stereo; Pass-through forwards an HDMI source's audio unprocessed and, per the menu's own help text, only to a receiver on HDMI-eARC, which the YAS-209 is not.
+
+Tizen has no ADB or other owner shell. Its settings are changed in its menus; what can be driven from outside it:
+
+```
+CHANNEL                 REACHES                                   NEEDS
+---------------------   ---------------------------------------   -------------------------------------
+HDMI-CEC via the box    power on/off, switch to the box's input   Anynet+ on; box ADB (av.md § HDMI-CEC)
+local WebSocket API     remote keys, app list/launch, browser     TV on LAN; approve once on screen;
+ (wss://<ip>:8002)                                                token (samsungtvws)
+REST info               model, firmware, network details          http://<ip>:8001/api/v2/
+SmartThings API         input, picture mode, volume, apps         Samsung account + cloud token
+Wake-on-LAN             power on                                  wired LAN only
+Developer Mode          install own Tizen apps (removed on        Apps › 12345, Tizen Studio
+                        power-off)
+```
+
+Sources: [samsungtvws](https://github.com/xchwarze/samsung-tv-ws-api) (WebSocket and REST), [ioBroker.samsung_tizen](https://github.com/iobroker-community-adapters/ioBroker.samsung_tizen) (Wake-on-LAN wired only), [SmartThings example](https://knowledgebase.grenton.com/en/sterowanie-telewizorem-poprzez-smarthings), [Samsung Developer Mode guide](https://developer.samsung.com/smarttv/develop/getting-started/using-sdk/tv-device.html).
+
+Privacy on a networked Samsung: Terms & Privacy › Privacy Choices (under Settings › Support on 2020–2021 menus, Settings › General & Privacy on later ones) holds Viewing Information Services (ACR, the on-screen content recognition) and Interest-Based Ads; firmware updates and new terms can switch them back on ([SmartTVs.org](https://smarttvs.org/stop-smart-tv-ads/)). DNS blocklists for Samsung ACR, ads and analytics that leave updates and apps working: [Okazakee/tv-dns-blocklist](https://github.com/Okazakee/tv-dns-blocklist).
 
 ## Wiring
 
-One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into whichever source is in use. All audio goes into the soundbar, and the TV receives picture only.
+One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into whichever source is in use. The source's audio stays in the soundbar and its picture passes on to the TV; the TV's own apps and AirPlay send their sound back to the soundbar over ARC on the same cable that carries the picture to HDMI 3.
 
 ```
  ┌──────────────────┐  in use
@@ -36,12 +62,12 @@ One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into 
                                                          │ ○ TV optical (unused)│
                                                          └──────────┬───────────┘
                                                                     │ Club3D CAC-1311
-                                                                    │ 1 m, 30 AWG, video only
+                                                                    │ 1 m, 30 AWG, video down, ARC up
                                                                     ▼
                                                          ┌──────────────────────┐
-                                                         │ Samsung UA40F5000    │
-                                                         │ ● HDMI (STB)         │
-                                                         │ ○ HDMI (DVI) free    │
+                                                         │ Samsung UA65AU7700   │
+                                                         │ ● HDMI 3 (eARC)      │
+                                                         │ ○ HDMI 1, 2 free     │
                                                          │ ○ optical out unused │
                                                          └──────────────────────┘
 ```
@@ -63,13 +89,14 @@ One HDMI cable stays seated in the soundbar's HDMI IN; its other end plugs into 
  └──────────────────────────┘
  ┌──────────────────────────┐   power           ┌──────────────────────┐
  │ Samsung remote           │─ ─ ─ ─ ─ ─ ─ ─ ─ ▶│ Samsung TV           │
- │ TV power, picture        │                   │ (not on the CEC bus) │
+ │ TV power, picture,       │                   │ (Anynet+ = HDMI-CEC) │
+ │ soundbar volume (CEC)    │                   │                      │
  └──────────────────────────┘                   └──────────────────────┘
 ```
 
 - The Xiaomi remote is paired over Bluetooth (bonded device "Xiaomi RC").
 - Volume reaches the soundbar over HDMI-CEC: CEC volume control is on and the YAS-209 is the audio system at logical address 5.
-- The TV does not appear on the CEC bus, and the box's `<Text View On>` messages to it go unanswered (`NACK`), so TV power is on the Samsung remote.
+- The TV joins the CEC bus when Anynet+ is on (Settings › General › External Device Manager), and the Samsung remote's volume keys then move the soundbar's volume (user, 2026-11-04). Whether the TV answers the box's `<Text View On>` is read with [§ Checking it](#checking-it). While it answers, the box turns it on and off; otherwise TV power is on the Samsung remote.
 - The remote has Netflix, Prime Video and YouTube buttons (user diagram); which of those apps are installed and enabled is in [§ Apps on the box](#apps-on-the-box). Its key layout (`/vendor/usr/keylayout/Vendor_2717_Product_32b9.kl`) maps the app buttons to generic `BUTTON_n` codes, and which app each one opens is handled by the box's software.
 
 ## Apps on the box

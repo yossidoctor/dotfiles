@@ -38,4 +38,4 @@ Done when each changed value reads back as set, its live effect is visible where
 - [network.md](references/network.md) — Wi‑Fi chip, country code and channel lists, connection fields, verbose logging, Private DNS.
 - [packages.md](references/packages.md) — package states and background restriction and how to restore them, the home app and replacing it, installing apps, overlays, Google TV packages.
 - [hardware.md](references/hardware.md) — Xiaomi TV Box S (3rd Gen) specifications and where sources disagree.
-- [setup.md](references/setup.md) — the user's living room: wiring, the remotes and what each controls, which apps the user switched off and why, the Mac's Movies share in VLC.
+- [setup.md](references/setup.md) — the user's living room: wiring, the Samsung TV (what reaches it, how it can be driven without ADB, its privacy settings), the remotes and what each controls, which apps the user switched off and why, the Mac's Movies share in VLC.

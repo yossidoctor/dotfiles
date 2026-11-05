@@ -43,6 +43,7 @@ IPv6         ipv6_service          disabled
    iPhone-15                  Private Wi‑Fi Address: Fixed
    Poco-X3-Pro                device MAC, not randomized
    Xiaomi-TV-Box-S
+   Samsung-TV
    Yamaha-YAS209-Soundbar
    Switcher-Breeze
    Switcher-Long-V4
