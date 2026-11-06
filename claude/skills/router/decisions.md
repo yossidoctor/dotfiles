@@ -42,7 +42,6 @@ IPv6         ipv6_service          disabled
    ThinkPad
    iPhone-15                  Private Wi‑Fi Address: Fixed
    Poco-X3-Pro                device MAC, not randomized
-   Xiaomi-TV-Box-S
    Samsung-TV
    Yamaha-YAS209-Soundbar
    Switcher-Breeze
@@ -50,18 +49,17 @@ IPv6         ipv6_service          disabled
    Xiaomi-MOVA-L600-Vacuum
    ```
 5. **UPnP on, secure mode.** `wan0_upnp_enable=1`, `upnp_enable=1`, `upnp_secure=1`, `upnp_mnp=1`. Action `"restart_upnp;restart_firewall"`. Transmission opens its own port, so nothing needs a manual forward.
-6. **Band plan: main network on 5 + 6 GHz, IoT network on 2.4 GHz.** On the Network page, set the main network to 5 + 6 GHz. Then add an IoT network on 2.4 GHz only, WPA2-Personal, same password, same subnet, not isolated. Re-pair the 2.4 GHz-only devices to it: the Switchers, the vacuum and the soundbar. This keeps the TV box off 2.4 GHz, and the shared subnet keeps Spotify Connect, AirPlay and MusicCast working. Over SSH, the steps are in [wireless.md § Guest Network Pro](references/wireless.md#guest-network-pro).
-7. **Wi‑Fi security.** 5 GHz: WPA2/WPA3 mixed (`psk2sae`), because the TV box won't join a WPA3-only network. 6 GHz: WPA3 only (`sae`). Keys: the main network's `apm1_security`, whose 2.4/5 GHz band codes (`3`, `13`) carry `psk2sae` and 6 GHz codes (`16`, `96`) carry `sae`; Quick Internet Setup writes these values ([wireless.md § General](references/wireless.md#general)), so on a fresh unit this step is a read: `nvram get apm1_security | tr '<' '\n' | cut -d'>' -f1-3`. Action, when a value differs: `"restart_wireless;restart_sdn 1"`.
+6. **Band plan: main network on 5 + 6 GHz, IoT network on 2.4 GHz.** On the Network page, set the main network to 5 + 6 GHz. Then add an IoT network on 2.4 GHz only, WPA2-Personal, same password, same subnet, not isolated. Re-pair the 2.4 GHz-only devices to it: the Switchers, the vacuum and the soundbar. This keeps the Samsung TV off 2.4 GHz, and the shared subnet keeps Spotify Connect, AirPlay and MusicCast working. Over SSH, the steps are in [wireless.md § Guest Network Pro](references/wireless.md#guest-network-pro).
+7. **Main network WPA3 only.** Every band code of the main network's `apm1_security` carries `sae` (2.4/5 GHz codes `3`, `13`; 6 GHz codes `16`, `96`), which makes PMF required (`wl1.1_mfp=2`). Quick Internet Setup writes `psk2sae` for `3` and `13` ([wireless.md § General](references/wireless.md#general)); rewrite those two in place: `nvram set apm1_security="$(nvram get apm1_security | sed -e 's/<3>psk2sae>/<3>sae>/' -e 's/<13>psk2sae>/<13>sae>/')"`, then `rc sync_apgx_to_wlunit`. Action `"restart_wireless;restart_sdn 1"`. A device without WPA3 can't join the main network; the Samsung TV (5 GHz) and the Mac (6 GHz) join on SAE (2026-11-06). The IoT network stays WPA2 (step 6).
 8. **5 GHz auto-channel off DFS.** `acs_dfs=0`. Action `restart_wireless` (drops Wi‑Fi ~40 s). Keeps 5 GHz on 36–48, so a radar hit can't cut a stream.
 9. **2.4 GHz at 20 MHz.** `wl0_bw=0`. Action `restart_wireless`. Apple's guidance; fewer collisions.
 10. **6 GHz OFDMA both directions.** `wl2_ofdma=3`. Action `restart_wireless`.
-11. **5 GHz group key every 10 minutes.** `wl1_wpa_gtk_rekey=600`. Action `restart_wireless`. When the Mac joins 5 GHz and moves to 6 GHz, the router keeps a dead 5 GHz entry for it until the next group-key change, and the TV box can't reach the Mac's Movies share while it lasts; 600 caps that at 10 minutes.
+11. **5 GHz group key every 10 minutes.** `wl1_wpa_gtk_rekey=600`. Action `restart_wireless`. When the Mac joins 5 GHz and moves to 6 GHz, the router keeps a dead 5 GHz entry for it until the next group-key change, and 5 GHz devices (the TV, the phones) can't reach the Mac while it lasts; 600 caps that at 10 minutes.
 12. **WPS off.** `wps_enable_x=0`, `wps_enable=0`. Action `restart_wpsie`.
 13. **Router Samba off.** `enable_samba=0`. Action `restart_ftpsamba`. No USB drive.
 14. **Web UI HTTPS only.** `http_enable=1`. Action `restart_httpd`. UI at `https://<router>:8443`.
-15. **Block Xiaomi's TV log upload.** Firewall › URL Filter: `url_enable_x=1`, `url_mode_x=0`, `url_rulelist=<1>ALL>other.tv.global.mi.com`. Action `restart_firewall`. The TV box's `mitv.service` uploads logs to that host and can't be disabled; the filter drops DNS queries for the name (a `--hex-string` match on UDP 53) and HTTP requests to it, and the box then reads `unknown host`. `misc.tv.global.mi.com` (device and Netflix keys) stays reachable.
-16. **Every device's DNS goes through the router.** Field 9 of each `sdn_rl` entry = `11`, `dnsfilter_enable_x=1`, `dnsfilter_mode=11` ([wan-lan.md § Parental controls](references/wan-lan.md#parental-controls)). Action `restart_firewall`. A device with hard-coded DNS (Google TV is documented to use 8.8.8.8) still gets AdGuard's answers. Proof: `dig tracking.miui.com @8.8.8.8` from a LAN client returns `0.0.0.0`.
-17. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
+15. **Every device's DNS goes through the router.** Field 9 of each `sdn_rl` entry = `11`, `dnsfilter_enable_x=1`, `dnsfilter_mode=11` ([wan-lan.md § Parental controls](references/wan-lan.md#parental-controls)). Action `restart_firewall`. A device with a hard-coded resolver such as 8.8.8.8 still gets AdGuard's answers, which block the Samsung TV's ACR and ad hosts ([wan-lan.md § Samsung TV hosts](references/wan-lan.md#samsung-tv-hosts)). Proof: `dig tracking.miui.com @8.8.8.8` from a LAN client returns `0.0.0.0`.
+16. **Back up the settings.** `ssh router 'nvram save /tmp/settings.CFG && cat /tmp/settings.CFG' > ~/Settings_RT-BE90U_<date>.CFG` (scp fails: no sftp-server). The file holds passwords, so it never goes in git.
 
 ## Kept at factory
 
@@ -69,9 +67,7 @@ Country GB (its 5 GHz table matches Israel's), transmit power 100, roaming assis
 
 ## Outside the router
 
-- **Mac:** System Settings › File Sharing on, SMB, a `Movies` share (owner read/write, everyone read). The TV box streams from it with VLC.
 - **Mac:** Transmission upload cap 11000 KB/s, about 85% of the 104 Mb/s uplink, so seeding doesn't lag the other devices. `mac/defaults.sh` applies it.
-- **TV box:** Stremio's torrent profile set to Ultra fast in its settings.
 
 ## Restore to factory
 
@@ -80,7 +76,7 @@ DNS + DoT:     ssh router 'nvram set wan0_dnsenable_x=1; nvram set wan0_dns1_x=;
 DHCP:          ssh router 'nvram set dhcp_start=$(nvram get lan_ipaddr | sed "s/\.1$/.2/"); nvram set dhcp_static_x=0; nvram set dhcp_staticlist=; nvram commit; service restart_dnsmasq'
 UPnP:          ssh router 'nvram set wan0_upnp_enable=0; nvram set upnp_enable=0; nvram commit; service "restart_upnp;restart_firewall"'
 Band plan:     ssh router 'nvram set apm1_dut_list="<*>87>"; nvram set "sdn_rl=$(nvram get sdn_rl | sed "s/<3>IoT>[^<]*//")"; nvram set apg1_enable=0; nvram commit; rc sync_apgx_to_wlunit; service "restart_wireless;restart_sdn"'
-Wi‑Fi sec.:    nothing to restore: step 7 keeps the values Quick Internet Setup writes
+Wi‑Fi sec.:    ssh router 'nvram set apm1_security="$(nvram get apm1_security | sed -e "s/<3>sae>/<3>psk2sae>/" -e "s/<13>sae>/<13>psk2sae>/")"; nvram commit; rc sync_apgx_to_wlunit; service "restart_wireless;restart_sdn 1"'
 DFS:           ssh router 'nvram set acs_dfs=1; nvram commit; service restart_wireless'
 2.4 GHz width: ssh router 'nvram set wl0_bw=1; nvram commit; service restart_wireless'
 6 GHz OFDMA:   ssh router 'nvram set wl2_ofdma=1; nvram commit; service restart_wireless'
@@ -89,6 +85,5 @@ WPS:           ssh router 'nvram set wps_enable_x=1; nvram set wps_enable=1; nvr
 Samba:         ssh router 'nvram set enable_samba=1; nvram commit; service restart_ftpsamba'
 Web UI:        ssh router 'nvram set http_enable=2; nvram commit; service restart_httpd'
 DNS redirect:  ssh router 'nvram set "sdn_rl=$(nvram get sdn_rl | awk "BEGIN{RS=\"<\";ORS=\"\"} NF{sub(/\n$/,\"\"); n=split(\$0,f,\">\"); f[9]=0; s=f[1]; for(i=2;i<=n;i++) s=s\">\"f[i]; print \"<\"s}")"; nvram set dnsfilter_enable_x=0; nvram set dnsfilter_mode=0; nvram commit; service restart_firewall'
-URL filter:    ssh router 'nvram set url_enable_x=0; nvram set url_rulelist=; nvram commit; service restart_firewall'
 SSH:           Administration › System › Enable SSH: No
 ```

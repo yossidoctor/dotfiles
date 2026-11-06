@@ -35,7 +35,6 @@ brew "uv"
 
 # ── mac utilities ──────────────────────────────────────────────────
 cask "adguard"
-cask "android-platform-tools"
 cask "appcleaner"
 brew "duti"
 cask "karabiner-elements"
