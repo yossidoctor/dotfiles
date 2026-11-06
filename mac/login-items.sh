@@ -9,6 +9,7 @@ set -uo pipefail
 apps=(
   /Applications/BetterCmdTab.app
   /Applications/noTunes.app
+  "/Applications/Plex Media Server.app"
 )
 
 # Touching System Events makes macOS fire an "App Background Activity" notice on

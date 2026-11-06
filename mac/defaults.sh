@@ -487,17 +487,23 @@ defaults write digital.twisted.noTunes hideIcon -bool true
 # "Port is open") when the router offers neither UPnP nor NAT-PMP.
 TRANSMISSION=org.m0k.transmission
 # Transmission › Settings › Transfers › Adding › "Default location:" (chosen folder) · default ~/Downloads
-defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Movies"
-# Transmission › Settings › Transfers › "Keep incomplete files in:" (chosen folder) · default ~/Downloads
-defaults write "$TRANSMISSION" IncompleteDownloadFolder -string "$HOME/Movies"
+# ~/Movies/Shows and ~/Movies/Films are the Plex libraries' folders; the add window
+# below opens on Shows and its location button switches a film to Films.
+defaults write "$TRANSMISSION" DownloadFolder -string "$HOME/Movies/Shows"
+# Transmission › Settings › Transfers › "Keep incomplete files in:" (checkbox, chosen folder) · default off, ~/Downloads
+# Outside both Plex library folders, so Plex lists an episode only once it is complete.
+mkdir -p "$HOME/Movies/Shows" "$HOME/Movies/Films" "$HOME/Movies/Incomplete"
+defaults write "$TRANSMISSION" UseIncompleteDownloadFolder -bool true
+defaults write "$TRANSMISSION" IncompleteDownloadFolder -string "$HOME/Movies/Incomplete"
 # Transmission › Settings › Transfers › Adding › "Default location:" popup · default "Same as torrent file" (false)
 # true selects the fixed folder above (PrefsController.mm setDownloadLocation:).
 defaults write "$TRANSMISSION" DownloadLocationConstant -bool true
 # Transmission › Settings › Transfers › Adding › "Display a window when opening a torrent file" · default on
-defaults write "$TRANSMISSION" DownloadAsk -bool false
+# The window is where each download picks Shows or Films.
+defaults write "$TRANSMISSION" DownloadAsk -bool true
 # Transmission › Settings › Transfers › Adding › "Display a window when opening a magnet link" · default on
 # Only unlockable while the location popup is a fixed folder.
-defaults write "$TRANSMISSION" MagnetOpenAsk -bool false
+defaults write "$TRANSMISSION" MagnetOpenAsk -bool true
 # Transmission › Settings › Transfers › Management › "Append .part to incomplete files" · default on
 defaults write "$TRANSMISSION" RenamePartialFiles -bool true
 # Transmission › Settings › Transfers › Adding › "Trash original torrent files" · default off
