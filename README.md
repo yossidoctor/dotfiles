@@ -42,7 +42,7 @@ Every commit and tag is SSH-signed. `git/config` sets `gpg.format = ssh` and `co
 
 This repo is the base: shell, terminal, Homebrew, macOS defaults, and the global Claude Code config. A private layer repo installs its own dotbot manifest on top — its `install` after this one — and reaches everything here only through the paths dotbot deploys (`~/.claude/…`, `~/.config/git/…`, `~/.config/homebrew/Brewfile.d/`, `~/.config/daily.d/`); nothing in this repo names a layer. A layer's project rules load through its own `CLAUDE.md` when that project directory is the session root.
 
-The global rules split by reach. `claude/CLAUDE.md` holds the rules that bind on every task and is also appended to the system prompt by the `claude()` wrapper in `zsh/zshrc`. `claude/rules/*.md` (deployed per file to `~/.claude/rules/`, so a layer can add its own rule beside them) hold the rules for one surface each (`ls ~/.claude/rules` lists them), each behind a `paths:` frontmatter, so Claude Code loads one only when it touches a matching file.
+The global rules split by reach. `claude/CLAUDE.md` holds the rules that bind on every task. `claude/rules/*.md` (deployed per file to `~/.claude/rules/`, so a layer can add its own rule beside them) hold the rules for one surface each (`ls ~/.claude/rules` lists them), each behind a `paths:` frontmatter, so Claude Code loads one only when it touches a matching file.
 
 `docs/claude/instructing-claude.md` is the standing reference behind every rule file here: which channel an instruction reaches Claude through and what each buys, the measured ceiling on simultaneous constraints, which wording helps and which backfires, and why a review must run in a fresh context. Every claim in it cites a primary source. Read it before authoring or rewriting a rule file, a skill, a hook, or an agent definition — it exists so that research is not repeated. `docs/claude/subagent-harness.md` holds the harness mechanics a waiting subagent rests on — how it idles and wakes, how its report is delivered, the Bash timeout, what a hook payload carries — each with the command that re-verifies it; read it before writing an agent definition, or a dispatch, whose agent waits on anything.
 
@@ -56,18 +56,15 @@ Global hooks register in `claude/settings.json` and fire in every session; scrip
 
 The prologue is `claude/hooks/hook-lib.sh` — payload parsing (`hook_read_raw`, `hook_parse_input`), the command-shape normalizer (`hook_command_shape`: heredoc bodies dropped, newlines mapped to `;`, quoted regions removed, so a hook carries its regex and nothing else), and the decision emitters (`deny`/`ask`). Each function's contract is documented in the lib's own header.
 
-The rows below are one-line orientation only (§ Script conventions: the header is the SoT). The `async` registration field takes a side-effect hook (caffeinate) out of the tool call's latency budget.
+The rows below are one-line orientation only (§ Script conventions: the header is the SoT).
 
 **Global** (registrations: `claude/settings.json`):
 
 | Event | Hook |
 |---|---|
 | `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) and waits (`sleep >=10`, `while`/`until` poll loops) to run off-thread; denies a job detached with `&`. |
-| `PreToolUse: Bash` | `enforce-read-tool.sh` — denies an unpiped `cat`/`head`/`tail`/`sed -n`, match-all `grep` or `NR`-range `awk` of one local file, alone or anywhere in a `;`/`&&`/`||` chain, and names the Read call instead; pipelines, multi-file and remote reads pass. |
 | `PreToolUse: Bash` | `ask-risky-git-outside-worktree.sh` — asks before `reset --hard`, `branch -D`, `tag -d`, `checkout --`, `clean`, `stash drop|clear`, `push --force-with-lease`, except inside a sandbox worktree. |
 | `PreToolUse: Read` | `enforce-sliced-spill-read.sh` — denies a whole Read of a spilled tool output under `~/.claude/projects/*/tool-results/`; a Read with `offset`/`limit` passes. |
-| `UserPromptSubmit` | `caffeinate-claude.sh` — keeps macOS awake while Claude works. |
-| `Stop` | `caffeinate-claude.sh` — 30-min post-turn linger. |
 
 ### Permissions
 
@@ -82,11 +79,11 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 - `PAGER` is `cat`, so no call waits on a pager it has no TTY to page to: git skips its own pager off a TTY, and `cat` covers the tools that do not check.
 - `CI` is the switch most CLIs read (npm, gh, pip, jest, vitest): prompts, spinners and colour off, and test runners run once instead of watching. It is broad, so a tool behaving differently under the Bash tool than in a terminal is checked against it first.
 - `NO_COLOR` is the no-color.org convention: ANSI codes off wherever a tool honours it, so output greps clean.
-- `BASH_MAX_OUTPUT_LENGTH` is the character cap on one Bash-tool result before the harness truncates it; `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` the token cap on one Read; `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` the number of tool calls one response may run in parallel. A key the running binary does not name is dead weight here: `strings "$(readlink -f "$(whence -p claude)")" | grep -c <KEY>` is the check (`whence -p`, since `claude` is a zsh function here), and it is what removed `CLAUDE_GIT_SHOW_COMMIT_HASHES`.
+- `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` is the number of tool calls one response may run in parallel. A key the running binary does not name is dead weight here: `strings "$(readlink -f "$(command -v claude)")" | grep -c <KEY>` is the check, and it is what removed `CLAUDE_GIT_SHOW_COMMIT_HASHES`.
 - `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
 - `CLAUDE_CODE_SUBAGENT_MODEL` is the model a subagent launches on when neither the dispatch nor its agent definition names one; without it the subagent inherits the session's model, Fable included. A definition's own `model:` still wins, which `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` would override.
 - `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.
-- `PONYTAIL_DEFAULT_MODE` is the level the ponytail plugin's SessionStart hook activates (`off`/`lite`/`full`/`ultra`). It outranks `~/.config/ponytail/config.json`, so `/ponytail default <mode>` writes a file this key overrides: change the level here.
+- `PONYTAIL_DEFAULT_MODE` is the level the ponytail plugin's SessionStart hook activates (`off`/`lite`/`full`/`ultra`). It outranks `~/.config/ponytail/config.json`, so `/ponytail default <mode>` writes a file this key overrides: change the level here. `PONYTAIL_MAP=0` skips the "codebase map" that hook injects: under `~/Dono`, which is no git repo, the map lists the first folder alphabetically and stops.
 
 ### Statusline (`claude/statusline-command.sh`)
 

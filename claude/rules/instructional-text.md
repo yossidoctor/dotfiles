@@ -2,8 +2,10 @@
 paths:
   - "**/CLAUDE.md"
   - "**/AGENTS.md"
-  - "**/.claude/**/*.md"
-  - "**/claude/**/*.md"
+  - "**/SKILL.md"
+  - "**/agents/*.md"
+  - "**/rules/*.md"
+  - "**/output-styles/*.md"
 ---
 
 # Instructional text

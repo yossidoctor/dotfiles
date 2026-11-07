@@ -40,11 +40,12 @@ set -u
 
 # Literals with the trailing space where a bare word is a common substring: `gh`
 # is in "light" and "through", `tail` in "detail", and the payload carries the
-# cwd, the description and the session id alongside the command.
+# cwd, the description and the session id alongside the command. A detached job
+# is a lone `&`; `&&` is every chained command, so it is not a reason to parse.
 hook_read_raw
 case "$HOOK_INPUT" in
-  *sleep*|*'&'*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
-  *) exit 0 ;;
+  *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
+  *) [[ $HOOK_INPUT =~ (^|[^\&])\&([^\&]|$) ]] || exit 0 ;;
 esac
 hook_parse_input
 cmd="$HOOK_CMD"
