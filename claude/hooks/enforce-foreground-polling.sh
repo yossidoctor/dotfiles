@@ -45,7 +45,7 @@ set -u
 hook_read_raw
 case "$HOOK_INPUT" in
   *sleep*|*'tail '*|*watch*|*'kubectl logs'*|*'kubectl get'*|*journalctl*|*'gh run'*|*'gh pr'*|*'docker logs'*|*'compose logs'*) ;;
-  *) [[ $HOOK_INPUT =~ (^|[^\&])\&([^\&]|$) ]] || exit 0 ;;
+  *) re='(^|[^&>|<])&([^&>]|$)'; [[ $HOOK_INPUT =~ $re ]] || exit 0 ;;
 esac
 hook_parse_input
 cmd="$HOOK_CMD"

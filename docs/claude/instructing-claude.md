@@ -55,7 +55,7 @@ Skill body                one message, on invocation          stays in context a
 
 **The practical consequence.** A rule whose violation you can describe in a shell command belongs in a hook, where it is enforcement rather than persuasion. The documented split is between what is enforced (a hook, a deny rule, a managed setting) and what is text; among the text channels, CLAUDE.md and the output style arrive the same way, and `--append-system-prompt` alone sits in the system prompt. No documented basis ranks one text channel above another for adherence.
 
-**Why position cannot be fixed by moving text around.** Prompt caching requires a byte-identical prefix, so project context is pinned at the front of it ([prompt-caching](https://code.claude.com/docs/en/prompt-caching)). A `CLAUDE.md` rule structurally cannot occupy the recency position where a hook fires. Related: editing `CLAUDE.md` mid-session does not invalidate the cache — **and the edit also does not apply** until `/clear`, `/compact`, or a restart.
+**Why position cannot be fixed by moving text around.** Prompt caching matches on the request prefix, so project context is pinned at the front of it ([prompt-caching](https://code.claude.com/docs/en/prompt-caching)). A `CLAUDE.md` rule structurally cannot occupy the recency position where a hook fires. Related: editing `CLAUDE.md` mid-session does not invalidate the cache — **and the edit also does not apply** until `/clear`, `/compact`, or a restart.
 
 **Writing hook text.** Frame it as a factual statement, not an imperative system command: "Text framed as out-of-band system commands can trigger Claude's prompt-injection defenses, which causes Claude to surface the text to you instead of treating it as context" ([hooks](https://code.claude.com/docs/en/hooks)).
 
@@ -160,8 +160,8 @@ rule misapplication         restates rule, concludes against    arXiv 2606.00476
 
 **A model cannot reliably check its own output in the same pass that produced it.**
 
-- Huang et al., ICLR 2024 (DeepMind): LLMs "struggle to self-correct without external feedback, and at times performance degrades."
-- Stechly et al.: "significant performance collapse with self-critique" but "significant gains with sound external verification" — the premise that verification is easier than generation does *not* hold for LLMs.
+- Huang et al., ICLR 2024 (DeepMind): LLMs "struggle to self-correct their responses without external feedback, and at times, their performance even degrades after self-correction."
+- Stechly et al.: "significant performance collapse with self-critique" but "significant performance gains with sound external verification" — the premise that verification is easier than generation does *not* hold for LLMs.
 - Tyen et al. localises it: **detection is the bottleneck, not correction.** Given the error's location, correction is robust. Finding it is what fails.
 
 **Author blindness is measured.** Self-Correction Bench ([arXiv 2507.02778](https://arxiv.org/abs/2507.02778), COLM 2026) injects identical errors and varies only attribution:
@@ -181,12 +181,12 @@ Root cause: supervised fine-tuning data contains near-zero correction sequences 
 + external/executable check   self-correction works where reliable external feedback exists
 + a different reviewer        Anthropic: "a fresh reviewer does help, because it hasn't seen your reasoning"
 - reviewing twice, same ctx   21.7% F1 — the fresh reviewer beats it robustly
-- asking "are you sure?"      flips answers 46% of the time, -17 points (arXiv 2311.08596)
+- asking "are you sure?"      flips answers 46% of the time, accuracy down 17% (arXiv 2311.08596)
 ```
 
 The cross-context review paper's revised version finds the fresh reviewer's edge over a *single* same-session review (27.1%) and over a subagent handed the generation prompt (23.8%) not significant; what holds is that a second look in the same context is the worst option.
 
-**The design that follows.** A review step must run with no authorship history: a separate session, a subagent that starts without the conversation (a Claude Code subagent "starts without your conversation history"; only a fork inherits it — [sub-agents](https://code.claude.com/docs/en/sub-agents)), or an external checker. Anthropic's own guidance: "A second session is also the easiest independent reviewer you can get" ([best-practices](https://code.claude.com/docs/en/best-practices)), and the platform pattern is generate → review → refine where "**each step is a separate API call**."
+**The design that follows.** A review step must run with no authorship history: a separate session, a subagent that starts without the conversation (a Claude Code subagent "doesn't see your conversation history"; only a fork inherits it — [sub-agents](https://code.claude.com/docs/en/sub-agents)), or an external checker. Anthropic's own guidance: "A second session is also the easiest independent reviewer you can get" ([best-practices](https://code.claude.com/docs/en/best-practices)), and the platform pattern is generate → review → refine where "**each step is a separate API call**."
 
 **A criterion is a review tool, not a generation-time gate.** Writing "check this against the text you are about to write" asks for exactly the same-pass detection the literature reports as failing. The same criterion applied post-hoc, in a fresh context, is where it pays.
 
@@ -207,7 +207,7 @@ cache read       0.1x (0.05x on Opus/Sonnet 5.5, 0.025x on Fable/Mythos 5.1)
 
 So moving a 4,400-token rule file from `CLAUDE.md` into `--append-system-prompt` costs **nothing** — both sit in the cached prefix, both are re-sent, both bill at cache-read rate. Choose the channel for what it enforces, never for cost.
 
-Cache TTL is **1 hour** for the main conversation on a subscription (5 minutes on credits, an API key, or a cloud provider; subagents and compaction get 5 minutes either way), and each hit resets it, so an active session pays cache-write once. Invalidated by: model switch, `/compact`, an effort change on models before the 5.5 family, an MCP connect/disconnect when tool search is off. Not invalidated by: file edits (a `CLAUDE.md` edit keeps the cache and also does not apply), permission mode, output style, skills.
+Cache TTL is **1 hour** for the main conversation on a subscription (5 minutes on credits, an API key, or a cloud provider; subagents and compaction get 5 minutes either way), and each hit resets it, so an active session pays cache-write once. Invalidated by: model switch, `/compact`, an effort change (kept on the 5.5 models and Fable 5.1 under an API key or a subscription), an MCP connect/disconnect when tool search is off. Not invalidated by: file edits (a `CLAUDE.md` edit keeps the cache and also does not apply), permission mode, output style, skills.
 
 Inspect live with `/context` (component breakdown, confirms what loaded) and `/usage` (cache read/write counts, hit rate).
 

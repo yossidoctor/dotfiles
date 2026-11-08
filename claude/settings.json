@@ -10,8 +10,6 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
-    "PONYTAIL_DEFAULT_MODE": "full",
     "PONYTAIL_MAP": "0"
   },
   "attribution": {
@@ -92,6 +90,7 @@
         "hooks": [
           {
             "type": "command",
+            "if": "Read(~/.claude/projects/**/tool-results/**)",
             "command": "\"$HOME\"/.claude/hooks/enforce-sliced-spill-read.sh"
           }
         ]
@@ -102,7 +101,6 @@
     "bgIsolation": "none"
   },
   "enableWorkflows": false,
-  "workflowKeywordTriggerEnabled": false,
   "statusLine": {
     "type": "command",
     "command": "bash \"$HOME\"/.claude/statusline-command.sh",
@@ -135,21 +133,8 @@
     }
   },
   "outputStyle": "Straight Answers",
-  "feedbackSurveyRate": 0,
   "feedbackDrafts": "off",
-  "alwaysThinkingEnabled": false,
   "effortLevel": "medium",
-  "modelSettings": {
-    "claude-fable-5-1": {
-      "effortLevel": "medium"
-    },
-    "claude-opus-5-5": {
-      "effortLevel": "medium"
-    },
-    "claude-sonnet-5-5": {
-      "effortLevel": "medium"
-    }
-  },
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "dialogExpiry": "10m",
@@ -161,9 +146,7 @@
   "timeFormat": "24-hour",
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
-  "skipWorkflowUsageWarning": true,
   "theme": "auto",
-  "verbose": false,
   "preferredNotifChannel": "ghostty",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,

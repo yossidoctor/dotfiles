@@ -14,15 +14,17 @@ A child that ends its turn waiting on its own background work reaches its parent
 
 Re-verify: `rg -n 'handback-send-enforce' <agent>` on a parent agent that dispatched a child.
 
-## `ScheduleWakeup` and `Monitor` are main-thread only
+## A condition is watched with `Monitor`; a message lands at once
 
-An agent waiting on its own process backgrounds it and ends its turn (above). A condition no process of its own signals — a reply landing on a thread — gets one from a bare `sleep N` sent with `run_in_background: true`, after which the agent ends its turn and the sleep's exit wakes it to check again. Claude Code refuses a standalone foreground sleep before any hook runs (`~/dotfiles/claude/hooks/enforce-foreground-polling.sh` header). A message reaches the agent only when that sleep ends, so the sleep's length is also its reply latency.
+An agent waiting on its own process backgrounds it and ends its turn (above). A condition no process of its own signals — a reply landing on a thread — is watched with `Monitor`, which a subagent has behind a `ToolSearch` load like the main thread: the call returns at once ("Monitor started … You will be notified on each event") and the agent ends its turn. A bare `sleep N` with `run_in_background: true` does the same at the sleep's granularity, and Claude Code refuses a standalone foreground sleep before any hook runs (`~/dotfiles/claude/hooks/enforce-foreground-polling.sh` header). A message sent to an agent mid-command moves that command to the background and is delivered at once (CHANGELOG 2.1.317), so a sleep's length is not its reply latency.
 
-Re-verify: `rg -l '"name":"(ScheduleWakeup|Monitor)"' ~/.claude/projects/*/*/subagents/*.jsonl` prints nothing.
+Re-verify: `rg -o 'Monitor started[^"]{0,60}' <agent>` shows a subagent's accepted watch; `rg -n 'moved to the background' <agent>` after a `SendMessage` to it mid-command shows the delivery.
 
-## The Bash tool's timeout is the tool's own
+## The Bash tool's timeout backgrounds the command
 
-A sleep longer than the call's `timeout` is SIGTERMed (exit 143) and returns early, reading as a delay that silently did not happen. The default and the maximum are stated in the Bash tool's own description, read in the session that sets them.
+A command still running at the call's `timeout` is moved to the background: the result returns the output so far and says so, the agent ends its turn, and the completion notification brings the rest with the exit code. The default and the maximum are stated in the Bash tool's own description, read in the session that sets them.
+
+Re-verify: a `sleep 12` under `timeout: 5000` returns "Command did not complete within its 5s timeout and was moved to the background", then a completion notice with exit 0.
 
 ## A subagent's hook payload names the agent
 

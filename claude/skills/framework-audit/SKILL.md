@@ -44,10 +44,10 @@ Two findings behind the table. The harness itself sends mode-specific instructio
 **1. Hook denials, from the transcripts.** A hook that fires often is either catching real mistakes or fighting an instruction. Read the top denial message and decide which.
 
 ```bash
-grep -rhoE 'PreToolUse:[A-Za-z]+ hook error: .{0,60}' ~/.claude/projects | cut -c1-80 | sort | uniq -c | sort -rn | head
+grep -rhoE '"content":"PreToolUse:[A-Za-z|]+ hook error: .{0,60}' ~/.claude/projects | cut -c12-90 | sort | uniq -c | sort -rn | head
 ```
 
-Threshold: a hook whose denial text names a tool the harness told Claude to use, at any count, goes. Baseline on 2026-11-07: one hook at 1,896 denials across 538 sessions, all of that kind.
+The `"content":"` anchor keeps the count to tool results: transcripts also quote hook text (an audit session, a `cat` of a hook, each request's recorded system prompt), which an unanchored grep counts. Threshold: a hook whose denial text names a tool the harness told Claude to use, at any count, goes. Baseline on 2026-11-07: one hook at 1,896 denials across 538 sessions, all of that kind.
 
 **2. Hooks per tool call, and their cost.** Count the synchronous `PreToolUse` entries for `Bash` across every settings file in play, then time each with a trivial payload.
 
@@ -59,13 +59,13 @@ for h in ~/.claude/hooks/*.sh <project>/.claude/hooks/*.sh; do /usr/bin/time -p 
 
 Threshold: a hook that runs on every call but only cares about one command gets an `if:` filter; a pre-check that passes every `&&` chain is no pre-check. Baseline: 8 processes per call, 23–83 ms wall.
 
-**3. Skill invocations, lifetime.** A skill nobody has ever called costs its description on every request.
+**3. Skill invocations, over the transcript retention window** (`cleanupPeriodDays`). A skill nobody has called costs its description on every request.
 
 ```bash
-for s in $(ls ~/.claude/skills <project>/.claude/skills); do printf '%-24s %s\n' "$s" "$(grep -rhoE "\"skill\": ?\"$s\"|<command-name>/$s<" ~/.claude/projects | wc -l)"; done | sort -k2 -n
+for s in $(ls ~/.claude/skills <project>/.claude/skills); do printf '%-24s %s\n' "$s" "$(grep -rhoE "\"skill\": ?\"$s\"|<command-name>/$s</command-name>" ~/.claude/projects | wc -l)"; done | sort -k2 -n
 ```
 
-Threshold: zero calls and no citation from another skill or hook → `disable-model-invocation: true`, or delete. Plugin skills need the plugin's own count (`"skill": "<plugin>:<name>"`); 11 of 27 in one plugin had never been called.
+Threshold: zero calls and no citation from another skill or hook → `disable-model-invocation: true`, or delete. Plugin skills need the plugin's own count (`"skill": "<plugin>:<name>"`, `<command-name>/<plugin>:<name></command-name>`); baseline on 2026-11-08: 16 of 27 in one plugin never called, 13 of them already hidden.
 
 **4. Trigger collisions.** Two descriptions claiming one phrase means routing by chance.
 
@@ -107,10 +107,37 @@ Threshold: a sweep or prune command that exists but is scheduled nowhere is the 
 
 **10. Citations in the research docs.** A quoted docs sentence can be removed upstream while the rule built on it stays. Each claim in `instructing-claude.md` is re-fetched against its source by a fresh-context agent, and the sentence that no longer exists is replaced by the current one. Baseline: the sentence that justified loading the global CLAUDE.md twice had been removed from the docs a month before the audit noticed.
 
+**11. Harness drift.** The CLI ships several versions a week, and every hook, rule, setting and CLAUDE.md line was written against one of them. Every changelog entry since the last audit (30 days when none is dated) lands in one bucket:
+
+```
+BUCKET      THE ENTRY IS                                                THEN
+---------   ---------------------------------------------------------   ------------------------------------------
+redundant   a capability a hook, rule or CLAUDE.md line hand-rolls      delete the line, cite the entry
+conflict    a default or harness text a rule now contradicts            reconcile; the binary's side wins unless the
+                                                                        rule states its reason
+broken      a tool, setting, flag, env var or hook field renamed,       grep the framework for the old name
+            removed or re-scoped
+new         a capability nothing in the framework points at             note it; a pointer waits for a task that
+                                                                        hand-rolled it
+none        everything else                                             —
+```
+
+The changelog carries no dates; the npm registry does, so the window is cut by publish date and the changelog is sliced at the oldest version in it.
+
+```bash
+claude --version
+curl -s https://registry.npmjs.org/@anthropic-ai/claude-code | jq -r --arg since "$(date -v-30d +%Y-%m-%d)" '.time | to_entries[] | select(.key|test("^[0-9]")) | select(.value >= $since) | "\(.value[:10]) \(.key)"' | sort
+OLDEST=<first version printed>
+curl -sL https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md | awk -v oldest="$OLDEST" '/^## /{if(done)exit; if($2==oldest)done=1} {print}'
+grep -rn '<name>' ~/.claude/settings.json <project>/.claude/settings.json ~/.claude/hooks <project>/.claude/hooks ~/.claude/skills <project>/.claude/skills ~/.claude/rules ~/.claude/CLAUDE.md <project>/CLAUDE.md
+```
+
+Threshold: done when every entry carries a bucket, and every redundant / conflict / broken entry carries the `file:line` its grep found or "no reference". A redundant or conflict entry with a `file:line` is a finding. Baseline on 2026-11-08: 1,359 entries over 20 versions (`2.1.296`–`2.1.319`).
+
 ## Running it
 
-1. Inventory: every settings file in play (`~/.claude/settings.json`, the project's `.claude/settings.json`, `--settings` files the launch line names), the hooks they register, `ls ~/.claude/skills <project>/.claude/skills`, `ls ~/.claude/rules`, `cat ~/.claude/plugins/installed_plugins.json`, `claude mcp list`. Done when each kind has a list with a count.
-2. Dispatch one fresh-context agent per group — hooks (checks 1, 2), skills and rules (3, 4, 6, 7), settings, connectors and disk (5, 8, 9) — each given the commands above and told to report numbers with `file:line`, never a verdict without one. Check 10 is its own agent, fetching every cited source. Done when every check has a number.
+1. Inventory: every settings file in play (`~/.claude/settings.json`, the project's `.claude/settings.json`, `--settings` files the launch line names), the hooks they register, `ls ~/.claude/skills <project>/.claude/skills`, `ls ~/.claude/rules`, `cat ~/.claude/plugins/installed_plugins.json`, `claude mcp list`, `claude --version`. Done when each kind has a list with a count.
+2. Dispatch one fresh-context agent per group — hooks (checks 1, 2), skills and rules (3, 4, 6, 7), settings, connectors and disk (5, 8, 9) — each given the commands above and told to report numbers with `file:line`, never a verdict without one. Check 10 is its own agent, fetching every cited source. Check 11 is its own agent per ~700 changelog entries, each given the sliced changelog and the step-1 inventory. Done when every check has a number.
 3. Rank the findings by friction removed (a denial per call outranks a kilobyte per request), each with its command output and simplest fix.
-4. Dispatch a fresh-context verifier per group with the findings as claims to confirm or refute, since the first pass carries claims that do not survive (the 2026-11-07 pass had three overturned: a process binding, a cleanup setting that was working, a count of 30 that was 26). Done when every finding is marked TRUE / PARTLY / FALSE with the decisive evidence.
-5. Hand the list to the user whole, with a one-line plain reason per item; delete nothing before the list is approved, and then only the approved items, in the order given.
+4. Dispatch a fresh-context verifier per group, checks 10 and 11 included, with every finding as a claim to confirm or refute by re-running its command, never by reading the first pass's output, since the first pass carries claims that do not survive (the 2026-11-07 pass had three overturned; the 2026-11-08 pass dropped ten claims, among them a `.worktrees` over-match that was the place code is written). Done when every finding is marked TRUE / PARTLY / FALSE with the command and output that decided it.
+5. Hand the user the TRUE findings and the verified part of each PARTLY, whole, each with its evidence and a one-line plain reason; a FALSE or unverified claim is listed as dropped, with what refuted it. Delete nothing before the list is approved, and then only the approved items, in the order given.

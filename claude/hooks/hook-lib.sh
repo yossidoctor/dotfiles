@@ -21,18 +21,21 @@
 #                     A literal absent from HOOK_INPUT is absent from every field
 #                     jq would extract, so `case "$HOOK_INPUT" in *lit*)` is a sound
 #                     gate ahead of hook_parse_input.
-#   hook_parse_input  HOOK_INPUT -> the fields below via one jq pass
-#                     HOOK_CMD (.tool_input.command),
+#   hook_parse_input  HOOK_INPUT -> the fields below via one jq pass, exiting 0
+#                     on a Monitor call: a Bash-matched hook also receives the
+#                     Monitor tool's commands (hooks.md § Match Monitor commands),
+#                     where only deny and ask apply and a rewrite is discarded.
+#                     HOOK_TOOL_NAME (.tool_name), HOOK_CMD (.tool_input.command),
 #                     HOOK_DESCRIPTION (.tool_input.description),
 #                     HOOK_SESSION_ID (.session_id), HOOK_CWD (.cwd),
 #                     HOOK_RUN_IN_BACKGROUND (.tool_input.run_in_background, "true"/"false")
 #   hook_command_shape [sep]
 #                     HOOK_CMD -> stdout in matchable form: heredoc bodies dropped
 #                     (their lines are data — a commit message or fixture naming a
-#                     command is not that command), newlines mapped to [sep]
-#                     (default ';', the separator the shell treats a newline as),
-#                     then quoted regions removed. This is the form a command-shape
-#                     regex matches against.
+#                     command is not that command), quoted regions and comments
+#                     removed, then newlines mapped to [sep] (default ';', the
+#                     separator the shell treats a newline as). This is the form a
+#                     command-shape regex matches against.
 #   hook_command_joined [sep]
 #                     the same minus the quote strip — heredocs dropped, newlines
 #                     mapped to [sep], quoted content INTACT. For the hook whose
@@ -42,8 +45,10 @@
 #   hook_strip_quotes stdin -> stdout; drop '...' and "..." regions in one
 #                     left-to-right pass, the way the shell parses: whichever quote
 #                     opens first wins, single quotes end at the next single quote,
-#                     double quotes honor backslash escapes, and a backslash outside
-#                     quotes escapes the next character. Backticks and $(...) are
+#                     double quotes honor backslash escapes, a backslash outside
+#                     quotes drops itself and the next character (an escaped
+#                     character is a literal, never an operator), and a `#` that
+#                     starts a word drops the rest of its line. Backticks and $(...) are
 #                     deliberately kept — their contents execute, so a command inside
 #                     one is a real command. Runs under LC_ALL=C: every character it
 #                     tests is ASCII, and bash 3.2 indexes a UTF-8 string by walking
@@ -61,15 +66,17 @@ hook_parse_input() {
   eval "$(printf '%s' "$HOOK_INPUT" | jq -r '
 def s(v): (v // "") | if type == "string" then . else "" end;
 def var($n; v): $n + "=" + (s(v) | @sh);
+var("HOOK_TOOL_NAME"; .tool_name),
 var("HOOK_CMD"; .tool_input.command),
 var("HOOK_DESCRIPTION"; .tool_input.description),
 var("HOOK_SESSION_ID"; .session_id),
 var("HOOK_CWD"; .cwd),
 "HOOK_RUN_IN_BACKGROUND=" + (if .tool_input.run_in_background == true then "true" else "false" end)
 ' 2>/dev/null)"
-  : "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}"
+  : "${HOOK_TOOL_NAME=}" "${HOOK_CMD=}" "${HOOK_DESCRIPTION=}"
   : "${HOOK_SESSION_ID=}" "${HOOK_CWD=}"
   : "${HOOK_RUN_IN_BACKGROUND=false}"
+  if [ "$HOOK_TOOL_NAME" = Monitor ]; then exit 0; fi
 }
 
 hook_strip_heredocs() {
@@ -99,12 +106,23 @@ sys.stdout.write("".join(out))
 }
 
 hook_strip_quotes() {
-  local s out='' i=0 ch j n LC_ALL=C
+  local s out='' i=0 ch j n prev LC_ALL=C
   s=$(cat)
   n=${#s}
   while [ "$i" -lt "$n" ]; do
     ch=${s:$i:1}
     case "$ch" in
+      '#')
+        prev=''; [ "$i" -gt 0 ] && prev=${s:$((i - 1)):1}
+        case "$prev" in
+          ''|' '|$'\t'|$'\n'|';'|'&'|'|'|'(')
+            j=$i
+            while [ "$j" -lt "$n" ] && [ "${s:$j:1}" != $'\n' ]; do j=$((j + 1)); done
+            i=$j
+            ;;
+          *) out+=$ch; i=$((i + 1)) ;;
+        esac
+        ;;
       "'")
         j=$((i + 1))
         while [ "$j" -lt "$n" ] && [ "${s:$j:1}" != "'" ]; do j=$((j + 1)); done
@@ -122,7 +140,6 @@ hook_strip_quotes() {
         i=$((j + 1))
         ;;
       '\')
-        if [ $((i + 1)) -lt "$n" ]; then out+=${s:$((i + 1)):1}; fi
         i=$((i + 2))
         ;;
       *)
@@ -139,7 +156,7 @@ hook_command_joined() {  # $1=newline replacement (default ';')
 }
 
 hook_command_shape() {  # $1=newline replacement (default ';')
-  hook_command_joined "${1:-;}" | hook_strip_quotes
+  printf '%s' "$HOOK_CMD" | hook_strip_heredocs | hook_strip_quotes | tr '\n' "${1:-;}"
 }
 
 hook_abspath() {
