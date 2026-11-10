@@ -80,8 +80,8 @@
           },
           {
             "type": "command",
-            "if": "Bash(git *)",
-            "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh"
+            "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh",
+            "if": "Bash(git *)"
           }
         ]
       },
@@ -90,8 +90,8 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Read(~/.claude/projects/**/tool-results/**)",
-            "command": "\"$HOME\"/.claude/hooks/enforce-sliced-spill-read.sh"
+            "command": "\"$HOME\"/.claude/hooks/enforce-sliced-spill-read.sh",
+            "if": "Read(~/.claude/projects/**/tool-results/**)"
           }
         ]
       }

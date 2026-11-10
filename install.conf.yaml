@@ -28,9 +28,11 @@
     # every layer drops its daily job here; mac/daily.sh runs them in name order:
     # 00 the time-bound priming, before brew can swap the claude binary under it;
     # 10 brew, so every later job runs on the upgraded tools;
+    # 12 the uv tool upgrade, on the upgraded uv;
     # 15 the Claude plugin update, on the upgraded claude; a layer's jobs from 20
     ~/.config/daily.d/00-cswap-prime: claude/cswap-prime.sh
     ~/.config/daily.d/10-brew-maintenance: brew/maintenance.sh
+    ~/.config/daily.d/12-uv-tools: uv/tools-update.sh
     ~/.config/daily.d/15-claude-plugins: claude/plugins-update.sh
     ~/.hushlogin: shell/hushlogin
     ~/.local/bin/claude: claude/stable-launcher.sh
@@ -70,5 +72,6 @@
     - ['n=$(cat raycast/rayignore; cat ~/.config/spotlight/exclusions.d/* 2>/dev/null | sed "s|.*|/&/|"); [ "$n" = "$(cat ~/.rayignore 2>/dev/null)" ] || printf "%s\n" "$n" > ~/.rayignore', Write the Raycast ignore file plus each private layer's Spotlight exclusions (Raycast ignores a symlinked .rayignore)]
     - ['[ "$(gh config get color_labels)" = enabled ] || gh config set color_labels enabled', Colour PR/issue labels in gh output (gh owns ~/.config/gh; its other defaults stand)]
     - ['command -v cswap >/dev/null || { command -v uv >/dev/null && uv tool install --quiet claude-swap; } || true', Install claude-swap multi-account Claude Code switcher (skipped until brew bundle installs uv; already installed = no network)]
+    - ['! command -v cswap >/dev/null || [ "$(cswap config get run.shareHistory)" = true ] || cswap config set run.shareHistory true', Share conversation history across cswap run accounts (one --resume list for every account)]
     - [bash claude/cswap-auto.sh, Install/refresh the cswap auto-switch LaunchAgent]
     - [bash claude/cswap-prime-agent.sh, Install/refresh the cswap 5h-window primer LaunchAgent]

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Homebrew Maintenance Script — plus the two language-tool caches nothing
-# else trims: `npm cache verify` (drops corrupt and expired entries; a missing
-# entry only costs a re-download) and `uv cache prune` (drops wheels no
-# installed tool references). Both skip when the tool is absent.
+# Homebrew Maintenance Script — plus `npm cache verify`, the one language-tool
+# cache nothing else trims (drops corrupt and expired entries; a missing entry
+# only costs a re-download); skipped when npm is absent. uv's cache is pruned
+# by uv/tools-update.sh, after its upgrade orphans the old wheels.
 #
 # Runs non-interactively: upgrade steps pass `--yes` so brew's confirmation
 # prompt never blocks an unattended run.
@@ -121,16 +121,11 @@ DOCTOR_EXIT=$?
 [ "$DOCTOR_EXIT" -ne 0 ] && WARNINGS+=("brew doctor reported issues (exit $DOCTOR_EXIT)")
 echo
 
-echo "→ Language-tool caches (npm verify, uv prune)..."
+echo "→ npm cache verify..."
 if command -v npm >/dev/null 2>&1; then
     npm cache verify 2>&1 | tail -3 || WARNINGS+=("npm cache verify failed")
 else
     echo "  (npm not on PATH — skipped)"
-fi
-if command -v uv >/dev/null 2>&1; then
-    uv cache prune 2>&1 | tail -2 || WARNINGS+=("uv cache prune failed")
-else
-    echo "  (uv not on PATH — skipped)"
 fi
 echo
 

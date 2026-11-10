@@ -23,18 +23,52 @@ claude_call() {
     perl -e 'alarm shift; exec @ARGV' "$call_timeout" claude "$@" </dev/null
 }
 
-claude_call plugin marketplace update || FAILURES+=("marketplace update")
+settings="$HOME/.claude/settings.json"
 
-list=$(claude_call plugin list --json) || FAILURES+=("plugin list")
-for id in $(jq -er '.[].id' <<<"$list"); do
-    echo "→ $id"
-    if result=$(claude_call plugin update "$id" --json); then
-        echo "  $(jq -r '.message' <<<"$result")"
-        [ "$(jq -r '.updateOutcome' <<<"$result")" = up_to_date ] || UPDATED+=("$id")
-    else
-        echo "  failed: $result"
-        FAILURES+=("$id")
-    fi
+# One pass per Claude config dir: the default ~/.claude, then each claude-swap
+# session profile (`cswap run`), which keeps its own plugins/ while sharing
+# settings.json. A pass first adds any marketplace settings.json declares that
+# the dir lacks, and installs any enabled plugin it lacks, so a profile carries
+# what the default login does. `marketplace add` rewrites settings.json in
+# Claude's own key order; the tracked file is kept in that order, so the
+# rewrite changes nothing.
+update_dir() {
+    local tag=$1 list id repo result
+    echo "== $tag"
+    list=$(claude_call plugin marketplace list --json) || { FAILURES+=("$tag: marketplace list"); return; }
+    for repo in $(jq -er --argjson have "$list" '
+            .extraKnownMarketplaces // {} | to_entries[]
+            | select(.key as $k | [$have[].name] | index($k) | not)
+            | .value.source | select(.source == "github") | .repo' "$settings"); do
+        claude_call plugin marketplace add "$repo" || FAILURES+=("$tag: add $repo")
+    done
+    claude_call plugin marketplace update || FAILURES+=("$tag: marketplace update")
+
+    list=$(claude_call plugin list --json) || { FAILURES+=("$tag: plugin list"); return; }
+    for id in $(jq -er --argjson have "$list" '
+            .enabledPlugins // {} | to_entries[]
+            | select(.value == true and (.key | endswith("@builtin") | not))
+            | select(.key as $k | [$have[].id] | index($k) | not) | .key' "$settings"); do
+        echo "→ $id (missing)"
+        claude_call plugin install "$id" --json >/dev/null && UPDATED+=("$tag:$id") || FAILURES+=("$tag: install $id")
+    done
+
+    for id in $(jq -er '.[].id' <<<"$list"); do
+        echo "→ $id"
+        if result=$(claude_call plugin update "$id" --json); then
+            echo "  $(jq -r '.message' <<<"$result")"
+            [ "$(jq -r '.updateOutcome' <<<"$result")" = up_to_date ] || UPDATED+=("$tag:$id")
+        else
+            echo "  failed: $result"
+            FAILURES+=("$tag: $id")
+        fi
+    done
+}
+
+update_dir default
+for profile in "$HOME"/.claude-swap-backup/sessions/*/; do
+    [ -d "$profile" ] || continue
+    CLAUDE_CONFIG_DIR=${profile%/} update_dir "$(basename "$profile")"
 done
 
 if [ ${#FAILURES[@]} -gt 0 ]; then

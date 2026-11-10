@@ -159,8 +159,11 @@ render_row() {
     label="$c_active"; track="$c_track"; empty="$c_surface"
     [ -n "$email" ] && marker="${c_ok}${g_active}${c_off}"
     [ "$stale" = 1 ] && marker="${c_err}${g_stale}${c_off}"
+    [ "$stale" = 2 ] && marker="${c_muted}${g_backoff}${c_off}"
   elif [ "$stale" = 1 ]; then
     marker="$(fade "$c_err")${g_stale}${c_off}"
+  elif [ "$stale" = 2 ]; then
+    marker="$(fade "$c_muted")${g_backoff}${c_off}"
   fi
   meter_bodies=(); meter_cds=(); meter_cd_colors=()
   add_meter 5h "$p5" "$r5"
@@ -177,13 +180,19 @@ usage_cache="$HOME/.claude-swap-backup/cache/usage.json"
 if [ -f "$usage_cache" ]; then
   state_in="$cswap_state"
   [ -f "$state_in" ] || state_in=/dev/null
-  cswap_rows=$(jq -r -s '
+  # A `cswap run` session's CLAUDE_CONFIG_DIR is the profile <backup>/sessions/<num>-<email>,
+  # so its account is that <num>, not the default login sequence.json names.
+  session_acct=null
+  case "${CLAUDE_CONFIG_DIR:-}" in
+    "$HOME/.claude-swap-backup/sessions/"[0-9]*) b=${CLAUDE_CONFIG_DIR%/}; session_acct=${b##*/}; session_acct=${session_acct%%-*} ;;
+  esac
+  cswap_rows=$(jq -r -s --argjson session "$session_acct" '
     def num(v; d): if (v | type) == "number" then (v | floor)
                    elif (v | type) == "string" then (((v | tonumber?) // d) | floor)
                    else d end;
     def epoch(v): if (v | type) == "string" and (v | length) >= 19
                   then ((v[:19] + "Z") | fromdateiso8601? // 0) else 0 end;
-    (.[1].activeAccountNumber // 0) as $active
+    ($session // .[1].activeAccountNumber // 0) as $active
     | (.[0].accounts // {}) as $acc
     | ($acc | keys | map(tonumber) | sort | map(tostring))[] as $k
     | ($acc[$k] // {}) as $a
@@ -196,12 +205,16 @@ if [ -f "$usage_cache" ]; then
         (num($a.fetchedAt; 0) | tostring),
         (num($fh.pct; -1) | tostring), (epoch($fh.resets_at) | tostring),
         (num($sd.pct; -1) | tostring), (epoch($sd.resets_at) | tostring),
-        ($s0.name // ""), (num($s0.pct; -1) | tostring) ]
+        ($s0.name // ""), (num($s0.pct; -1) | tostring),
+        (num($a.backoffUntil; 0) | tostring) ]
     | @tsv' "$usage_cache" "$state_in" 2>/dev/null)
 
-  while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct; do
+  # stale: 0 fresh, 1 old cache, 2 old cache because cswap is waiting out a 429
+  # (no kick: cswap would skip the fetch until backoffUntil anyway).
+  while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct backoff; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
+    [ "$stale" = 1 ] && [ "${backoff:-0}" -gt "$now" ] && stale=2
     [ "$stale" = 1 ] && any_stale=1
     account_lines+=("$(render_row "$email" "$stale")")
   done <<< "$cswap_rows"
