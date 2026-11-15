@@ -34,3 +34,5 @@ ehthumbs.db
 # Git worktrees
 .worktrees/
 .claude/worktrees/
+
+**/.claude/settings.local.json
