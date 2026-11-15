@@ -64,7 +64,6 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 |---|---|
 | `PreToolUse: Bash` | `enforce-foreground-polling.sh` — rewrites follow streams / watch commands (`tail -f`, `watch`, `kubectl logs -f`, `kubectl get -w`, `docker logs -f`, `journalctl -f`, gh's waits) and waits (`sleep >=10`, `while`/`until` poll loops) to run off-thread; denies a job detached with `&`. |
 | `PreToolUse: Bash` | `ask-risky-git-outside-worktree.sh` — asks before `reset --hard`, `branch -D`, `tag -d`, `checkout --`, `clean`, `stash drop|clear`, `push --force-with-lease`, except inside a sandbox worktree. |
-| `PreToolUse: Read` | `enforce-sliced-spill-read.sh` — denies a whole Read of a spilled tool output under `~/.claude/projects/*/tool-results/`; a Read with `offset`/`limit` passes. |
 
 ### Permissions
 
@@ -79,7 +78,7 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 - `PAGER` is `cat`, so no call waits on a pager it has no TTY to page to: git skips its own pager off a TTY, and `cat` covers the tools that do not check.
 - `CI` is the switch most CLIs read (npm, gh, pip, jest, vitest): prompts, spinners and colour off, and test runners run once instead of watching. It is broad, so a tool behaving differently under the Bash tool than in a terminal is checked against it first.
 - `NO_COLOR` is the no-color.org convention: ANSI codes off wherever a tool honours it, so output greps clean.
-- `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` is the number of tool calls one response may run in parallel. A key the running binary does not name is dead weight here: `strings "$(readlink -f "$(command -v claude)")" | grep -c <KEY>` is the check, and it is what removed `CLAUDE_GIT_SHOW_COMMIT_HASHES`.
+- `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` is the number of tool calls one response may run in parallel. A key the running binary does not name is dead weight here: `strings ~/.local/share/claude-stable/claude | grep -c <KEY>` is the check (the binary itself: `command -v claude` is `claude/stable-launcher.sh`, which names no key), and it is what removed `CLAUDE_GIT_SHOW_COMMIT_HASHES`.
 - `CLAUDE_CODE_ENABLE_TODO_TOOLS`: from Claude Code 2.1.268 the task tools ship only on Claude 3.x, Opus 4.0–4.7, Sonnet 4.0–4.6 and Haiku 4.5, so on anything newer this flag is what makes `TaskCreate` exist at all; without it the tools are absent rather than refused and a caller writes prose instead with no error.
 - `CLAUDE_CODE_SUBAGENT_MODEL` is the model a subagent launches on when neither the dispatch nor its agent definition names one; without it the subagent inherits the session's model, Fable included. A definition's own `model:` still wins, which `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` would override.
 - `CLAUDE_CODE_GLOB_NO_IGNORE="false"` is boolean-parsed (the binary reads `De(process.env.CLAUDE_CODE_GLOB_NO_IGNORE || "true")`), so `false` is a real setting, not a set-only accident: Glob respects `.gitignore`.
@@ -115,10 +114,6 @@ What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent, insta
 `claude/cswap-prime.sh` runs at fixed slots, the first as the first daily job (§ Daily jobs) and the later ones from the `dev.yossidoctor.cswap-prime` LaunchAgent `claude/cswap-prime-agent.sh` installs: one Haiku prompt per account through `cswap run`, so every account's 5h window opens on the slot instead of at the first message of the day. Each run appends to `~/Library/Logs/cswap-prime.log`; the headers carry the mechanics.
 
 Context pct rides `ramp_color`: muted grey below the warm threshold, red deepening to bold, and from the alarm threshold a filled white-on-red pill (a deeper foreground red stops reading as more urgent once the channels bottom out). Thresholds warm/bold/alarm: 25/40/50 by default, 45/65/80 for Sonnet. Account meters use the muted ramp at 40/70 (softer red, no bold, no pill). A muted `∘` precedes ctx% when the payload's `prompt_cache.warm` is false, so the next turn pays a rebuild. `·Low|Mid|High|XHi|Max` (muted) shows the current reasoning-effort level; unmapped values pass through raw; absent when the model doesn't support the effort parameter. `bypass` badge (red) shows only in bypass-permissions mode. Render cost, `hyperfine -N` 20 runs with two accounts: 30.4 ± 0.4 ms.
-
-### Subagent statusline (`claude/subagent-statusline.sh`)
-
-Overrides the agent-panel rows via `subagentStatusLine`. Per row: description left, then `model  ctx%  elapsed · ↓tokens` right-aligned to the payload's `columns` width (padding computed on visible length, ANSI-stripped, under a forced UTF-8 locale so `↓` and `·` count as one column each). ctx% is `tokenCount / contextWindowSize` on the main line's default ramp (25/40, no pill); `startTime` is epoch ms; fractional counts are floored. Rows without a resolved `contextWindowSize` keep their default rendering.
 
 ### Brew maintenance
 

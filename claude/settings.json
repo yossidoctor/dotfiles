@@ -10,7 +10,8 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "PONYTAIL_MAP": "0"
+    "PONYTAIL_MAP": "0",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
   "attribution": {
     "commit": "",
@@ -27,11 +28,9 @@
       "Bash(mkfs.* *)",
       "Bash(shred *)",
       "Bash(rm -rf /)",
-      "Bash(git push --force)",
       "Bash(git push --force *)",
       "Bash(git push * --force)",
       "Bash(git push * --force *)",
-      "Bash(git push -f)",
       "Bash(git push -f *)",
       "Bash(git push * -f)",
       "Bash(git push * -f *)",
@@ -86,12 +85,11 @@
         ]
       },
       {
-        "matcher": "Read",
+        "matcher": "Agent",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/enforce-sliced-spill-read.sh",
-            "if": "Read(~/.claude/projects/**/tool-results/**)"
+            "command": "\"$HOME\"/.claude/hooks/deny-fable-subagent.sh"
           }
         ]
       }
@@ -105,10 +103,6 @@
     "type": "command",
     "command": "bash \"$HOME\"/.claude/statusline-command.sh",
     "refreshInterval": 15
-  },
-  "subagentStatusLine": {
-    "type": "command",
-    "command": "bash \"$HOME\"/.claude/subagent-statusline.sh"
   },
   "enabledPlugins": {
     "mattpocock-skills@mattpocock": true,
