@@ -19,12 +19,11 @@
 #     unfilled remainder stays visible. <track_color> is a 38;2 foreground escape
 #     (the same one bar() takes as its empty track); it is rewritten to 48;2 here.
 #   effort_label <level|token budget>
-#     the short effort tag both scripts print after `·`; a numeric budget is
-#     formatted like a token count.
+#     the short effort tag printed after `·`; a numeric budget is formatted
+#     like a token count.
 #   ctx_warm_default / ctx_bold_default
 #     the context-percentage ramp's warm and bold rungs for every model but
-#     Sonnet, read by both statusline scripts; Sonnet's wider window has its own
-#     rungs in statusline-command.sh.
+#     Sonnet; Sonnet's wider window has its own rungs in statusline-command.sh.
 
 ctx_warm_default=25
 ctx_bold_default=40
@@ -83,18 +82,6 @@ effort_label() {
     *[!0-9]*) printf '%s' "$1" ;;
     *)      fmt_tokens "$1" ;;
   esac
-}
-
-fmt_elapsed() {
-  local secs="$1"
-  [ "$secs" -lt 0 ] && secs=0
-  if [ "$secs" -ge 3600 ]; then
-    printf '%dh%dm' $(( secs / 3600 )) $(( secs % 3600 / 60 ))
-  elif [ "$secs" -ge 60 ]; then
-    printf '%dm%ds' $(( secs / 60 )) $(( secs % 60 ))
-  else
-    printf '%ds' "$secs"
-  fi
 }
 
 alarm_rgb() {
