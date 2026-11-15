@@ -4,7 +4,8 @@ paths:
   - "**/AGENTS.md"
   - "**/SKILL.md"
   - "**/agents/*.md"
-  - "**/rules/*.md"
+  - "**/.claude/rules/*.md"
+  - "**/claude/rules/*.md"
   - "**/output-styles/*.md"
 ---
 
