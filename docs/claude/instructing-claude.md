@@ -148,7 +148,7 @@ rule misapplication         restates rule, concludes against    arXiv 2606.00476
 
 **The mode that matters here is "read it, agreed, violated it".** It is documented and it is *not* forgetting:
 
-- DriftBench measured **97.3% probe accuracy** on constraint recall alongside violation in the same output. The authors state this rules out positional or memory loss — "drift should correlate with recall failure" under an information-loss account, and it does not. They make no mechanistic claim; "the rule loses to local task pressure" is this document's reading.
+- DriftBench measured **97.3% probe accuracy** on constraint recall alongside violation in the same output. The authors state this rules out positional or memory loss — under an information-loss account drift would track recall failure, and it does not: it "is not explained by forgetting" (v3, the version the link serves). They make no mechanistic claim; "the rule loses to local task pressure" is this document's reading.
 - "Doing What They Say, Not What They Reason": in its first version, **65%** of erroneous decisions restated the rule correctly and then concluded against it; the revised paper splits the errors roughly evenly between bad inputs, borderline cases and rule misapplication (about a third for Haiku, 8% for DeepSeek), and finds that telling the agent to apply the rule mechanically halves the misapplication rate.
 - The Compliance Gap: six frontier models given explicit process instructions showed **0% compliance** under default framing; one "verbally agrees ten out of ten times then bypasses in all ten."
 
@@ -202,7 +202,7 @@ OPERATION        MULTIPLIER
 base input       1x
 5m cache write   1.25x
 1h cache write   2x
-cache read       0.1x (0.05x on Opus/Sonnet 5.5, 0.025x on Fable/Mythos 5.1)
+cache read       0.1x (0.05x on Opus/Sonnet 5.5, 0.025x on Fable/Mythos 5.1 and 5.2)
 ```
 
 So moving a 4,400-token rule file from `CLAUDE.md` into `--append-system-prompt` costs **nothing** — both sit in the cached prefix, both are re-sent, both bill at cache-read rate. Choose the channel for what it enforces, never for cost.
