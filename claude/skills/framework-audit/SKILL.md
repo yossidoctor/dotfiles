@@ -44,33 +44,35 @@ Two findings behind the table. The harness itself sends mode-specific instructio
 **1. Hook denials, from the transcripts.** A hook that fires often is either catching real mistakes or fighting an instruction. Read the top denial message and decide which.
 
 ```bash
-grep -rhoE '"content":"PreToolUse:[A-Za-z|]+ hook error: .{0,60}' ~/.claude/projects | cut -c12-90 | sort | uniq -c | sort -rn | head
+grep -rhoE '"content":"PreToolUse:[A-Za-z|]+ hook error: .{0,400}' ~/.claude/projects | cut -c12- | sed -E 's#[~/][^ ":]*/[^ ":]*#<path>#g' | cut -c1-90 | sort | uniq -c | sort -rn | head
 ```
 
-The `"content":"` anchor keeps the count to tool results: transcripts also quote hook text (an audit session, a `cat` of a hook, each request's recorded system prompt), which an unanchored grep counts. Threshold: a hook whose denial text names a tool the harness told Claude to use, at any count, goes. Baseline on 2026-11-07: one hook at 1,896 denials across 538 sessions, all of that kind.
+The `"content":"` anchor keeps the count to tool results: transcripts also quote hook text (an audit session, a `cat` of a hook, each request's recorded system prompt), which an unanchored grep counts. The `sed` masks each path, since a denial that opens with the denied file's path otherwise fills the line with it and hides which hook spoke. "Since the last audit" is cut by each denial's own `timestamp`, never by file mtime: a resumed session carries old denials in a new file. Threshold: a hook whose denial text names a tool the harness told Claude to use, at any count, goes. Baseline on 2026-11-07: one hook at 1,896 denials across 538 sessions, all of that kind.
 
-**2. Hooks per tool call, and their cost.** Count the synchronous `PreToolUse` entries for `Bash` across every settings file in play, then time each with a trivial payload.
+**2. Hooks per tool call, and their cost.** Count the synchronous `PreToolUse` entries for `Bash` across every settings file in play, then time each registered one twice: with `ls -la`, which every hook drops at its opening `case` (the cost every call pays), and with a command that `case` lets through (the cost of a call it parses).
 
 ```bash
 jq '[.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.async!=true)] | length' ~/.claude/settings.json <project>/.claude/settings.json
-P='{"session_id":"x","transcript_path":"/dev/null","cwd":"'"$PWD"'","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"ls -la"}}'
-for h in ~/.claude/hooks/*.sh <project>/.claude/hooks/*.sh; do /usr/bin/time -p sh -c "echo '$P' | $h" 2>&1 | grep real | sed "s|^|$h |"; done
+jq -r '.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks[] | select(.async!=true) | "\(.command)\t\(.if // "every call")"' ~/.claude/settings.json <project>/.claude/settings.json
+CMD='ls -la'   # then a command past the hook's opening case
+jq -cn --arg c "$CMD" --arg d "$PWD" '{session_id:"x",cwd:$d,hook_event_name:"PreToolUse",tool_name:"Bash",tool_input:{command:$c}}' > /tmp/p.json
+time (for i in 1 2 3 4 5 6 7 8 9 10; do <hook path> < /tmp/p.json >/dev/null; done)
 ```
 
-Threshold: a hook that runs on every call but only cares about one command gets an `if:` filter; a pre-check that passes every `&&` chain is no pre-check. Baseline: 8 processes per call, 23–83 ms wall.
+Only a registered hook is run: the hooks directory also holds a sourced library and SessionStart and PostToolUse scripts, and a SessionStart script run by hand does its work (regenerating an index). Threshold: a hook that runs on every call but only cares about one command gets an `if:` filter; a pre-check that passes every `&&` chain is no pre-check. Baseline on 2026-11-15: 7 registered, 2 started by a plain call (3 on the 30% of calls holding `$VAR` or `$(`, which run an `if:` hook anyway), 4 ms each over a bare process start at the opening `case`, 17–26 ms past it.
 
 **3. Skill invocations, over the transcript retention window** (`cleanupPeriodDays`). A skill nobody has called costs its description on every request.
 
 ```bash
-for s in $(ls ~/.claude/skills <project>/.claude/skills); do printf '%-24s %s\n' "$s" "$(grep -rhoE "\"skill\": ?\"$s\"|<command-name>/$s</command-name>" ~/.claude/projects | wc -l)"; done | sort -k2 -n
+for s in $(ls ~/.claude/skills; ls <project>/.claude/skills); do printf '%-28s %s %s\n' "$s" "$(grep -rhoE "\"id\":\"toolu_[A-Za-z0-9]+\",\"name\":\"Skill\",\"input\":\{\"skill\":\"$s\"" ~/.claude/projects | sort -u | wc -l)" "$(grep -rlE "\"(text|content)\":\"<command-message>$s</command-message>" ~/.claude/projects | wc -l)"; done | sort -k2 -n
 ```
 
-Threshold: zero calls and no citation from another skill or hook → `disable-model-invocation: true`, or delete. Plugin skills need the plugin's own count (`"skill": "<plugin>:<name>"`, `<command-name>/<plugin>:<name></command-name>`); baseline on 2026-11-08: 16 of 27 in one plugin never called, 13 of them already hidden.
+The two numbers are model calls (unique tool-call ids, since a resumed session repeats its calls in a new file) and sessions where the user typed the command. Both patterns anchor on unescaped JSON quotes, which only a real call has: a transcript that quotes a skill name (a `cat` of a skill, an audit session) holds it escaped. Threshold: zero on both and no citation from another skill, a `references/` file or a hook → `disable-model-invocation: true`, or delete. A plugin skill is counted the same way with `<plugin>:<name>` as `$s`, and a plugin whose own hook reads a skill's file is using that skill; baseline on 2026-11-08: 16 of 27 in one plugin never called, 13 of them already hidden.
 
 **4. Trigger collisions.** Two descriptions claiming one phrase means routing by chance.
 
 ```bash
-grep -h '^description:' ~/.claude/skills/*/SKILL.md <project>/.claude/skills/*/SKILL.md ~/.claude/plugins/cache/*/*/*/skills/*/SKILL.md | grep -io 'review[^.;]*\|debug[^.;]*\|pr body[^.;]*' | sort | uniq -c | sort -rn | head
+find -L ~/.claude/skills <project>/.claude/skills ~/.claude/plugins/cache -name SKILL.md -print0 | xargs -0 awk '/^description:/{d=1;print;next} d&&/^[ \t]/{print;next} {d=0}' | grep -io 'review[^.;]*\|debug[^.;]*\|pr body[^.;]*' | sort | uniq -c | sort -rn | head
 ```
 
 **5. Settings against their defaults.** Every key is read against the settings reference; a key equal to its default is deleted. The page is the only source: `curl -s https://code.claude.com/docs/en/settings-reference.md | grep -A6 '^### \`<key>\`'`.
@@ -129,7 +131,7 @@ claude --version
 curl -s https://registry.npmjs.org/@anthropic-ai/claude-code | jq -r --arg since "$(date -v-30d +%Y-%m-%d)" '.time | to_entries[] | select(.key|test("^[0-9]")) | select(.value >= $since) | "\(.value[:10]) \(.key)"' | sort
 OLDEST=<first version printed>
 curl -sL https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md | awk -v oldest="$OLDEST" '/^## /{if(done)exit; if($2==oldest)done=1} {print}'
-grep -rn '<name>' ~/.claude/settings.json <project>/.claude/settings.json ~/.claude/hooks <project>/.claude/hooks ~/.claude/skills <project>/.claude/skills ~/.claude/rules ~/.claude/CLAUDE.md <project>/CLAUDE.md
+grep -Rn '<name>' ~/.claude/settings.json <project>/.claude/settings.json ~/.claude/hooks <project>/.claude/hooks ~/.claude/skills <project>/.claude/skills ~/.claude/rules ~/.claude/CLAUDE.md <project>/CLAUDE.md
 ```
 
 Threshold: done when every entry carries a bucket, and every redundant / conflict / broken entry carries the `file:line` its grep found or "no reference". A redundant or conflict entry with a `file:line` is a finding. Baseline on 2026-11-08: 1,359 entries over 20 versions (`2.1.296`–`2.1.319`).
