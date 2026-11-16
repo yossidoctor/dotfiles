@@ -5,9 +5,12 @@
 # claude-swap isn't installed: the uv tool install is the manifest step right
 # before this one, so on a fresh machine it is present by the time this runs
 # unless uv itself was missing.
-# The plist is generated here from $HOME; `--model all` is the SoT for the
-# rotation arguments (per-model weekly windows count alongside the account-wide
-# 5h/7d ones). Per-tick stdout goes to /dev/null because cswap already writes
+# The plist is generated here from $HOME; `--model Fable` is the SoT for the
+# rotation arguments (Fable's weekly window counts alongside the account-wide
+# 5h/7d ones). Fable is named, not `all`: the active account is read from
+# rate-limit headers (usage.headerProbe, install.conf.yaml), which carry Fable's
+# bucket only, and cswap reads a header reading as unknown under `all`.
+# Per-tick stdout goes to /dev/null because cswap already writes
 # every switch decision to its own 1MB-rotated ~/.claude-swap-backup/claude-swap.log;
 # a second unrotated copy of a line-per-minute would grow without bound. Only
 # stderr is kept (auto-stderr.log), so a crash-loop still leaves evidence.
@@ -25,7 +28,7 @@ keys=$(cat <<EOF
 		<string>$cswap</string>
 		<string>auto</string>
 		<string>--model</string>
-		<string>all</string>
+		<string>Fable</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

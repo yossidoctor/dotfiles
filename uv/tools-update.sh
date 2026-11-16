@@ -1,6 +1,6 @@
 #!/bin/bash
 # uv tool updater. Upgrades every tool `uv tool install` put in ~/.local/bin
-# (claude-swap among them — it is on PyPI, not Homebrew), then prunes uv's
+# (claude-swap among them — not on Homebrew; install.conf.yaml names its source), then prunes uv's
 # cache, which drops the wheels the upgrade just orphaned. Runs as a job of
 # mac/daily.sh, after brew so it uses the upgraded uv; its outcome line goes
 # to $DAILY_SUMMARY.
