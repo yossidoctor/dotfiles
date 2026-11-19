@@ -50,11 +50,15 @@
 #                     character is a literal, never an operator), and a `#` that
 #                     starts a word drops the rest of its line. Backticks and $(...) are
 #                     deliberately kept — their contents execute, so a command inside
-#                     one is a real command. Runs under LC_ALL=C: every character it
+#                     one is a real command; a `$(` inside double quotes opens such a
+#                     body, read with its own quoting until its `)`, where the double
+#                     quotes resume. Runs under LC_ALL=C: every character it
 #                     tests is ASCII, and bash 3.2 indexes a UTF-8 string by walking
 #                     it from the start on every ${s:$i:1}, four times the cost.
 #   hook_abspath <path>
-#                     absolutize against HOOK_CWD (leading ~ expanded)
+#                     absolutize against HOOK_CWD (leading ~ expanded), with `.` and
+#                     `..` segments collapsed the way `cd` reads them, so the result
+#                     names the directory the path lands in
 #   decide <verdict> <reason> / deny <reason>
 #                     emit the PreToolUse decision JSON and exit 0
 
@@ -106,10 +110,28 @@ sys.stdout.write("".join(out))
 }
 
 hook_strip_quotes() {
-  local s out='' i=0 ch j n prev LC_ALL=C
+  local s out='' i=0 ch j n prev dq=0 subs=0 LC_ALL=C
+  local -a depth
   s=$(cat)
   n=${#s}
   while [ "$i" -lt "$n" ]; do
+    if [ "$dq" = 1 ]; then
+      j=$i
+      while [ "$j" -lt "$n" ]; do
+        case "${s:$j:2}" in
+          '\'*) j=$((j + 2)) ;;
+          '"'*|'$(') break ;;
+          *) j=$((j + 1)) ;;
+        esac
+      done
+      dq=0
+      if [ "${s:$j:1}" = '$' ]; then
+        subs=$((subs + 1)); depth[subs]=0; out+='$('; i=$((j + 2))
+      else
+        i=$((j + 1))
+      fi
+      continue
+    fi
     ch=${s:$i:1}
     case "$ch" in
       '#')
@@ -128,16 +150,16 @@ hook_strip_quotes() {
         while [ "$j" -lt "$n" ] && [ "${s:$j:1}" != "'" ]; do j=$((j + 1)); done
         i=$((j + 1))
         ;;
-      '"')
-        j=$((i + 1))
-        while [ "$j" -lt "$n" ]; do
-          case "${s:$j:1}" in
-            '\') j=$((j + 2)) ;;
-            '"') break ;;
-            *) j=$((j + 1)) ;;
-          esac
-        done
-        i=$((j + 1))
+      '"') dq=1; i=$((i + 1)) ;;
+      '(')
+        [ "$subs" -gt 0 ] && depth[subs]=$((depth[subs] + 1))
+        out+=$ch; i=$((i + 1))
+        ;;
+      ')')
+        if [ "$subs" -gt 0 ]; then
+          if [ "${depth[subs]}" -eq 0 ]; then subs=$((subs - 1)); dq=1; else depth[subs]=$((depth[subs] - 1)); fi
+        fi
+        out+=$ch; i=$((i + 1))
         ;;
       '\')
         i=$((i + 2))
@@ -160,11 +182,27 @@ hook_command_shape() {  # $1=newline replacement (default ';')
 }
 
 hook_abspath() {
+  local p rest seg out=
   case "$1" in
-    /*) printf '%s' "$1" ;;
-    "~"|"~/"*) printf '%s' "${1/#\~/$HOME}" ;;
-    *) printf '%s' "${HOOK_CWD:-$PWD}/$1" ;;
+    /*) p=$1 ;;
+    "~"|"~/"*) p=${1/#\~/$HOME} ;;
+    *) p=${HOOK_CWD:-$PWD}/$1 ;;
   esac
+  case "$p/" in
+    */./*|*/../*) ;;
+    *) printf '%s' "$p"; return ;;
+  esac
+  rest=$p
+  while [ -n "$rest" ]; do
+    seg=${rest%%/*}
+    case "$rest" in */*) rest=${rest#*/} ;; *) rest= ;; esac
+    case "$seg" in
+      ''|.) ;;
+      ..) out=${out%/*} ;;
+      *) out+=/$seg ;;
+    esac
+  done
+  printf '%s' "${out:-/}"
 }
 
 decide() {  # $1=allow|ask|deny  $2=reason
