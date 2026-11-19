@@ -139,7 +139,7 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "theme": "auto",
-  "preferredNotifChannel": "ghostty",
+  "preferredNotifChannel": "notifications_disabled",
   "autoCompactEnabled": false,
   "switchModelsOnFlag": false,
   "autoContinueAtUsageLimit": false,
