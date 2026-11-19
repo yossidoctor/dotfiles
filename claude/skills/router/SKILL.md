@@ -1,6 +1,6 @@
 ---
 name: router
-description: Home router (ASUS RT-BE90U) — read, change and verify any setting over SSH; diagnose slow or dropping Wi‑Fi or internet; set up a fresh or reset unit, or undo a past change. Fires on "router", "Wi‑Fi", "SSID", "Wi‑Fi channel", "DFS", "MLO", "AiMesh", "nvram", "port forward", "PPPoE", "DHCP reservation", "QoS", "Wi‑Fi from the Mac".
+description: Home router (ASUS RT-BE90U) — read, change and verify any setting over SSH; diagnose slow or dropping Wi‑Fi or internet; set up a fresh or reset unit, or undo a past change. Fires on "router", "Wi‑Fi", "SSID", "Wi‑Fi channel", "DFS", "MLO", "AiMesh", "nvram", "router port forward", "PPPoE", "DHCP reservation", "QoS", "Wi‑Fi from the Mac".
 ---
 
 # router
