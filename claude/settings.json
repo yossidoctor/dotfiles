@@ -128,8 +128,6 @@
   },
   "outputStyle": "Straight Answers",
   "feedbackDrafts": "off",
-  "effortLevel": "medium",
-  "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "dialogExpiry": "10m",
   "tui": "fullscreen",
