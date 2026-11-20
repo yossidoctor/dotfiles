@@ -2,3 +2,6 @@
 # falls back to a line merge for any other text, and refuses binaries (exit 1,
 # which git records as a conflict, its own binary behaviour), so it takes every path.
 * merge=mergiraf
+# mergiraf 0.20.0 carries one side's renamed key into every side of a TOML conflict
+# (`tag = "v1"` vs `branch = "x"` shows `branch = "v1"` as main's line), so TOML line-merges.
+*.toml merge=text
