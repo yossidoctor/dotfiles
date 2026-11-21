@@ -128,6 +128,14 @@
   },
   "outputStyle": "Straight Answers",
   "feedbackDrafts": "off",
+  "modelSettings": {
+    "claude-fable-5-2": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
   "awaySummaryEnabled": false,
   "dialogExpiry": "10m",
   "tui": "fullscreen",
