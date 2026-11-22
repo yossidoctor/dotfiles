@@ -36,6 +36,7 @@ How to author a rule anywhere — this file, a skill, a hook, an agent def: `~/d
 - A skill named for any purpose — to run, edit, or explain it — is loaded with `Skill`, and an edit lands in the base directory the load prints. A disk search finds every copy — plugin cache, marketplace clone, archive — and only the load names the live one and registers it.
 - A `cd` chains with `&&` — a failed `cd` otherwise runs the next command wherever you happened to be.
 - A path shown to the user is absolute, followed only by a space or line break. Ghostty opens a clicked path only if its matched text is a real file: a relative one resolves against the shell's pwd, not this session's cwd, and `. ; = %` count as path characters, so `…/a.html;` is read as a file named `a.html;`.
+- A turn's final message ends on a status line, alone on the last line and outside a code block, because the agents panel reads each session's status from there and has a small model guess when it finds none. `result: <what this turn delivered>` shows Done. `needs input: <the one thing the user must say or do here>` shows Needs input, and carries the reply's question or a paused run's resume phrase; a decision the user answers in another session is that session's to flag, so this one ends as waiting on another session. `failed: <why it cannot be done as asked>` shows Failed. A turn that leaves the session waiting on work it started itself, or on another session, ends with no status line and shows Working, then Idle.
 
 ## Shell commands
 
