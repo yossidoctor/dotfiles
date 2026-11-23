@@ -45,6 +45,7 @@
     ~/.claude/hooks/enforce-foreground-polling.sh: claude/hooks/enforce-foreground-polling.sh
     ~/.claude/hooks/ask-risky-git-outside-worktree.sh: claude/hooks/ask-risky-git-outside-worktree.sh
     ~/.claude/hooks/deny-fable-subagent.sh: claude/hooks/deny-fable-subagent.sh
+    ~/.claude/hooks/stamp-agent-description.sh: claude/hooks/stamp-agent-description.sh
     ~/.claude/skills: claude/skills
     # per file, so a layer can deploy its own rule beside these
     ~/.claude/rules/scripts.md: claude/rules/scripts.md

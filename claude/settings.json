@@ -90,6 +90,10 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/deny-fable-subagent.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/stamp-agent-description.sh"
           }
         ]
       }
