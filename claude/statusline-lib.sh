@@ -31,7 +31,8 @@ ctx_bold_default=40
 # Marks the account cswap is currently on. Single-column, so it occupies the same
 # width as the blank the inactive rows carry there; g_stale replaces either when
 # the usage cache is older than 15 minutes, and g_backoff when that age is cswap
-# waiting out a 429 from the usage endpoint (backoffUntil still ahead).
+# waiting out a 429 from the usage endpoint (backoffUntil still ahead). A red
+# g_active replaces all of them while the account's last probe stays rejected.
 g_active='●'
 g_stale='◌'
 g_backoff='◔'

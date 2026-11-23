@@ -169,6 +169,10 @@ render_row() {
   add_meter 5h "$p5" "$r5"
   add_meter 7d "$p7" "$r7"
   [ -n "$sname" ] && add_meter "$sname" "$spct" 0
+  if [ "${rej:-0}" -gt "$now" ]; then
+    marker="${c_err}${g_active}${c_off}"
+    [ "$is_active" = true ] || marker="$(fade "$c_err")${g_active}${c_off}"
+  fi
   if [ -n "$email" ]; then
     printf '%s' "${marker} ${c_italic}${label}$(printf '%-6s' "$email")${c_off}  $(join_meters)"
   else
@@ -206,12 +210,14 @@ if [ -f "$usage_cache" ]; then
         (num($fh.pct; -1) | tostring), (epoch($fh.resets_at) | tostring),
         (num($sd.pct; -1) | tostring), (epoch($sd.resets_at) | tostring),
         ($s0.name // ""), (num($s0.pct; -1) | tostring),
-        (num($a.backoffUntil; 0) | tostring) ]
-    | @tsv' "$usage_cache" "$state_in" 2>/dev/null)
+        (num($a.backoffUntil; 0) | tostring),
+        (epoch($lg.rejected.resets_at // "") | tostring) ]
+    | join("\u001f")' "$usage_cache" "$state_in" 2>/dev/null)
 
   # stale: 0 fresh, 1 old cache, 2 old cache because cswap is waiting out a 429
   # (no kick: cswap would skip the fetch until backoffUntil anyway).
-  while IFS=$'\t' read -r num email is_active fetched p5 r5 p7 r7 sname spct backoff; do
+  # \x1f, not tab: read merges runs of a whitespace IFS, so an empty field (no scoped meter) shifted the rest left.
+  while IFS=$'\x1f' read -r num email is_active fetched p5 r5 p7 r7 sname spct backoff rej; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
     [ "$stale" = 1 ] && [ "${backoff:-0}" -gt "$now" ] && stale=2
