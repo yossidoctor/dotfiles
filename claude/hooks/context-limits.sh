@@ -4,11 +4,11 @@
 # only for a session that created ~/.claude/state/context-limits/<session id>.on
 # (360's implementation.md does, as its first move).
 #
-#   soft  a note on the next tool result: wrap up at the next clean point.
-#   hard  the same note, and the first turn end after it is blocked once, so a
-#         session that was about to go idle starts its wrap-up instead.
-# What a session does at each limit is its skill's wrap-up section (360:
-# SKILL.md § Wrap up); this hook only says which limit was crossed.
+#   soft  a note on the next tool result: start a shift change.
+#   hard  a note to start a handover, and the first turn end after it is blocked
+#         once, so a session that was about to go idle starts it instead.
+# What each one means is the session's skill (360: SKILL.md § Handover); this
+# hook only says which limit was crossed.
 #
 # Claude Code gives hooks no context figure. The transcript's last main-thread
 # assistant usage does: input + cache reads + cache writes, the formula the
@@ -16,9 +16,9 @@
 #
 # Limits are tokens, set from a measured wall. Sessions on the 1M window failed
 # with "Prompt is too long" at 975k–977k. HARD is 85%, the user's pick: its 125k
-# to the wall holds a wrap-up (3k and 15k measured) plus two of the largest
+# to the wall holds a handover (3k and 15k measured) plus two of the largest
 # single-step jumps seen (43k, a subagent report or a big read). SOFT is 70%, the user's
-# pick: a soft handoff keeps this session alive to receive its running agents'
+# pick: a shift change keeps this session alive to receive its running agents'
 # reports, so it leaves those reports the whole band up to HARD.
 # shortcut: assumes the 1M window every session here runs on; a smaller-window
 # main session needs the window read from the statusline payload.
@@ -34,7 +34,7 @@ eval "$(printf '%s' "$in" | jq -r '
   "tp=" + (.transcript_path // "" | @sh),
   "agent=" + (.agent_id // "" | @sh)' 2>/dev/null)"
 : "${ev=}" "${sid=}" "${tp=}" "${agent=}"
-# A subagent has its own window and no wrap-up.
+# A subagent has its own window and no handover.
 [ -z "$agent" ] && [ -n "$sid" ] && [ -f "$tp" ] || exit 0
 
 mark="$HOME/.claude/state/context-limits/$sid"
@@ -46,9 +46,9 @@ used=$(tail -n 40 "$tp" | grep '"usage"' | jq -s '
   | last // {} | (.input_tokens // 0) + (.cache_read_input_tokens // 0) + (.cache_creation_input_tokens // 0)' 2>/dev/null)
 [ "${used:-0}" -ge "$SOFT" ] || exit 0
 
-if [ "$used" -ge "$HARD" ]; then level=hard; else level=soft; fi
+if [ "$used" -ge "$HARD" ]; then level=hard act=handover; else level=soft act='shift change'; fi
 left=$(( (WALL - used) / 1000 ))
-msg="Context ${level} limit: $(( used / 1000 ))k tokens used, about ${left}k left before the session can no longer reply. Run this session's wrap-up at the ${level} level, as its skill's wrap-up section defines; with none, tell the user."
+msg="Context ${level} limit: $(( used / 1000 ))k tokens used, about ${left}k left before the session can no longer reply. Start a ${act}, as this session's skill defines it; with none, tell the user."
 
 mkdir -p "${mark%/*}"
 if [ "$ev" = Stop ]; then
