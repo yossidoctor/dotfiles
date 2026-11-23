@@ -42,9 +42,9 @@ and only the heavy pass garbage-collects closed windows and detects native
 minimize. A dense burst of pokes therefore postpones exactly the work the
 ghost and phantom handling waits on: two pokes cover "window still in the
 tree" and "window already torn down", and more is worse. This is why
-`aerospace.toml` registers no `on-focus-changed` or
-`exec-on-workspace-change` callback: one CLI call per focus change, from
-Hammerspoon, is the budget.
+`aerospace.toml` registers no `on-focus-changed` callback and its
+`exec-on-workspace-change` is a shell echo, not an `aerospace` call: one CLI
+call per focus change, from Hammerspoon, is the budget.
 
 ## What Hammerspoon can and cannot see (measured 2026-10-04, TextEdit)
 
