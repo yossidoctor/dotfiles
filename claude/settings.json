@@ -10,6 +10,7 @@
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
+    "PONYTAIL_DEFAULT_MODE": "full",
     "PONYTAIL_MAP": "0",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
@@ -154,7 +155,7 @@
   "feedbackDrafts": "off",
   "modelSettings": {
     "claude-fable-5-2": {
-      "effortLevel": "xhigh"
+      "effortLevel": "high"
     },
     "claude-opus-5-5": {
       "effortLevel": "medium"
