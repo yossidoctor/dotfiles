@@ -11,7 +11,7 @@
 # Definitions are read from <cwd>/.claude/agents, ~/Dono/.claude/agents and
 # ~/.claude/agents, first match wins; plugin agents are not read.
 # Skipped: a fork (it runs on the parent's model and ignores `model`), a call
-# whose description already opens with `[` (a re-dispatch), and a call where
+# whose description already holds ` · ` (a re-dispatch), and a call where
 # nothing is known.
 . "$(dirname "$0")/hook-lib.sh"
 hook_read_raw
