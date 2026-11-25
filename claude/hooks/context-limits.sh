@@ -15,16 +15,16 @@
 # statusline's context_window.used_percentage uses.
 #
 # Limits are tokens, set from a measured wall. Sessions on the 1M window failed
-# with "Prompt is too long" at 975k–977k. HARD is 85%, the user's pick: its 125k
-# to the wall holds a handover (3k and 15k measured) plus two of the largest
-# single-step jumps seen (43k, a subagent report or a big read). SOFT is 70%, the user's
+# with "Prompt is too long" at 975k–977k. HARD is 70%, the user's pick: its 300k
+# to the wall holds a handover (3k and 15k measured) many times over the largest
+# single-step jump seen (43k, a subagent report or a big read). SOFT is 50%, the user's
 # pick: a shift change keeps this session alive to receive its running agents'
 # reports, so it leaves those reports the whole band up to HARD.
 # shortcut: assumes the 1M window every session here runs on; a smaller-window
 # main session needs the window read from the statusline payload.
 WALL=975000  # measured: where "Prompt is too long" hit
-SOFT=${CLAUDE_CONTEXT_SOFT_TOKENS:-700000}
-HARD=${CLAUDE_CONTEXT_HARD_TOKENS:-850000}
+SOFT=${CLAUDE_CONTEXT_SOFT_TOKENS:-500000}
+HARD=${CLAUDE_CONTEXT_HARD_TOKENS:-700000}
 
 set -u
 in=$(cat)
