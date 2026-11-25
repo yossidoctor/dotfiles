@@ -7,7 +7,7 @@
 #   soft  a note on the next tool result: start a shift change.
 #   hard  a note to start a handover, and the first turn end after it is blocked
 #         once, so a session that was about to go idle starts it instead.
-# What each one means is the session's skill (360: SKILL.md § Handover); this
+# What each one means is the session's skill (360: SKILL.md § Between the two sessions, **Handover**); this
 # hook only says which limit was crossed.
 #
 # Claude Code gives hooks no context figure. The transcript's last main-thread

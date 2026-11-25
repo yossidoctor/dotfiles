@@ -82,6 +82,10 @@
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/ask-risky-git-outside-worktree.sh",
             "if": "Bash(git *)"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/bash-stdin-devnull.sh"
           }
         ]
       },
