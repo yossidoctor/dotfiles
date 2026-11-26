@@ -12,7 +12,8 @@
 #       Off-thread, the completion notification wakes the caller with the
 #       command's output and exit code, so the wait and the check it guards run
 #       as one backgrounded command and the caller ends its turn. That wake is
-#       the one the main thread and a subagent both have
+#       the one the main thread and a subagent both have, so each wait gets a
+#       deadline (below) that guarantees the wake
 #       (~/dotfiles/docs/claude/subagent-harness.md); `Monitor` arrives only as
 #       a deferred tool behind a ToolSearch load, and `ScheduleWakeup` runs only
 #       under `/loop`.
@@ -75,14 +76,35 @@ if [ "$jobs_n" -gt 0 ] && ! printf '%s' "$cmd_unq" | grep -qE '\bwait\b' \
   deny "Nothing in this command ran — re-run the whole command, every part before and after the job (a heredoc that writes a file included), not only the \`&\` part. A job detached with \`&\` (or \`( … &)\`, \`nohup … &\`) belongs to the shell, not the harness, so its end wakes no one and its report never comes. Re-run it with \`run_in_background: true\` on the Bash call and no \`&\`, then end your turn; the completion notification wakes you with its output."
 fi
 
-WAIT_CONTEXT="Moved to the background by enforce-foreground-polling.sh: a foreground wait holds the session for its whole length. End your turn now; the completion notification wakes you with this command's output and exit code. A wait carries its own check (\`until <check>; do sleep 10; done; <report>\`), so the wake brings the answer."
+# A backgrounded command has no Bash timeout, and the caller ends its turn on it,
+# so a wait whose check never passes (a log grep defeated by ANSI colour codes, a
+# branch that is never pushed) parks the caller with nothing left to wake it.
+# Every wait this hook backgrounds therefore carries a deadline: the caller's own
+# `timeout` when it set one, else WAIT_DEADLINE_DEFAULT seconds. At the deadline a
+# watchdog prints why and kills the command's shell, whose exit wakes the caller.
+WAIT_DEADLINE_DEFAULT=3600
+wait_deadline=$(printf '%s' "$HOOK_INPUT" | jq -r '(.tool_input.timeout // empty) / 1000 | ceil' 2>/dev/null)
+[ -n "$wait_deadline" ] || wait_deadline=$WAIT_DEADLINE_DEFAULT
+WAIT_CONTEXT="Moved to the background by enforce-foreground-polling.sh: a foreground wait holds the session for its whole length. End your turn now; the completion notification wakes you with this command's output and exit code. A wait carries its own check (\`until <check>; do sleep 10; done; <report>\`), so the wake brings the answer. It now ends at a ${wait_deadline}s deadline (your \`timeout\`, else ${WAIT_DEADLINE_DEFAULT}s), killed with exit 143 and a \`deadline:\` line, if its check never passes: re-check then, and fix a check that cannot pass — probe a server's port or URL, never grep its log, whose colour codes split the words."
+
+background_wait() {  # $1=reason -> background with a deadline wrapped around the command, exit 0
+  wrapped=$(printf '( trap '"'"'kill $__s 2>/dev/null; exit 0'"'"' TERM; sleep %s & __s=$!; wait $__s; echo "deadline: this wait ran %ss and its check never passed" >&2; kill -TERM $$ ) & __wd=$!\n{ %s\n}; __rc=$?; kill $__wd 2>/dev/null; exit $__rc' \
+    "$wait_deadline" "$wait_deadline" "$cmd")
+  printf '%s' "$HOOK_INPUT" | jq -c --arg r "$1" --arg c "$WAIT_CONTEXT" --arg w "$wrapped" '{hookSpecificOutput: {
+    hookEventName: "PreToolUse",
+    permissionDecision: "allow",
+    permissionDecisionReason: $r,
+    updatedInput: ((.tool_input // {}) + {run_in_background: true, command: $w}),
+    additionalContext: $c}}'
+  exit 0
+}
 
 # Fixed sleeps: N >= 10 (two-digit 10-99 or 3+ digits, optional `s` suffix), or
 # any N with an m/h/d suffix. Below ten seconds a wait is part of one operation —
 # letting a killed process reap, a device handshake settle — where the check
 # belongs in the same command and there is nothing to come back to.
 if printf '%s' "$cmd_unq" | grep -qE '\bsleep[[:space:]]+([1-9][0-9]|[1-9][0-9]{2,})([.][0-9]+)?s?\b|\bsleep[[:space:]]+[0-9]+([.][0-9]+)?[mhd]\b'; then
-  background "Backgrounded — a wait off-thread wakes the caller on exit." "$WAIT_CONTEXT"
+  background_wait "Backgrounded — a wait off-thread wakes the caller on exit."
 fi
 
 # Poll loops: a `while`/`until` with `sleep` between its keyword and the loop's
@@ -97,7 +119,7 @@ case "$cmd_unq" in
     loop_head=${cmd_unq%done*}
     loop_body=$(printf '%s' "$loop_head" | grep -oE '(^|[;&|(][[:space:]]*|[[:space:]])(while|until)[[:space:]].*' | head -1)
     if [ -n "$loop_body" ] && printf '%s' "$loop_body" | grep -qE '\bsleep\b'; then
-      background "Backgrounded — a poll loop off-thread wakes the caller when it exits." "$WAIT_CONTEXT"
+      background_wait "Backgrounded — a poll loop off-thread wakes the caller when it exits."
     fi
     ;;
 esac
