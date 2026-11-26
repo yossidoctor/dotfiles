@@ -88,8 +88,8 @@ Every key under `env` in `claude/settings.json` is exported into each Bash-tool 
 
 ```
 model  [∘]ctx%  ·High  [bypass]
-● <email local-part>  5h ▰▰▱▱▱  26% 3h21m   7d ▰▰▰▱▱  65% 6h41m   <scoped> ▰▰▰▰▰  92%
-  <email local-part>  5h ▱▱▱▱▱   0%        7d ▱▱▱▱▱   0% 6d18h   <scoped> ▱▱▱▱▱   0%
+● <email local-part>  5h ▰▰▱▱▱  26% 3h21m   7d ▰▰▰▱▱  65% 6h41m
+  <email local-part>  5h ▱▱▱▱▱   0%        7d ▱▱▱▱▱   0% 6d18h
 ```
 
 Header line, then one row per claude-swap account, always. Colors are the Catppuccin roles in `starship/starship.toml`, cached in `claude/statusline-lib.sh` together with the shared color ramp. No cwd, scope, or git state — the line is workspace-agnostic.
@@ -99,15 +99,15 @@ Claude Code sets `COLUMNS` before running the script, and the width picks how ev
 ```
 FORM    COLUMNS   ROW                                                    WIDTH
 -----   -------   ----------------------------------------------------   -----
-BARS    ≥ 70      5h ▰▱▱▱▱  20% 3h18m   7d ▰▱▱▱▱  10% 6d08h   Fable ▰▱▱▱▱  15%   70
-GLYPH   ≥ 50      5h ▂20% 3h18m  7d ▁10% 6d08h  Fable ▂15%                 50
-BARE    ≥ 38      ▂20% 3h18m  ▁10% 6d08h  ▂15%                             38
-TIGHT   < 38      ▂20% ▁10% ▂15%                                           24
+BARS    ≥ 70      5h ▰▱▱▱▱  20% 3h18m   7d ▰▱▱▱▱  10% 6d08h              51
+GLYPH   ≥ 50      5h ▂20% 3h18m  7d ▁10% 6d08h                             38
+BARE    ≥ 38      ▂20% 3h18m  ▁10% 6d08h                                   32
+TIGHT   < 38      ▂20% ▁10%                                                19
 ```
 
-`COLUMNS` unset means BARS. The one-cell meter is `glyph_for_pct` in the lib: `▁` through `█` in eight 12.5% steps. Countdowns read `3h18m` below a day and `6d08h` above, left-justified in a 6-column slot so the meters align across rows; the scoped meter carries none (in the cache it equals the 7d reset). Percentages never drop.
+`COLUMNS` unset means BARS. The one-cell meter is `glyph_for_pct` in the lib: `▁` through `█` in eight 12.5% steps. Countdowns read `3h18m` below a day and `6d08h` above, left-justified in a 6-column slot so the meters align across rows. Percentages never drop.
 
-Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active number from `sequence.json`), parsed by one `jq` pass: `●` on the active account (in a `cswap run` session, the account its `CLAUDE_CONFIG_DIR` profile belongs to), the email's local-part padded to 6, then a 5h meter, a 7d meter, and the scoped per-model meter when present; every row, the active one included, is drawn from that cache. Inactive rows are faded. `◌` replaces the marker when the cache is older than 15 minutes, or a muted `◔` while that age is cswap waiting out a 429 (`backoffUntil` ahead); a `◌` cache kicks `cswap auto --once --dry-run` in the background at most once per 2 minutes. Without claude-swap the single row is the payload's own `rate_limits`, unmarked; with neither, the header stands alone. Run `cswap list` for the registered accounts and their quotas.
+Account rows come from `~/.claude-swap-backup/cache/usage.json` (the active number from `sequence.json`), parsed by one `jq` pass: `●` on the active account (in a `cswap run` session, the account its `CLAUDE_CONFIG_DIR` profile belongs to), the email's local-part padded to 6, then a 5h meter and a 7d meter; every row, the active one included, is drawn from that cache. Inactive rows are faded. `◌` replaces the marker when the cache is older than 15 minutes, or a muted `◔` while that age is cswap waiting out a 429 (`backoffUntil` ahead); a `◌` cache kicks `cswap auto --once --dry-run` in the background at most once per 2 minutes. Without claude-swap the single row is the payload's own `rate_limits`, unmarked; with neither, the header stands alone. Run `cswap list` for the registered accounts and their quotas.
 
 What changes that account is the `dev.yossidoctor.cswap-auto` LaunchAgent, installed by `claude/cswap-auto.sh` (a `./install` shell step, and the SoT for the arguments and the log routing): `cswap auto`, kept alive across logout and reboot, rotating to the account with the most quota left once the active one hits `cswap`'s default 90% threshold. `launchctl list | grep cswap` shows whether it's running. Registering an account is manual and interactive (`cswap add`) — it never runs from `./install`. `./install` does set `run.shareHistory`, so every `cswap run` session shares `~/.claude`'s transcripts and prompt history (one `--resume` list for all accounts).
 

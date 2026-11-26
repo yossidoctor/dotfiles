@@ -168,7 +168,6 @@ render_row() {
   meter_bodies=(); meter_cds=(); meter_cd_colors=()
   add_meter 5h "$p5" "$r5"
   add_meter 7d "$p7" "$r7"
-  [ -n "$sname" ] && add_meter "$sname" "$spct" 0
   if [ "${rej:-0}" -gt "$now" ]; then
     marker="${c_err}${g_active}${c_off}"
     [ "$is_active" = true ] || marker="$(fade "$c_err")${g_active}${c_off}"
@@ -203,21 +202,19 @@ if [ -f "$usage_cache" ]; then
     | ($a.lastGood // {}) as $lg
     | ($lg.five_hour // {}) as $fh
     | ($lg.seven_day // {}) as $sd
-    | (($lg.scoped // [{}])[0] // {}) as $s0
     | [ $k, (($a.email // "") | split("@")[0]),
         (if ($k | tonumber) == $active then "true" else "false" end),
         (num($a.fetchedAt; 0) | tostring),
         (num($fh.pct; -1) | tostring), (epoch($fh.resets_at) | tostring),
         (num($sd.pct; -1) | tostring), (epoch($sd.resets_at) | tostring),
-        ($s0.name // ""), (num($s0.pct; -1) | tostring),
         (num($a.backoffUntil; 0) | tostring),
         (epoch($lg.rejected.resets_at // "") | tostring) ]
     | join("\u001f")' "$usage_cache" "$state_in" 2>/dev/null)
 
   # stale: 0 fresh, 1 old cache, 2 old cache because cswap is waiting out a 429
   # (no kick: cswap would skip the fetch until backoffUntil anyway).
-  # \x1f, not tab: read merges runs of a whitespace IFS, so an empty field (no scoped meter) shifted the rest left.
-  while IFS=$'\x1f' read -r num email is_active fetched p5 r5 p7 r7 sname spct backoff rej; do
+  # \x1f, not tab: read merges runs of a whitespace IFS, so an empty field (no email) shifts the rest left.
+  while IFS=$'\x1f' read -r num email is_active fetched p5 r5 p7 r7 backoff rej; do
     [ -z "$num" ] && continue
     stale=$(( now - fetched > 900 ))
     [ "$stale" = 1 ] && [ "${backoff:-0}" -gt "$now" ] && stale=2
@@ -227,7 +224,7 @@ if [ -f "$usage_cache" ]; then
 fi
 if [ ${#account_lines[@]} -eq 0 ]; then
   if [ -n "$live5" ] || [ -n "$live7" ]; then
-    is_active=true sname="" p5=${live5:--1} r5=$live5_reset p7=${live7:--1} r7=$live7_reset
+    is_active=true p5=${live5:--1} r5=$live5_reset p7=${live7:--1} r7=$live7_reset
     account_lines+=("$(render_row "" 0)")
   elif [ -f "$cswap_state" ]; then
     account_lines+=("${c_off}  ${c_muted}cswap: stale${c_off}")
