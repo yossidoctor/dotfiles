@@ -74,7 +74,7 @@ The rows below are one-line orientation only (§ Script conventions: the header 
 Every key under `env` in `claude/settings.json` is exported into each Bash-tool and hook subprocess, so the object carries values only; the reasons live here.
 
 - `PATH` duplicates `zsh/zshenv` (the SoT): the Bash tool runs a non-interactive zsh that sources zshenv, but the harness's `env.PATH` overrides the PATH zshenv set, so without this key the tool would run on the harness's own PATH. It is prefixed with fnm's default-version bin: zsh gets node from `fnm env --use-on-cd` at runtime, which a non-interactive tool call never runs.
-- `DISABLE_AUTOUPDATER`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable.
+- `DISABLE_AUTOUPDATER`, `DISABLE_ERROR_REPORTING` are set-only: any non-empty value opts out, `"0"` included; unset to re-enable. `DISABLE_TELEMETRY` is the same kind and stays unset, because it also turns off feature-flag fetching, which syncing claude.ai plugins into the terminal needs.
 - `PAGER` is `cat`, so no call waits on a pager it has no TTY to page to: git skips its own pager off a TTY, and `cat` covers the tools that do not check.
 - `CI` is the switch most CLIs read (npm, gh, pip, jest, vitest): prompts, spinners and colour off, and test runners run once instead of watching. It is broad, so a tool behaving differently under the Bash tool than in a terminal is checked against it first.
 - `NO_COLOR` is the no-color.org convention: ANSI codes off wherever a tool honours it, so output greps clean.

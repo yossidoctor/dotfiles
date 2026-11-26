@@ -3,14 +3,13 @@
   "env": {
     "PATH": "/Users/yossidoctor/.local/share/fnm/aliases/default/bin:/Users/yossidoctor/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
     "DISABLE_AUTOUPDATER": "1",
-    "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "PAGER": "cat",
     "CI": "1",
     "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "24",
     "CLAUDE_CODE_GLOB_NO_IGNORE": "false",
     "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
-    "PONYTAIL_DEFAULT_MODE": "full",
+    "PONYTAIL_DEFAULT_MODE": "off",
     "PONYTAIL_MAP": "0",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
@@ -119,7 +118,8 @@
     "cc-plugin-agents-md@builtin": false,
     "cc-plugin-sec-default@builtin": false,
     "cc-plugin-diff@builtin": false,
-    "cc-plugin-plugin-authoring@builtin": false
+    "cc-plugin-plugin-authoring@builtin": false,
+    "burn-band@synced": false
   },
   "extraKnownMarketplaces": {
     "mattpocock": {
