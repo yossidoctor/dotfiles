@@ -102,26 +102,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/context-limits.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.claude/hooks/context-limits.sh"
-          }
-        ]
-      }
     ]
   },
   "worktree": {

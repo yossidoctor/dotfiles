@@ -46,7 +46,6 @@
     ~/.claude/hooks/ask-risky-git-outside-worktree.sh: claude/hooks/ask-risky-git-outside-worktree.sh
     ~/.claude/hooks/deny-fable-subagent.sh: claude/hooks/deny-fable-subagent.sh
     ~/.claude/hooks/stamp-agent-description.sh: claude/hooks/stamp-agent-description.sh
-    ~/.claude/hooks/context-limits.sh: claude/hooks/context-limits.sh
     ~/.claude/hooks/bash-stdin-devnull.sh: claude/hooks/bash-stdin-devnull.sh
     ~/.claude/skills: claude/skills
     # per file, so a layer can deploy its own rule beside these
